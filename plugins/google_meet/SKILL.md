@@ -125,7 +125,7 @@ Run `gengar meet setup` to preflight local prereqs.
 | `captioning` | Caption observer is installed. |
 | `transcriptLines` / `lastCaptionAt` | Transcript progress. |
 | `realtime` / `realtimeReady` | Realtime mode provisioned / WS connected. |
-| `realtimeDevice` | Audio device name the bot is feeding (e.g. `hermes_meet_src`). |
+| `realtimeDevice` | Audio device name the bot is feeding (e.g. `gengar_meet_src`). |
 | `audioBytesOut` / `lastAudioOutAt` | How much PCM the OpenAI session has produced. |
 | `lastBargeInAt` | Timestamp of the most recent `response.cancel` sent. |
 | `leaveReason` | `duration_expired`, `lobby_timeout`, `denied`, `page_closed`, or null. |

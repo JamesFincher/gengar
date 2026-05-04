@@ -2780,7 +2780,7 @@ class TelegramAdapter(BasePlatformAdapter):
         # Telegram parses mentions server-side and emits MessageEntity objects
         # (type=mention for @username, type=text_mention for @FirstName targeting
         # a user without a public username). Only those entities are authoritative —
-        # raw substring matches like "foo@hermes_bot.example" are not mentions
+        # raw substring matches like "foo@gengar_bot.example" are not mentions
         # (bug #12545). Entities also correctly handle @handles inside URLs, code
         # blocks, and quoted text, where a regex scan would over-match.
         for source_text, entities in _iter_sources():

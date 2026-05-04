@@ -1790,7 +1790,7 @@ class FeishuAdapter(BasePlatformAdapter):
     ) -> SendResult:
         """Send an interactive card with approval buttons.
 
-        The buttons carry ``hermes_action`` in their value dict so that
+        The buttons carry ``gengar_action`` in their value dict so that
         ``_handle_card_action_event`` can intercept them and call
         ``resolve_gateway_approval()`` to unblock the waiting agent thread.
         """
@@ -1806,7 +1806,7 @@ class FeishuAdapter(BasePlatformAdapter):
                     "tag": "button",
                     "text": {"tag": "plain_text", "content": label},
                     "type": btn_type,
-                    "value": {"hermes_action": action_name, "approval_id": approval_id},
+                    "value": {"gengar_action": action_name, "approval_id": approval_id},
                 }
 
             card = {
@@ -2368,9 +2368,12 @@ class FeishuAdapter(BasePlatformAdapter):
         event = getattr(data, "event", None)
         action = getattr(event, "action", None)
         action_value = getattr(action, "value", {}) or {}
-        hermes_action = action_value.get("hermes_action") if isinstance(action_value, dict) else None
+        if isinstance(action_value, dict):
+            gengar_action = action_value.get("gengar_action") or action_value.get("hermes_action")
+        else:
+            gengar_action = None
 
-        if hermes_action:
+        if gengar_action:
             return self._handle_approval_card_action(event=event, action_value=action_value, loop=loop)
 
         self._submit_on_loop(loop, self._handle_card_action_event(data))
@@ -2394,7 +2397,8 @@ class FeishuAdapter(BasePlatformAdapter):
         if approval_id is None:
             logger.debug("[Feishu] Card action missing approval_id, ignoring")
             return P2CardActionTriggerResponse() if P2CardActionTriggerResponse else None
-        choice = _APPROVAL_CHOICE_MAP.get(action_value.get("hermes_action"), "deny")
+        action_name = action_value.get("gengar_action") or action_value.get("hermes_action")
+        choice = _APPROVAL_CHOICE_MAP.get(action_name, "deny")
 
         operator = getattr(event, "operator", None)
         open_id = str(getattr(operator, "open_id", "") or "")
