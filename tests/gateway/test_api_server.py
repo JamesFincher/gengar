@@ -465,7 +465,7 @@ class TestHealthDetailedEndpoint:
 
 class TestModelsEndpoint:
     @pytest.mark.asyncio
-    async def test_models_returns_hermes_agent(self, adapter):
+    async def test_models_returns_gengar_agent(self, adapter):
         app = _create_app(adapter)
         async with TestClient(TestServer(app)) as cli:
             resp = await cli.get("/v1/models")

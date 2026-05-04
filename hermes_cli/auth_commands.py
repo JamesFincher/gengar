@@ -27,6 +27,7 @@ from agent.credential_pool import (
     list_custom_pool_providers,
     load_pool,
 )
+from agent.credential_source_ids import ANTHROPIC_PKCE_SOURCE, manual_source
 import hermes_cli.auth as auth_mod
 from hermes_cli.auth import PROVIDER_REGISTRY
 from hermes_constants import OPENROUTER_BASE_URL
@@ -234,7 +235,7 @@ def auth_add_command(args) -> None:
             label=label,
             auth_type=AUTH_TYPE_OAUTH,
             priority=0,
-            source=f"{SOURCE_MANUAL}:hermes_pkce",
+            source=manual_source(ANTHROPIC_PKCE_SOURCE),
             access_token=creds["access_token"],
             refresh_token=creds.get("refresh_token"),
             expires_at_ms=creds.get("expires_at_ms"),

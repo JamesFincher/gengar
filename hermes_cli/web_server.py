@@ -1331,9 +1331,11 @@ def _anthropic_oauth_status() -> Dict[str, Any]:
         except Exception:
             hermes_creds = None
     if hermes_creds and hermes_creds.get("accessToken"):
+        from agent.credential_source_ids import ANTHROPIC_PKCE_SOURCE
+
         return {
             "logged_in": True,
-            "source": "hermes_pkce",
+            "source": ANTHROPIC_PKCE_SOURCE,
             "source_label": f"Gengar PKCE ({_GENGAR_OAUTH_FILE})",
             "token_preview": _truncate_token(hermes_creds.get("accessToken")),
             "expires_at": hermes_creds.get("expiresAt"),
@@ -1519,7 +1521,7 @@ async def list_oauth_providers():
         docs_url        external docs/portal link for the "Learn more" link
         status:
           logged_in        bool — currently has usable creds
-          source           short slug ("hermes_pkce", "claude_code", ...)
+          source           short slug ("gengar_pkce", "claude_code", ...)
           source_label     human-readable origin (file path, env var name)
           token_preview    last N chars of the token, never the full token
           expires_at       ISO timestamp string or null

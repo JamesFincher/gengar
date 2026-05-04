@@ -18,7 +18,7 @@
   # trailing newline so both sides always match.
   #
   # Usage:
-  #   npm = hermesNpmLib.mkNpmPassthru { folder = "ui-tui"; attr = "tui"; pname = "gengar-tui"; };
+  #   npm = gengarNpmLib.mkNpmPassthru { folder = "ui-tui"; attr = "tui"; pname = "gengar-tui"; };
   #   pkgs.buildNpmPackage (npm // { ... } # or:
   #   pkgs.buildNpmPackage ({ ... } // npm)
   mkNpmPassthru =

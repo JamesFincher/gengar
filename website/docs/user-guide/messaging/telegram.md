@@ -15,7 +15,7 @@ Every Telegram bot requires an API token issued by [@BotFather](https://t.me/Bot
 1. Open Telegram and search for **@BotFather**, or visit [t.me/BotFather](https://t.me/BotFather)
 2. Send `/newbot`
 3. Choose a **display name** (e.g., "Gengar") — this can be anything
-4. Choose a **username** — this must be unique and end in `bot` (e.g., `my_hermes_bot`)
+4. Choose a **username** — this must be unique and end in `bot` (e.g., `my_gengar_bot`)
 5. BotFather replies with your **API token**. It looks like this:
 
 ```

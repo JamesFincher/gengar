@@ -28,20 +28,20 @@
 }:
 let
   nodejs = nodejs_22;
-  hermesVenv = callPackage ./python.nix {
+  gengarVenv = callPackage ./python.nix {
     inherit uv2nix pyproject-nix pyproject-build-systems;
   };
 
-  hermesNpmLib = callPackage ./lib.nix {
+  gengarNpmLib = callPackage ./lib.nix {
     inherit npm-lockfile-fix nodejs;
   };
 
-  hermesTui = callPackage ./tui.nix {
-    inherit hermesNpmLib;
+  gengarTui = callPackage ./tui.nix {
+    inherit gengarNpmLib;
   };
 
-  hermesWeb = callPackage ./web.nix {
-    inherit hermesNpmLib;
+  gengarWeb = callPackage ./web.nix {
+    inherit gengarNpmLib;
   };
 
   bundledSkills = lib.cleanSourceWith {
@@ -91,7 +91,7 @@ let
 
     # Collect core venv package names
     core = set()
-    venv_sp = pathlib.Path('${hermesVenv}/${sitePackagesPath}')
+    venv_sp = pathlib.Path('${gengarVenv}/${sitePackagesPath}')
     for di in venv_sp.glob('*.dist-info'):
         meta = di / 'METADATA'
         if meta.exists():
@@ -137,20 +137,20 @@ stdenv.mkDerivation {
     mkdir -p $out/share/gengar $out/bin
     cp -r ${bundledSkills} $out/share/gengar/skills
     cp -r ${bundledPlugins} $out/share/gengar/plugins
-    cp -r ${hermesWeb} $out/share/gengar/web_dist
+    cp -r ${gengarWeb} $out/share/gengar/web_dist
 
     mkdir -p $out/ui-tui
-    cp -r ${hermesTui}/lib/gengar-tui/* $out/ui-tui/
+    cp -r ${gengarTui}/lib/gengar-tui/* $out/ui-tui/
 
     ${lib.concatMapStringsSep "\n"
       (name: ''
-        makeWrapper ${hermesVenv}/bin/${name} $out/bin/${name} \
+        makeWrapper ${gengarVenv}/bin/${name} $out/bin/${name} \
           --suffix PATH : "${runtimePath}" \
           --set GENGAR_BUNDLED_SKILLS $out/share/gengar/skills \
           --set GENGAR_BUNDLED_PLUGINS $out/share/gengar/plugins \
           --set GENGAR_WEB_DIST $out/share/gengar/web_dist \
           --set GENGAR_TUI_DIR $out/ui-tui \
-          --set GENGAR_PYTHON ${hermesVenv}/bin/python3 \
+          --set GENGAR_PYTHON ${gengarVenv}/bin/python3 \
           --set GENGAR_NODE ${lib.getExe nodejs} \
           ${lib.optionalString (rev != null) ''--set GENGAR_REVISION ${rev} \''}
           ${lib.optionalString (extraPythonPackages != [ ]) ''--suffix PYTHONPATH : "${pythonPath}"''}
@@ -164,7 +164,7 @@ stdenv.mkDerivation {
 
     ${lib.optionalString (extraPythonPackages != [ ]) ''
       echo "=== Checking for plugin/core package collisions ==="
-      ${hermesVenv}/bin/python3 -c "${checkPackageCollisions}"
+      ${gengarVenv}/bin/python3 -c "${checkPackageCollisions}"
       echo "=== No collisions ==="
     ''}
 
@@ -173,11 +173,18 @@ stdenv.mkDerivation {
 
   passthru = {
     inherit
-      hermesTui
-      hermesWeb
-      hermesNpmLib
-      hermesVenv
+      gengarTui
+      gengarWeb
+      gengarNpmLib
+      gengarVenv
       ;
+
+    # Legacy aliases for downstream flakes that referenced pre-rename
+    # passthru attrs. Keep these until the next breaking-release window.
+    hermesTui = gengarTui;
+    hermesWeb = gengarWeb;
+    hermesNpmLib = gengarNpmLib;
+    hermesVenv = gengarVenv;
 
     devShellHook = ''
       STAMP=".nix-stamps/gengar"
@@ -193,7 +200,7 @@ stdenv.mkDerivation {
         echo "$STAMP_VALUE" > "$STAMP"
       else
         source .venv/bin/activate
-        export GENGAR_PYTHON=${hermesVenv}/bin/python3
+        export GENGAR_PYTHON=${gengarVenv}/bin/python3
       fi
     '';
   };

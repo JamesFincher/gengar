@@ -32,7 +32,7 @@ def _make_adapter(
     adapter = object.__new__(TelegramAdapter)
     adapter.platform = Platform.TELEGRAM
     adapter.config = PlatformConfig(enabled=True, token="***", extra=extra)
-    adapter._bot = SimpleNamespace(id=999, username="hermes_bot")
+    adapter._bot = SimpleNamespace(id=999, username="gengar_bot")
     adapter._message_handler = AsyncMock()
     adapter._pending_text_batches = {}
     adapter._pending_text_batch_tasks = {}
@@ -80,7 +80,7 @@ def _dm_message(text="hello", *, from_user_id=111):
     )
 
 
-def _mention_entity(text, mention="@hermes_bot"):
+def _mention_entity(text, mention="@gengar_bot"):
     offset = text.index(mention)
     return SimpleNamespace(type="mention", offset=offset, length=len(mention))
 
@@ -106,7 +106,7 @@ def test_group_messages_can_require_direct_trigger_via_config():
     adapter = _make_adapter(require_mention=True)
 
     assert adapter._should_process_message(_group_message("hello everyone")) is False
-    assert adapter._should_process_message(_group_message("hi @hermes_bot", entities=[_mention_entity("hi @hermes_bot")])) is True
+    assert adapter._should_process_message(_group_message("hi @gengar_bot", entities=[_mention_entity("hi @gengar_bot")])) is True
     assert adapter._should_process_message(_group_message("replying", reply_to_bot=True)) is True
     # Commands must also respect require_mention when it is enabled
     assert adapter._should_process_message(_group_message("/status"), is_command=True) is False
@@ -115,8 +115,8 @@ def test_group_messages_can_require_direct_trigger_via_config():
     # entity). We must accept it so the menu works when require_mention is on.
     assert adapter._should_process_message(
         _group_message(
-            "/status@hermes_bot",
-            entities=[_bot_command_entity("/status@hermes_bot", "/status@hermes_bot")],
+            "/status@gengar_bot",
+            entities=[_bot_command_entity("/status@gengar_bot", "/status@gengar_bot")],
         ),
         is_command=True,
     ) is True

@@ -566,6 +566,12 @@ def test_load_pool_migrates_nous_provider_state_preserves_tls(tmp_path, monkeypa
 
 
 def test_singleton_seed_does_not_clobber_manual_oauth_entry(tmp_path, monkeypatch):
+    from agent.credential_source_ids import (
+        ANTHROPIC_PKCE_SOURCE,
+        LEGACY_ANTHROPIC_PKCE_SOURCE,
+        manual_source,
+    )
+
     monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "gengar"))
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_TOKEN", raising=False)
@@ -582,7 +588,7 @@ def test_singleton_seed_does_not_clobber_manual_oauth_entry(tmp_path, monkeypatc
                         "label": "manual-pkce",
                         "auth_type": "oauth",
                         "priority": 0,
-                        "source": "manual:hermes_pkce",
+                        "source": manual_source(LEGACY_ANTHROPIC_PKCE_SOURCE),
                         "access_token": "manual-token",
                         "refresh_token": "manual-refresh",
                         "expires_at_ms": 1711234567000,
@@ -611,7 +617,10 @@ def test_singleton_seed_does_not_clobber_manual_oauth_entry(tmp_path, monkeypatc
     entries = pool.entries()
 
     assert len(entries) == 2
-    assert {entry.source for entry in entries} == {"manual:hermes_pkce", "hermes_pkce"}
+    assert {entry.source for entry in entries} == {
+        manual_source(ANTHROPIC_PKCE_SOURCE),
+        ANTHROPIC_PKCE_SOURCE,
+    }
 
 
 def test_load_pool_prefers_anthropic_env_token_over_file_backed_oauth(tmp_path, monkeypatch):

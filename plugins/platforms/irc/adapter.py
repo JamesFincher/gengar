@@ -416,7 +416,7 @@ class IRCAdapter(BasePlatformAdapter):
 
         # ERR_NICKNAMEINUSE (433) — nick collision during registration
         if command == "433":
-            # Retry with incrementing suffix: hermes_, hermes_1, hermes_2...
+            # Retry with incrementing suffix: nick_, nick_1, nick_2...
             base = self.nickname.rstrip("_0123456789")
             suffix_match = re.search(r"_(\d+)$", self._current_nick)
             if suffix_match:

@@ -63,6 +63,8 @@ def test_auth_add_api_key_persists_manual_entry(tmp_path, monkeypatch):
 
 
 def test_auth_add_anthropic_oauth_persists_pool_entry(tmp_path, monkeypatch):
+    from agent.credential_source_ids import ANTHROPIC_PKCE_SOURCE, manual_source
+
     monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "gengar"))
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_TOKEN", raising=False)
@@ -90,9 +92,10 @@ def test_auth_add_anthropic_oauth_persists_pool_entry(tmp_path, monkeypatch):
 
     payload = json.loads((tmp_path / "gengar" / "auth.json").read_text())
     entries = payload["credential_pool"]["anthropic"]
-    entry = next(item for item in entries if item["source"] == "manual:hermes_pkce")
+    expected_source = manual_source(ANTHROPIC_PKCE_SOURCE)
+    entry = next(item for item in entries if item["source"] == expected_source)
     assert entry["label"] == "claude@example.com"
-    assert entry["source"] == "manual:hermes_pkce"
+    assert entry["source"] == expected_source
     assert entry["refresh_token"] == "refresh-token"
     assert entry["expires_at_ms"] == 1711234567000
 
@@ -477,7 +480,7 @@ def test_clear_provider_auth_removes_provider_pool_entries(tmp_path, monkeypatch
                         "label": "primary",
                         "auth_type": "oauth",
                         "priority": 0,
-                        "source": "manual:hermes_pkce",
+                        "source": "manual:gengar_pkce",
                         "access_token": "pool-token",
                     }
                 ],
@@ -1419,8 +1422,13 @@ def test_seed_from_singletons_respects_qwen_suppression(tmp_path, monkeypatch):
     assert active == set()
 
 
-def test_seed_from_singletons_respects_hermes_pkce_suppression(tmp_path, monkeypatch):
-    """anthropic hermes_pkce must not re-seed from ~/.gengar/.anthropic_oauth.json when suppressed."""
+def test_seed_from_singletons_respects_legacy_pkce_suppression(tmp_path, monkeypatch):
+    """Legacy Anthropic PKCE suppression must prevent re-seeding."""
+    from agent.credential_source_ids import (
+        ANTHROPIC_PKCE_SOURCE,
+        LEGACY_ANTHROPIC_PKCE_SOURCE,
+    )
+
     hermes_home = tmp_path / "gengar"
     hermes_home.mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
@@ -1430,10 +1438,10 @@ def test_seed_from_singletons_respects_hermes_pkce_suppression(tmp_path, monkeyp
     (hermes_home / "auth.json").write_text(json.dumps({
         "version": 1,
         "providers": {},
-        "suppressed_sources": {"anthropic": ["hermes_pkce"]},
+        "suppressed_sources": {"anthropic": [LEGACY_ANTHROPIC_PKCE_SOURCE]},
     }))
 
-    # Stub the readers so only hermes_pkce is "available"; claude_code returns None
+    # Stub the readers so only the PKCE source is "available"; claude_code returns None
     import agent.anthropic_adapter as aa
     monkeypatch.setattr(aa, "read_hermes_oauth_credentials", lambda: {
         "accessToken": "tok", "refreshToken": "r", "expiresAt": 9999999999000,
@@ -1443,9 +1451,8 @@ def test_seed_from_singletons_respects_hermes_pkce_suppression(tmp_path, monkeyp
     from agent.credential_pool import _seed_from_singletons
     entries = []
     changed, active = _seed_from_singletons("anthropic", entries)
-    # hermes_pkce suppressed, claude_code returns None → nothing should be seeded
     assert entries == []
-    assert "hermes_pkce" not in active
+    assert ANTHROPIC_PKCE_SOURCE not in active
 
 
 def test_seed_custom_pool_respects_config_suppression(tmp_path, monkeypatch):

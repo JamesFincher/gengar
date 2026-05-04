@@ -12,6 +12,7 @@ import yaml
 
 from hermes_cli.plugins import (
     ENTRY_POINTS_GROUP,
+    LEGACY_ENTRY_POINTS_GROUP,
     VALID_HOOKS,
     LoadedPlugin,
     PluginContext,
@@ -185,6 +186,32 @@ class TestPluginDiscovery:
             mgr.discover_and_load()
 
         assert "ep_plugin" in mgr._plugins
+
+    def test_legacy_entry_points_scanned(self, tmp_path, monkeypatch):
+        """Legacy entry-point based plugins are discovered for compatibility."""
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
+
+        fake_module = types.ModuleType("legacy_ep_plugin")
+        fake_module.register = lambda ctx: None  # type: ignore[attr-defined]
+
+        fake_ep = MagicMock()
+        fake_ep.name = "legacy_ep_plugin"
+        fake_ep.value = "legacy_ep_plugin:register"
+        fake_ep.group = LEGACY_ENTRY_POINTS_GROUP
+        fake_ep.load.return_value = fake_module
+
+        def fake_entry_points():
+            result = MagicMock()
+            result.select = MagicMock(
+                side_effect=lambda group: [fake_ep] if group == LEGACY_ENTRY_POINTS_GROUP else []
+            )
+            return result
+
+        with patch("importlib.metadata.entry_points", fake_entry_points):
+            mgr = PluginManager()
+            mgr.discover_and_load()
+
+        assert "legacy_ep_plugin" in mgr._plugins
 
 
 # ── TestPluginLoading ──────────────────────────────────────────────────────

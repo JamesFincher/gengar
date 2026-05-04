@@ -1,5 +1,5 @@
 # nix/tui.nix — Gengar TUI (Ink/React) compiled with tsc and bundled
-{ pkgs, hermesNpmLib, ... }:
+{ pkgs, gengarNpmLib ? hermesNpmLib, hermesNpmLib ? null, ... }:
 let
   src = ../ui-tui;
   npmDeps = pkgs.fetchNpmDeps {
@@ -7,7 +7,7 @@ let
     hash = "sha256-a/HGI9OgVcTnZrMXA7xFMGnFoVxyHe95fulVz+WNYB0=";
   };
 
-  npm = hermesNpmLib.mkNpmPassthru { folder = "ui-tui"; attr = "tui"; pname = "gengar-tui"; };
+  npm = gengarNpmLib.mkNpmPassthru { folder = "ui-tui"; attr = "tui"; pname = "gengar-tui"; };
 
   packageJson = builtins.fromJSON (builtins.readFile (src + "/package.json"));
   version = packageJson.version;
