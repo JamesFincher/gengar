@@ -17,7 +17,7 @@ ASCII art: pyfiglet, cowsay, boxes, image-to-ascii.
 | Source | Bundled (installed by default) |
 | Path | `skills/creative/ascii-art` |
 | Version | `4.0.0` |
-| Author | 0xbyt4, Hermes Agent |
+| Author | 0xbyt4, Gengar |
 | License | MIT |
 | Tags | `ASCII`, `Art`, `Banners`, `Creative`, `Unicode`, `Text-Art`, `pyfiglet`, `figlet`, `cowsay`, `boxes` |
 | Related skills | [`excalidraw`](/docs/user-guide/skills/bundled/creative/creative-excalidraw) |
@@ -25,7 +25,7 @@ ASCII art: pyfiglet, cowsay, boxes, image-to-ascii.
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Gengar loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # ASCII Art Skill
@@ -171,9 +171,9 @@ boxes -l                                       # List all 70+ designs
 ### Combine with pyfiglet or asciified
 
 ```bash
-python3 -m pyfiglet "HERMES" -f slant | boxes -d stone
+python3 -m pyfiglet "GENGAR" -f slant | boxes -d stone
 # Or without pyfiglet installed:
-curl -s "https://asciified.thelicato.io/api/v2/ascii?text=HERMES&font=Slant" | boxes -d stone
+curl -s "https://asciified.thelicato.io/api/v2/ascii?text=GENGAR&font=Slant" | boxes -d stone
 ```
 
 ## Tool 5: TOIlet (Colored Text Art)

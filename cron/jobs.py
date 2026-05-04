@@ -1,8 +1,8 @@
 """
 Cron job storage and management.
 
-Jobs are stored in ~/.hermes/cron/jobs.json
-Output is saved to ~/.hermes/cron/output/{job_id}/{timestamp}.md
+Jobs are stored in ~/.gengar/cron/jobs.json
+Output is saved to ~/.gengar/cron/output/{job_id}/{timestamp}.md
 """
 
 import copy
@@ -33,8 +33,8 @@ except ImportError:
 # Configuration
 # =============================================================================
 
-HERMES_DIR = get_hermes_home().resolve()
-CRON_DIR = HERMES_DIR / "cron"
+GENGAR_DIR = get_hermes_home().resolve()
+CRON_DIR = GENGAR_DIR / "cron"
 JOBS_FILE = CRON_DIR / "jobs.json"
 
 # In-process lock protecting load_jobs→modify→save_jobs cycles.
@@ -211,13 +211,13 @@ def parse_schedule(schedule: str) -> Dict[str, Any]:
 
 
 def _ensure_aware(dt: datetime) -> datetime:
-    """Return a timezone-aware datetime in Hermes configured timezone.
+    """Return a timezone-aware datetime in Gengar configured timezone.
 
     Backward compatibility:
     - Older stored timestamps may be naive.
     - Naive values are interpreted as *system-local wall time* (the timezone
       `datetime.now()` used when they were created), then converted to the
-      configured Hermes timezone.
+      configured Gengar timezone.
 
     This preserves relative ordering for legacy naive timestamps across
     timezone changes and avoids false not-due results.
@@ -315,7 +315,7 @@ def compute_next_run(schedule: Dict[str, Any], last_run_at: Optional[str] = None
             logger.warning(
                 "Cannot compute next run for cron schedule %r: 'croniter' is "
                 "not installed. croniter is a core dependency as of v0.9.x; "
-                "reinstall hermes-agent or run 'pip install croniter' in your "
+                "reinstall gengar or run 'pip install croniter' in your "
                 "runtime env.",
                 schedule.get("expr"),
             )

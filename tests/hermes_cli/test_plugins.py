@@ -1,4 +1,4 @@
-"""Tests for the Hermes plugin system (hermes_cli.plugins)."""
+"""Tests for the Gengar plugin system (hermes_cli.plugins)."""
 
 import logging
 import os
@@ -57,11 +57,11 @@ def _make_plugin_dir(base: Path, name: str, *, register_body: str = "pass",
     )
 
     if auto_enable:
-        # Write/merge plugins.enabled in <HERMES_HOME>/config.yaml.
-        # Config is always read from HERMES_HOME (not from the project
+        # Write/merge plugins.enabled in <GENGAR_HOME>/config.yaml.
+        # Config is always read from GENGAR_HOME (not from the project
         # dir for project plugins), so that's where we opt in.
         import os
-        hermes_home_str = os.environ.get("HERMES_HOME")
+        hermes_home_str = os.environ.get("GENGAR_HOME")
         if hermes_home_str:
             hermes_home = Path(hermes_home_str)
         else:
@@ -90,10 +90,10 @@ class TestPluginDiscovery:
     """Tests for plugin discovery from directories and entry points."""
 
     def test_discover_user_plugins(self, tmp_path, monkeypatch):
-        """Plugins in ~/.hermes/plugins/ are discovered."""
+        """Plugins in ~/.gengar/plugins/ are discovered."""
         plugins_dir = tmp_path / "hermes_test" / "plugins"
         _make_plugin_dir(plugins_dir, "hello_plugin")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -102,12 +102,12 @@ class TestPluginDiscovery:
         assert mgr._plugins["hello_plugin"].enabled
 
     def test_discover_project_plugins(self, tmp_path, monkeypatch):
-        """Plugins in ./.hermes/plugins/ are discovered."""
+        """Plugins in ./.gengar/plugins/ are discovered."""
         project_dir = tmp_path / "project"
         project_dir.mkdir()
         monkeypatch.chdir(project_dir)
-        monkeypatch.setenv("HERMES_ENABLE_PROJECT_PLUGINS", "true")
-        plugins_dir = project_dir / ".hermes" / "plugins"
+        monkeypatch.setenv("GENGAR_ENABLE_PROJECT_PLUGINS", "true")
+        plugins_dir = project_dir / ".gengar" / "plugins"
         _make_plugin_dir(plugins_dir, "proj_plugin")
 
         mgr = PluginManager()
@@ -121,7 +121,7 @@ class TestPluginDiscovery:
         project_dir = tmp_path / "project"
         project_dir.mkdir()
         monkeypatch.chdir(project_dir)
-        plugins_dir = project_dir / ".hermes" / "plugins"
+        plugins_dir = project_dir / ".gengar" / "plugins"
         _make_plugin_dir(plugins_dir, "proj_plugin")
 
         mgr = PluginManager()
@@ -133,7 +133,7 @@ class TestPluginDiscovery:
         """Calling discover_and_load() twice does not duplicate plugins."""
         plugins_dir = tmp_path / "hermes_test" / "plugins"
         _make_plugin_dir(plugins_dir, "once_plugin")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -150,7 +150,7 @@ class TestPluginDiscovery:
         """Directories without plugin.yaml are silently skipped."""
         plugins_dir = tmp_path / "hermes_test" / "plugins"
         (plugins_dir / "no_manifest").mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -164,7 +164,7 @@ class TestPluginDiscovery:
 
     def test_entry_points_scanned(self, tmp_path, monkeypatch):
         """Entry-point based plugins are discovered (mocked)."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         fake_module = types.ModuleType("fake_ep_plugin")
         fake_module.register = lambda ctx: None  # type: ignore[attr-defined]
@@ -205,7 +205,7 @@ class TestPluginLoading:
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["bad_plugin"]}})
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -228,7 +228,7 @@ class TestPluginLoading:
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["no_reg"]}})
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -241,7 +241,7 @@ class TestPluginLoading:
         """Directory plugins are importable under hermes_plugins.<name>."""
         plugins_dir = tmp_path / "hermes_test" / "plugins"
         _make_plugin_dir(plugins_dir, "ns_plugin")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         # Clean up any prior namespace module
         sys.modules.pop("hermes_plugins.ns_plugin", None)
@@ -281,7 +281,7 @@ class TestPluginLoading:
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["mempalace"]}})
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -311,7 +311,7 @@ class TestPluginLoading:
             "# This plugin inspects MemoryProvider docs but isn't one.\n"
             "def register(ctx):\n    pass\n"
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -344,7 +344,7 @@ class TestPluginHooks:
                 'lambda **kw: {"action": "skip", "reason": "test"})'
             ),
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -365,7 +365,7 @@ class TestPluginHooks:
             plugins_dir, "hook_plugin",
             register_body='ctx.register_hook("pre_tool_call", lambda **kw: None)',
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -380,7 +380,7 @@ class TestPluginHooks:
             plugins_dir, "bad_hook",
             register_body='ctx.register_hook("post_tool_call", lambda **kw: 1/0)',
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -398,7 +398,7 @@ class TestPluginHooks:
                 'lambda **kw: {"context": "memory from plugin"})'
             ),
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -415,7 +415,7 @@ class TestPluginHooks:
             plugins_dir, "none_hook",
             register_body='ctx.register_hook("post_llm_call", lambda **kw: None)',
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -434,7 +434,7 @@ class TestPluginHooks:
                 '"mc": kw.get("message_count"), "tc": kw.get("tool_count")})'
             ),
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -462,7 +462,7 @@ class TestPluginHooks:
                 'lambda **kw: f"{kw[\'command\']}|{kw[\'returncode\']}|{kw[\'env_type\']}|{kw[\'task_id\']}|{len(kw[\'output\'])}")'
             ),
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -484,7 +484,7 @@ class TestPluginHooks:
             plugins_dir, "warn_plugin",
             register_body='ctx.register_hook("on_banana", lambda **kw: None)',
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         with caplog.at_level(logging.WARNING, logger="hermes_cli.plugins"):
             mgr = PluginManager()
@@ -562,7 +562,7 @@ class TestPluginContext:
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["tool_plugin"]}})
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -600,7 +600,7 @@ class TestPluginToolVisibility:
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["vis_plugin"]}})
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -640,7 +640,7 @@ class TestPluginManagerList:
         plugins_dir = tmp_path / "hermes_test" / "plugins"
         _make_plugin_dir(plugins_dir, "zulu")
         _make_plugin_dir(plugins_dir, "alpha")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -656,7 +656,7 @@ class TestPluginManagerList:
         plugins_dir = tmp_path / "hermes_test" / "plugins"
         _make_plugin_dir(plugins_dir, "alpha")
         _make_plugin_dir(plugins_dir, "beta")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -696,7 +696,7 @@ class TestPreLlmCallTargetRouting:
             plugins_dir, "basic_plugin",
             '{"context": "basic context"}',
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -716,7 +716,7 @@ class TestPreLlmCallTargetRouting:
             plugins_dir, "str_plugin",
             '"plain string context"',
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -739,7 +739,7 @@ class TestPreLlmCallTargetRouting:
             plugins_dir, "bbb_guardrail",
             '{"context": "guardrail text"}',
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -772,7 +772,7 @@ class TestPreLlmCallTargetRouting:
             plugins_dir, "ccc_plain",
             '"plain text C"',
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -927,7 +927,7 @@ class TestPluginCommands:
             "cmd-plugin",
             register_body='ctx.register_command("lazycmd", lambda a: f"ok:{a}", description="Lazy")',
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         import hermes_cli.plugins as plugins_mod
 
@@ -944,7 +944,7 @@ class TestPluginCommands:
             "cmd-plugin",
             register_body='ctx.register_command("lazycmd", lambda a: a, description="Lazy")',
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         import hermes_cli.plugins as plugins_mod
 
@@ -985,7 +985,7 @@ class TestPluginCommands:
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["engine-plugin"]}})
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
 
         import hermes_cli.plugins as plugins_mod
 
@@ -1003,7 +1003,7 @@ class TestPluginCommands:
                 'ctx.register_command("mycmd", lambda a: "ok", description="Test")'
             ),
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -1015,9 +1015,9 @@ class TestPluginCommands:
     def test_commands_in_list_plugins_output(self, tmp_path, monkeypatch):
         """list_plugins() includes command count."""
         plugins_dir = tmp_path / "hermes_test" / "plugins"
-        # Set HERMES_HOME BEFORE _make_plugin_dir so auto-enable targets
+        # Set GENGAR_HOME BEFORE _make_plugin_dir so auto-enable targets
         # the right config.yaml.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / "hermes_test"))
         _make_plugin_dir(
             plugins_dir, "cmd-plugin",
             register_body=(

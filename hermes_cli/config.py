@@ -1,15 +1,15 @@
 """
-Configuration management for Hermes Agent.
+Configuration management for Gengar.
 
-Config files are stored in ~/.hermes/ for easy access:
-- ~/.hermes/config.yaml  - All settings (model, toolsets, terminal, etc.)
-- ~/.hermes/.env         - API keys and secrets
+Config files are stored in ~/.gengar/ for easy access:
+- ~/.gengar/config.yaml  - All settings (model, toolsets, terminal, etc.)
+- ~/.gengar/.env         - API keys and secrets
 
 This module provides:
-- hermes config          - Show current configuration
-- hermes config edit     - Open config in editor
-- hermes config set      - Set a specific value
-- hermes config wizard   - Re-run setup wizard
+- gengar config          - Show current configuration
+- gengar config edit     - Open config in editor
+- gengar config set      - Set a specific value
+- gengar config wizard   - Re-run setup wizard
 """
 
 import copy
@@ -82,14 +82,14 @@ _EXTRA_ENV_KEYS = frozenset({
     "MATRIX_REQUIRE_MENTION", "MATRIX_FREE_RESPONSE_ROOMS", "MATRIX_AUTO_THREAD", "MATRIX_DM_AUTO_THREAD",
     "MATRIX_RECOVERY_KEY",
     # Langfuse observability plugin — optional tuning keys + standard SDK vars.
-    # Activation is via plugins.enabled (opt-in through `hermes plugins enable
-    # observability/langfuse` or `hermes tools → Langfuse`); credentials gate
+    # Activation is via plugins.enabled (opt-in through `gengar plugins enable
+    # observability/langfuse` or `gengar tools → Langfuse`); credentials gate
     # the plugin at runtime.
-    "HERMES_LANGFUSE_ENV",
-    "HERMES_LANGFUSE_RELEASE",
-    "HERMES_LANGFUSE_SAMPLE_RATE",
-    "HERMES_LANGFUSE_MAX_CHARS",
-    "HERMES_LANGFUSE_DEBUG",
+    "GENGAR_LANGFUSE_ENV",
+    "GENGAR_LANGFUSE_RELEASE",
+    "GENGAR_LANGFUSE_SAMPLE_RATE",
+    "GENGAR_LANGFUSE_MAX_CHARS",
+    "GENGAR_LANGFUSE_DEBUG",
     "LANGFUSE_PUBLIC_KEY",
     "LANGFUSE_SECRET_KEY",
     "LANGFUSE_BASE_URL",
@@ -115,7 +115,7 @@ _MANAGED_SYSTEM_NAMES = {
 
 def get_managed_system() -> Optional[str]:
     """Return the package manager owning this install, if any."""
-    raw = os.getenv("HERMES_MANAGED", "").strip()
+    raw = os.getenv("GENGAR_MANAGED", "").strip()
     if raw:
         normalized = raw.lower()
         if normalized in _MANAGED_TRUE_VALUES:
@@ -129,10 +129,10 @@ def get_managed_system() -> Optional[str]:
 
 
 def is_managed() -> bool:
-    """Check if Hermes is running in package-manager-managed mode.
+    """Check if Gengar is running in package-manager-managed mode.
 
-    Two signals: the HERMES_MANAGED env var (set by the systemd service),
-    or a .managed marker file in HERMES_HOME (set by the NixOS activation
+    Two signals: the GENGAR_MANAGED env var (set by the systemd service),
+    or a .managed marker file in GENGAR_HOME (set by the NixOS activation
     script, so interactive shells also see it).
     """
     return get_managed_system() is not None
@@ -142,7 +142,7 @@ def get_managed_update_command() -> Optional[str]:
     """Return the preferred upgrade command for a managed install."""
     managed_system = get_managed_system()
     if managed_system == "Homebrew":
-        return "brew upgrade hermes-agent"
+        return "brew upgrade gengar"
     if managed_system == "NixOS":
         return "sudo nixos-rebuild switch"
     return None
@@ -150,35 +150,35 @@ def get_managed_update_command() -> Optional[str]:
 
 def recommended_update_command() -> str:
     """Return the best update command for the current installation."""
-    return get_managed_update_command() or "hermes update"
+    return get_managed_update_command() or "gengar update"
 
 
-def format_managed_message(action: str = "modify this Hermes installation") -> str:
+def format_managed_message(action: str = "modify this Gengar installation") -> str:
     """Build a user-facing error for managed installs."""
     managed_system = get_managed_system() or "a package manager"
-    raw = os.getenv("HERMES_MANAGED", "").strip().lower()
+    raw = os.getenv("GENGAR_MANAGED", "").strip().lower()
 
     if managed_system == "NixOS":
         env_hint = "true" if raw in _MANAGED_TRUE_VALUES else raw or "true"
         return (
-            f"Cannot {action}: this Hermes installation is managed by NixOS "
-            f"(HERMES_MANAGED={env_hint}).\n"
-            "Edit services.hermes-agent.settings in your configuration.nix and run:\n"
+            f"Cannot {action}: this Gengar installation is managed by NixOS "
+            f"(GENGAR_MANAGED={env_hint}).\n"
+            "Edit services.gengar.settings in your configuration.nix and run:\n"
             "  sudo nixos-rebuild switch"
         )
 
     if managed_system == "Homebrew":
         env_hint = raw or "homebrew"
         return (
-            f"Cannot {action}: this Hermes installation is managed by Homebrew "
-            f"(HERMES_MANAGED={env_hint}).\n"
+            f"Cannot {action}: this Gengar installation is managed by Homebrew "
+            f"(GENGAR_MANAGED={env_hint}).\n"
             "Use:\n"
-            "  brew upgrade hermes-agent"
+            "  brew upgrade gengar"
         )
 
     return (
-        f"Cannot {action}: this Hermes installation is managed by {managed_system}.\n"
-        "Use your package manager to upgrade or reinstall Hermes."
+        f"Cannot {action}: this Gengar installation is managed by {managed_system}.\n"
+        "Use your package manager to upgrade or reinstall Gengar."
     )
 
 def managed_error(action: str = "modify configuration"):
@@ -191,17 +191,17 @@ def managed_error(action: str = "modify configuration"):
 # =============================================================================
 
 def get_container_exec_info() -> Optional[dict]:
-    """Read container mode metadata from HERMES_HOME/.container-mode.
+    """Read container mode metadata from GENGAR_HOME/.container-mode.
 
     Returns a dict with keys: backend, container_name, exec_user, hermes_bin
     or None if container mode is not active, we're already inside the
-    container, or HERMES_DEV=1 is set.
+    container, or GENGAR_DEV=1 is set.
 
     The .container-mode file is written by the NixOS activation script when
     container.enable = true. It tells the host CLI to exec into the container
     instead of running locally.
     """
-    if os.environ.get("HERMES_DEV") == "1":
+    if os.environ.get("GENGAR_DEV") == "1":
         return None
 
     from hermes_constants import is_container
@@ -223,9 +223,9 @@ def get_container_exec_info() -> Optional[dict]:
     # All other exceptions (PermissionError, malformed data, etc.) propagate
 
     backend = info.get("backend", "docker")
-    container_name = info.get("container_name", "hermes-agent")
-    exec_user = info.get("exec_user", "hermes")
-    hermes_bin = info.get("hermes_bin", "/data/current-package/bin/hermes")
+    container_name = info.get("container_name", "gengar")
+    exec_user = info.get("exec_user", "gengar")
+    hermes_bin = info.get("hermes_bin", "/data/current-package/bin/gengar")
 
     return {
         "backend": backend,
@@ -259,19 +259,19 @@ def _secure_dir(path):
     """Set directory to owner-only access (0700 by default). No-op on Windows.
 
     Skipped in managed mode — the NixOS module sets group-readable
-    permissions (0750) so interactive users in the hermes group can
+    permissions (0750) so interactive users in the gengar group can
     share state with the gateway service.
 
-    The mode can be overridden via the HERMES_HOME_MODE environment variable
-    (e.g. HERMES_HOME_MODE=0701) for deployments where a web server (nginx,
-    caddy, etc.) needs to traverse HERMES_HOME to reach a served subdirectory.
+    The mode can be overridden via the GENGAR_HOME_MODE environment variable
+    (e.g. GENGAR_HOME_MODE=0701) for deployments where a web server (nginx,
+    caddy, etc.) needs to traverse GENGAR_HOME to reach a served subdirectory.
     The execute-only bit on a directory permits cd-through without exposing
     directory listings.
     """
     if is_managed():
         return
     try:
-        mode_str = os.environ.get("HERMES_HOME_MODE", "").strip()
+        mode_str = os.environ.get("GENGAR_HOME_MODE", "").strip()
         mode = int(mode_str, 8) if mode_str else 0o700
     except ValueError:
         mode = 0o700
@@ -284,13 +284,13 @@ def _secure_dir(path):
 def _is_container() -> bool:
     """Detect if we're running inside a Docker/Podman/LXC container.
 
-    When Hermes runs in a container with volume-mounted config files, forcing
+    When Gengar runs in a container with volume-mounted config files, forcing
     0o600 permissions breaks multi-process setups where the gateway and
     dashboard run as different UIDs or the volume mount requires broader
     permissions.
     """
     # Explicit opt-out
-    if os.environ.get("HERMES_CONTAINER") or os.environ.get("HERMES_SKIP_CHMOD"):
+    if os.environ.get("GENGAR_CONTAINER") or os.environ.get("GENGAR_SKIP_CHMOD"):
         return True
     # Docker / Podman marker file
     if os.path.exists("/.dockerenv"):
@@ -313,7 +313,7 @@ def _secure_file(path):
     group-readable permissions (0640) on config files.
 
     Skipped in containers — Docker/Podman volume mounts often need broader
-    permissions.  Set HERMES_SKIP_CHMOD=1 to force-skip on other systems.
+    permissions.  Set GENGAR_SKIP_CHMOD=1 to force-skip on other systems.
     """
     if is_managed() or _is_container():
         return
@@ -325,7 +325,7 @@ def _secure_file(path):
 
 
 def _ensure_default_soul_md(home: Path) -> None:
-    """Seed a default SOUL.md into HERMES_HOME if the user doesn't have one yet."""
+    """Seed a default SOUL.md into GENGAR_HOME if the user doesn't have one yet."""
     soul_path = home / "SOUL.md"
     if soul_path.exists():
         return
@@ -334,7 +334,7 @@ def _ensure_default_soul_md(home: Path) -> None:
 
 
 def ensure_hermes_home():
-    """Ensure ~/.hermes directory structure exists with secure permissions.
+    """Ensure ~/.gengar directory structure exists with secure permissions.
 
     In managed mode (NixOS), dirs are created by the activation script with
     setgid + group-writable (2770). We skip mkdir and set umask(0o007) so
@@ -361,7 +361,7 @@ def _ensure_hermes_home_managed(home: Path):
     """Managed-mode variant: verify dirs exist (activation creates them), seed SOUL.md."""
     if not home.is_dir():
         raise RuntimeError(
-            f"HERMES_HOME {home} does not exist. "
+            f"GENGAR_HOME {home} does not exist. "
             "Run 'sudo nixos-rebuild switch' first."
         )
     for subdir in ("cron", "sessions", "logs", "memories"):
@@ -388,7 +388,7 @@ DEFAULT_CONFIG = {
     "providers": {},
     "fallback_providers": [],
     "credential_pool_strategies": {},
-    "toolsets": ["hermes-cli"],
+    "toolsets": ["gengar-cli"],
     "agent": {
         "max_turns": 90,
         # Inactivity timeout for gateway agent execution (seconds).
@@ -410,7 +410,7 @@ DEFAULT_CONFIG = {
         # provider timeouts, 5xx, etc.) before the agent surfaces the
         # failure.  The OpenAI SDK already does its own low-level retries
         # (max_retries=2 default) for transient network errors; this is
-        # the Hermes-level retry loop that wraps the whole call.  Lower
+        # the Gengar-level retry loop that wraps the whole call.  Lower
         # this to 1 if you use fallback providers and want fast failover
         # on flaky primaries; raise it if you prefer to tolerate longer
         # provider hiccups on a single provider.
@@ -481,13 +481,13 @@ DEFAULT_CONFIG = {
         # (bash doesn't source bashrc in non-interactive login mode) or
         # zsh-specific files like ``~/.zshrc`` / ``~/.zprofile``.
         # Paths support ``~`` / ``${VAR}``. Missing files are silently
-        # skipped. When empty, Hermes auto-sources ``~/.profile``,
+        # skipped. When empty, Gengar auto-sources ``~/.profile``,
         # ``~/.bash_profile``, and ``~/.bashrc`` (in that order) if the
         # snapshot shell is bash (this is the ``auto_source_bashrc``
         # behaviour — disable with that key if you want strict login-only
         # semantics).
         "shell_init_files": [],
-        # When true (default), Hermes sources the user's shell rc files
+        # When true (default), Gengar sources the user's shell rc files
         # (``~/.profile``, ``~/.bash_profile``, ``~/.bashrc``) in the
         # login shell used to build the environment snapshot. This
         # captures PATH additions, shell functions, and aliases — which a
@@ -504,7 +504,7 @@ DEFAULT_CONFIG = {
         "docker_forward_env": [],
         # Explicit environment variables to set inside Docker containers.
         # Unlike docker_forward_env (which reads values from the host process),
-        # docker_env lets you specify exact key-value pairs — useful when Hermes
+        # docker_env lets you specify exact key-value pairs — useful when Gengar
         # runs as a systemd service without access to the user's shell environment.
         # Example: {"SSH_AUTH_SOCK": "/run/user/1000/ssh-agent.sock"}
         "docker_env": {},
@@ -521,7 +521,7 @@ DEFAULT_CONFIG = {
         # Each entry is "host_path:container_path" (standard Docker -v syntax).
         # Example:
         # ["/home/user/projects:/workspace/projects",
-        #  "/home/user/.hermes/cache/documents:/output"]
+        #  "/home/user/.gengar/cache/documents:/output"]
         # For gateway MEDIA delivery, write inside Docker to /output/... and emit
         # the host-visible path in MEDIA:, not the container path.
         "docker_volumes": [],
@@ -534,7 +534,7 @@ DEFAULT_CONFIG = {
         # are owned by your host user instead of root, which avoids needing
         # `sudo chown` after container runs. Default off to preserve behavior
         # for images whose entrypoints expect to start as root (e.g. the
-        # bundled Hermes image, which drops to the `hermes` user via gosu).
+        # bundled Gengar image, which drops to the `gengar` user via gosu).
         # When on, SETUID/SETGID caps are omitted from the container since
         # no privilege drop is needed.
         "docker_run_as_host_user": False,
@@ -559,7 +559,7 @@ DEFAULT_CONFIG = {
         "dialog_policy": "must_respond",  # must_respond | auto_dismiss | auto_accept
         "dialog_timeout_s": 300,  # Safety auto-dismiss after N seconds under must_respond
         "camofox": {
-            # When true, Hermes sends a stable profile-scoped userId to Camofox
+            # When true, Gengar sends a stable profile-scoped userId to Camofox
             # so the server maps it to a persistent Firefox profile automatically.
             # When false (default), each session gets a random userId (ephemeral).
             "managed_persistence": False,
@@ -573,11 +573,11 @@ DEFAULT_CONFIG = {
         "enabled": True,
         "max_snapshots": 50,  # Max checkpoints to keep per directory
         # Auto-maintenance: shadow repos accumulate forever under
-        # ~/.hermes/checkpoints/ (one per cd'd working directory). Field
+        # ~/.gengar/checkpoints/ (one per cd'd working directory). Field
         # reports put the typical offender at 1000+ repos / ~12 GB. When
-        # auto_prune is on, hermes sweeps at startup (at most once per
+        # auto_prune is on, gengar sweeps at startup (at most once per
         # min_interval_hours) and deletes:
-        #   * orphan repos: HERMES_WORKDIR no longer exists on disk
+        #   * orphan repos: GENGAR_WORKDIR no longer exists on disk
         #   * stale repos:  newest mtime older than retention_days
         # Opt-in so users who rely on /rollback against long-ago sessions
         # never lose data silently.
@@ -593,7 +593,7 @@ DEFAULT_CONFIG = {
     "file_read_max_chars": 100_000,
 
     # Tool-output truncation thresholds. When terminal output or a
-    # single read_file page exceeds these limits, Hermes truncates the
+    # single read_file page exceeds these limits, Gengar truncates the
     # payload sent to the model (keeping head + tail for terminal,
     # enforcing pagination for read_file). Tuning these trades context
     # footprint against how much raw output the model can see in one
@@ -752,7 +752,7 @@ DEFAULT_CONFIG = {
         # Curator — skill-usage review fork. Timeout is generous because the
         # review pass can take several minutes on reasoning models (umbrella
         # building over hundreds of candidate skills). "auto" = use main chat
-        # model; override via `hermes model` → auxiliary → Curator to route
+        # model; override via `gengar model` → auxiliary → Curator to route
         # to a cheaper aux model (e.g. openrouter google/gemini-3-flash-preview).
         "curator": {
             "provider": "auto",
@@ -769,10 +769,10 @@ DEFAULT_CONFIG = {
         "personality": "kawaii",
         "resume_display": "full",
         "busy_input_mode": "interrupt",  # interrupt | queue | steer
-        # When true, `hermes --tui` auto-resumes the most recent human-
+        # When true, `gengar --tui` auto-resumes the most recent human-
         # facing session on launch instead of forging a fresh one.
-        # Mirrors `hermes -c` muscle memory.  Default off so existing
-        # users aren't surprised.  HERMES_TUI_RESUME=<id> always wins.
+        # Mirrors `gengar -c` muscle memory.  Default off so existing
+        # users aren't surprised.  GENGAR_TUI_RESUME=<id> always wins.
         "tui_auto_resume_recent": False,
         "bell_on_complete": False,
         "show_reasoning": False,
@@ -803,7 +803,7 @@ DEFAULT_CONFIG = {
         "platforms": {},  # Per-platform display overrides: {"telegram": {"tool_progress": "all"}, "slack": {"tool_progress": "off"}}
         # Gateway runtime-metadata footer appended to the FINAL message of a turn
         # (disabled by default to keep replies minimal). When enabled, renders
-        # e.g. `model · 68% · ~/projects/hermes`. Per-platform overrides go under
+        # e.g. `model · 68% · ~/projects/gengar`. Per-platform overrides go under
         # display.platforms.<platform>.runtime_footer.
         "runtime_footer": {
             "enabled": False,
@@ -862,7 +862,7 @@ DEFAULT_CONFIG = {
             # use, OR an absolute path to a pre-downloaded .onnx file.
             # Full voice list: https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/VOICES.md
             "voice": "en_US-lessac-medium",
-            # "voices_dir": "",        # Override voice cache dir; default = ~/.hermes/cache/piper-voices/
+            # "voices_dir": "",        # Override voice cache dir; default = ~/.gengar/cache/piper-voices/
             # "use_cuda": False,       # Requires onnxruntime-gpu
             # "length_scale": 1.0,     # 2.0 = twice as slow
             # "noise_scale": 0.667,
@@ -907,7 +907,7 @@ DEFAULT_CONFIG = {
     # "compressor" = built-in lossy summarization (default).
     # Set to a plugin name to activate an alternative engine (e.g. "lcm"
     # for Lossless Context Management).  The engine must be installed as
-    # a plugin in plugins/context_engine/<name>/ or ~/.hermes/plugins/.
+    # a plugin in plugins/context_engine/<name>/ or ~/.gengar/plugins/.
     "context": {
         "engine": "compressor",
     },
@@ -973,13 +973,13 @@ DEFAULT_CONFIG = {
     # Goals — persistent cross-turn goals (Ralph-style loop).
     # After every turn, a lightweight judge call asks the auxiliary model
     # whether the active /goal is satisfied by the assistant's last
-    # response. If not, Hermes feeds a continuation prompt back into the
+    # response. If not, Gengar feeds a continuation prompt back into the
     # same session and keeps working until the goal is done, the turn
     # budget is exhausted, or the user pauses/clears it. Judge failures
     # fail OPEN (continue) so a flaky judge never wedges progress — the
     # turn budget is the real backstop.
     "goals": {
-        # Max continuation turns before Hermes auto-pauses the goal and
+        # Max continuation turns before Gengar auto-pauses the goal and
         # asks the user to /goal resume. Protects against judge false
         # negatives (goal actually done but judge says continue) and
         # unbounded model spend on fuzzy / unachievable goals.
@@ -988,10 +988,10 @@ DEFAULT_CONFIG = {
 
     # Skills — external skill directories for sharing skills across tools/agents.
     # Each path is expanded (~, ${VAR}) and resolved.  Read-only — skill creation
-    # always goes to ~/.hermes/skills/.
+    # always goes to ~/.gengar/skills/.
     "skills": {
         "external_dirs": [],   # e.g. ["~/.agents/skills", "/shared/team-skills"]
-        # Substitute ${HERMES_SKILL_DIR} and ${HERMES_SESSION_ID} in SKILL.md
+        # Substitute ${GENGAR_SKILL_DIR} and ${GENGAR_SESSION_ID} in SKILL.md
         # content with the absolute skill directory and the active session id
         # before the agent sees it.  Lets skill authors reference bundled
         # scripts without the agent having to join paths.
@@ -1027,7 +1027,7 @@ DEFAULT_CONFIG = {
     # and patch drift. Runs inactivity-triggered from session start — no
     # cron daemon.
     #
-    # See `hermes curator status` for the last run summary.
+    # See `gengar curator status` for the last run summary.
     "curator": {
         "enabled": True,
         # How long to wait between curator runs (hours).  Default: 7 days.
@@ -1040,9 +1040,9 @@ DEFAULT_CONFIG = {
         # without use. Archived skills are recoverable — no auto-deletion.
         "archive_after_days": 90,
         # Pre-run backup: before every real curator pass (dry-run is
-        # skipped), snapshot ~/.hermes/skills/ into
-        # ~/.hermes/skills/.curator_backups/<utc-iso>/skills.tar.gz so the
-        # user can roll back with `hermes curator rollback`.
+        # skipped), snapshot ~/.gengar/skills/ into
+        # ~/.gengar/skills/.curator_backups/<utc-iso>/skills.tar.gz so the
+        # user can roll back with `gengar curator rollback`.
         "backup": {
             "enabled": True,
             "keep": 5,  # retain last N regular snapshots
@@ -1050,7 +1050,7 @@ DEFAULT_CONFIG = {
     },
 
     # Honcho AI-native memory -- reads ~/.honcho/config.json as single source of truth.
-    # This section is only needed for hermes-specific overrides; everything else
+    # This section is only needed for gengar-specific overrides; everything else
     # (apiKey, workspace, peerName, sessions, enabled) comes from the global config.
     "honcho": {},
 
@@ -1079,7 +1079,7 @@ DEFAULT_CONFIG = {
     # WhatsApp platform settings (gateway mode)
     "whatsapp": {
         # Reply prefix prepended to every outgoing WhatsApp message.
-        # Default (None) uses the built-in "⚕ *Hermes Agent*" header.
+        # Default (None) uses the built-in "⚕ *Gengar*" header.
         # Set to "" (empty string) to disable the header entirely.
         # Supports \n for newlines, e.g. "🤖 *My Bot*\n──────\n"
     },
@@ -1132,12 +1132,12 @@ DEFAULT_CONFIG = {
     # subagent_stop, etc.).  Each entry maps an event name to a list of
     # {matcher, command, timeout} dicts.  First registration of a new
     # command prompts the user for consent; subsequent runs reuse the
-    # stored approval from ~/.hermes/shell-hooks-allowlist.json.
+    # stored approval from ~/.gengar/shell-hooks-allowlist.json.
     # See `website/docs/user-guide/features/hooks.md` for schema + examples.
     "hooks": {},
 
     # Auto-accept shell-hook registrations without a TTY prompt.  Also
-    # toggleable per-invocation via --accept-hooks or HERMES_ACCEPT_HOOKS=1.
+    # toggleable per-invocation via --accept-hooks or GENGAR_ACCEPT_HOOKS=1.
     # Gateway / cron / non-interactive runs need this (or one of the other
     # channels) to pick up newly-added hooks.
     "hooks_auto_accept": False,
@@ -1168,14 +1168,14 @@ DEFAULT_CONFIG = {
         # Maximum number of due jobs to run in parallel per tick.
         # null/0 = unbounded (limited only by thread count).
         # 1 = serial (pre-v0.9 behaviour).
-        # Also overridable via HERMES_CRON_MAX_PARALLEL env var.
+        # Also overridable via GENGAR_CRON_MAX_PARALLEL env var.
         "max_parallel_jobs": None,
     },
 
     # Kanban multi-agent coordination — controls the dispatcher loop that
     # spawns workers for ready tasks. The dispatcher ticks every N seconds
     # (default 60), reclaims stale claims, promotes dependency-satisfied
-    # todos to ready, and fires `hermes -p <assignee> chat -q ...` for
+    # todos to ready, and fires `gengar -p <assignee> chat -q ...` for
     # each claimable ready task. One dispatcher per profile is sufficient;
     # running more than one on the same kanban.db will race for claims.
     "kanban": {
@@ -1197,14 +1197,14 @@ DEFAULT_CONFIG = {
         #     with the active virtualenv/conda env's python, so project deps
         #     (pandas, torch, project packages) and relative paths resolve.
         #   strict            — scripts run in an isolated temp directory with
-        #     hermes-agent's own python (sys.executable). Maximum isolation
+        #     gengar's own python (sys.executable). Maximum isolation
         #     and reproducibility; project deps and relative paths won't work.
         # Env scrubbing (strips *_API_KEY, *_TOKEN, *_SECRET, ...) and the
         # tool whitelist apply identically in both modes.
         "mode": "project",
     },
 
-    # Logging — controls file logging to ~/.hermes/logs/.
+    # Logging — controls file logging to ~/.gengar/logs/.
     # agent.log captures INFO+ (all agent activity); errors.log captures WARNING+.
     "logging": {
         "level": "INFO",       # Minimum level for agent.log: DEBUG, INFO, WARNING
@@ -1215,13 +1215,13 @@ DEFAULT_CONFIG = {
     # Remotely-hosted model catalog manifest.  When enabled, the CLI fetches
     # curated model lists for OpenRouter and Nous Portal from this URL,
     # falling back to the in-repo snapshot on network failure.  Lets us
-    # update model picker lists without shipping a hermes-agent release.
+    # update model picker lists without shipping a gengar release.
     # The default URL is served by the docs site GitHub Pages deploy.
     "model_catalog": {
         "enabled": True,
-        "url": "https://hermes-agent.nousresearch.com/docs/api/model-catalog.json",
+        "url": "https://github.com/jamesfincher/gengarapi/model-catalog.json",
         # Disk cache TTL in hours.  Beyond this, the CLI refetches on the
-        # next /model or `hermes model` invocation; network failures
+        # next /model or `gengar model` invocation; network failures
         # silently fall back to the stale cache.
         "ttl_hours": 24,
         # Optional per-provider override URLs for third parties that want
@@ -1241,7 +1241,7 @@ DEFAULT_CONFIG = {
         "force_ipv4": False,
     },
 
-    # Session storage — controls automatic cleanup of ~/.hermes/state.db.
+    # Session storage — controls automatic cleanup of ~/.gengar/state.db.
     # state.db accumulates every session, message, tool call, and FTS5 index
     # entry forever.  Without auto-pruning, a heavy user (gateway + cron)
     # reports 384MB+ databases with 68K+ messages, which slows down FTS5
@@ -1254,7 +1254,7 @@ DEFAULT_CONFIG = {
         # silently deleting it could surprise users.  Opt in explicitly.
         "auto_prune": False,
         # How many days of ended-session history to keep.  Matches the
-        # default of ``hermes sessions prune``.
+        # default of ``gengar sessions prune``.
         "retention_days": 90,
         # VACUUM after a prune that actually deleted rows.  SQLite does not
         # reclaim disk space on DELETE — freed pages are just reused on
@@ -1276,12 +1276,12 @@ DEFAULT_CONFIG = {
         "seen": {},
     },
 
-    # ``hermes update`` behaviour.
+    # ``gengar update`` behaviour.
     "updates": {
-        # Run a full ``hermes backup``-style zip of HERMES_HOME before every
-        # ``hermes update``.  Backups land in ``<HERMES_HOME>/backups/`` and
-        # can be restored with ``hermes import <path>``.  Off by default —
-        # on large HERMES_HOME directories the zip can add minutes to every
+        # Run a full ``gengar backup``-style zip of GENGAR_HOME before every
+        # ``gengar update``.  Backups land in ``<GENGAR_HOME>/backups/`` and
+        # can be restored with ``gengar import <path>``.  Off by default —
+        # on large GENGAR_HOME directories the zip can add minutes to every
         # update.  Set to true to re-enable, or pass ``--backup`` to opt in
         # for a single update run.
         "pre_update_backup": False,
@@ -1572,7 +1572,7 @@ OPTIONAL_ENV_VARS = {
         "category": "provider",
         "advanced": True,
     },
-    "HERMES_QWEN_BASE_URL": {
+    "GENGAR_QWEN_BASE_URL": {
         "description": "Qwen Portal base URL override (default: https://portal.qwen.ai/v1)",
         "prompt": "Qwen Portal base URL (leave empty for default)",
         "url": None,
@@ -1580,7 +1580,7 @@ OPTIONAL_ENV_VARS = {
         "category": "provider",
         "advanced": True,
     },
-    "HERMES_GEMINI_CLIENT_ID": {
+    "GENGAR_GEMINI_CLIENT_ID": {
         "description": "Google OAuth client ID for google-gemini-cli (optional; defaults to Google's public gemini-cli client)",
         "prompt": "Google OAuth client ID (optional — leave empty to use the public default)",
         "url": "https://console.cloud.google.com/apis/credentials",
@@ -1588,7 +1588,7 @@ OPTIONAL_ENV_VARS = {
         "category": "provider",
         "advanced": True,
     },
-    "HERMES_GEMINI_CLIENT_SECRET": {
+    "GENGAR_GEMINI_CLIENT_SECRET": {
         "description": "Google OAuth client secret for google-gemini-cli (optional)",
         "prompt": "Google OAuth client secret (optional)",
         "url": "https://console.cloud.google.com/apis/credentials",
@@ -1596,7 +1596,7 @@ OPTIONAL_ENV_VARS = {
         "category": "provider",
         "advanced": True,
     },
-    "HERMES_GEMINI_PROJECT_ID": {
+    "GENGAR_GEMINI_PROJECT_ID": {
         "description": "GCP project ID for paid Gemini tiers (free tier auto-provisions)",
         "prompt": "GCP project ID for Gemini OAuth (leave empty for free tier)",
         "url": None,
@@ -1706,7 +1706,7 @@ OPTIONAL_ENV_VARS = {
         "category": "provider",
     },
     "AZURE_FOUNDRY_BASE_URL": {
-        "description": "Azure Foundry base URL (set via 'hermes model' for endpoint-specific config)",
+        "description": "Azure Foundry base URL (set via 'gengar model' for endpoint-specific config)",
         "prompt": "Azure Foundry base URL",
         "url": None,
         "password": False,
@@ -1756,7 +1756,7 @@ OPTIONAL_ENV_VARS = {
         "advanced": True,
     },
     "TOOL_GATEWAY_DOMAIN": {
-        "description": "Shared tool-gateway domain suffix for Nous Subscribers only, used to derive vendor hosts, e.g. nousresearch.com -> firecrawl-gateway.nousresearch.com",
+        "description": "Shared tool-gateway domain suffix for Nous Subscribers only, used to derive vendor hosts, e.g. jamesfincher.com -> firecrawl-gateway.jamesfincher.com",
         "prompt": "Tool-gateway domain suffix",
         "url": None,
         "password": False,
@@ -1772,7 +1772,7 @@ OPTIONAL_ENV_VARS = {
         "advanced": True,
     },
     "TOOL_GATEWAY_USER_TOKEN": {
-        "description": "Explicit Nous Subscriber access token for tool-gateway requests (optional; otherwise read from the Hermes auth store)",
+        "description": "Explicit Nous Subscriber access token for tool-gateway requests (optional; otherwise read from the Gengar auth store)",
         "prompt": "Tool-gateway user token",
         "url": None,
         "password": True,
@@ -1934,21 +1934,21 @@ OPTIONAL_ENV_VARS = {
     },
 
     # ── Langfuse observability ──
-    "HERMES_LANGFUSE_PUBLIC_KEY": {
+    "GENGAR_LANGFUSE_PUBLIC_KEY": {
         "description": "Langfuse project public key (pk-lf-...)",
         "prompt": "Langfuse public key",
         "url": "https://cloud.langfuse.com",
         "password": False,
         "category": "tool",
     },
-    "HERMES_LANGFUSE_SECRET_KEY": {
+    "GENGAR_LANGFUSE_SECRET_KEY": {
         "description": "Langfuse project secret key (sk-lf-...)",
         "prompt": "Langfuse secret key",
         "url": "https://cloud.langfuse.com",
         "password": True,
         "category": "tool",
     },
-    "HERMES_LANGFUSE_BASE_URL": {
+    "GENGAR_LANGFUSE_BASE_URL": {
         "description": "Langfuse server URL (default: https://cloud.langfuse.com)",
         "prompt": "Langfuse server URL (leave empty for cloud.langfuse.com)",
         "url": None,
@@ -2067,7 +2067,7 @@ OPTIONAL_ENV_VARS = {
         "category": "messaging",
     },
     "MATRIX_USER_ID": {
-        "description": "Matrix user ID (e.g. @hermes:example.org)",
+        "description": "Matrix user ID (e.g. @gengar:example.org)",
         "prompt": "Matrix user ID (@user:server)",
         "url": None,
         "password": False,
@@ -2113,7 +2113,7 @@ OPTIONAL_ENV_VARS = {
         "advanced": True,
     },
     "MATRIX_DEVICE_ID": {
-        "description": "Stable Matrix device ID for E2EE persistence across restarts (e.g. HERMES_BOT)",
+        "description": "Stable Matrix device ID for E2EE persistence across restarts (e.g. GENGAR_BOT)",
         "prompt": "Matrix device ID (stable across restarts)",
         "url": None,
         "password": False,
@@ -2204,14 +2204,14 @@ OPTIONAL_ENV_VARS = {
         "category": "messaging",
     },
     "IRC_CHANNEL": {
-        "description": "IRC channel to join (e.g. #hermes)",
+        "description": "IRC channel to join (e.g. #gengar)",
         "prompt": "IRC channel",
         "url": None,
         "password": False,
         "category": "messaging",
     },
     "IRC_NICKNAME": {
-        "description": "Bot nickname on IRC (default: hermes-bot)",
+        "description": "Bot nickname on IRC (default: gengar-bot)",
         "prompt": "IRC nickname",
         "url": None,
         "password": False,
@@ -2274,7 +2274,7 @@ OPTIONAL_ENV_VARS = {
         "advanced": True,
     },
     "API_SERVER_MODEL_NAME": {
-        "description": "Model name advertised on /v1/models. Defaults to the profile name (or 'hermes-agent' for the default profile). Useful for multi-user setups with OpenWebUI.",
+        "description": "Model name advertised on /v1/models. Defaults to the profile name (or 'gengar' for the default profile). Useful for multi-user setups with OpenWebUI.",
         "prompt": "API server model name",
         "url": None,
         "password": False,
@@ -2282,15 +2282,15 @@ OPTIONAL_ENV_VARS = {
         "advanced": True,
     },
     "GATEWAY_PROXY_URL": {
-        "description": "URL of a remote Hermes API server to forward messages to (proxy mode). When set, the gateway handles platform I/O only — all agent work is delegated to the remote server. Use for Docker E2EE containers that relay to a host agent. Also configurable via gateway.proxy_url in config.yaml.",
-        "prompt": "Remote Hermes API server URL (e.g. http://192.168.1.100:8642)",
+        "description": "URL of a remote Gengar API server to forward messages to (proxy mode). When set, the gateway handles platform I/O only — all agent work is delegated to the remote server. Use for Docker E2EE containers that relay to a host agent. Also configurable via gateway.proxy_url in config.yaml.",
+        "prompt": "Remote Gengar API server URL (e.g. http://192.168.1.100:8642)",
         "url": None,
         "password": False,
         "category": "messaging",
         "advanced": True,
     },
     "GATEWAY_PROXY_KEY": {
-        "description": "Bearer token for authenticating with the remote Hermes API server (proxy mode). Must match the API_SERVER_KEY on the remote host.",
+        "description": "Bearer token for authenticating with the remote Gengar API server (proxy mode). Must match the API_SERVER_KEY on the remote host.",
         "prompt": "Remote API server auth key",
         "url": None,
         "password": True,
@@ -2329,38 +2329,38 @@ OPTIONAL_ENV_VARS = {
         "password": True,
         "category": "setting",
     },
-    "HERMES_MAX_ITERATIONS": {
+    "GENGAR_MAX_ITERATIONS": {
         "description": "Maximum tool-calling iterations per conversation (default: 90)",
         "prompt": "Max iterations",
         "url": None,
         "password": False,
         "category": "setting",
     },
-    # HERMES_TOOL_PROGRESS and HERMES_TOOL_PROGRESS_MODE are deprecated —
+    # GENGAR_TOOL_PROGRESS and GENGAR_TOOL_PROGRESS_MODE are deprecated —
     # now configured via display.tool_progress in config.yaml (off|new|all|verbose).
     # Gateway falls back to these env vars for backward compatibility.
-    "HERMES_TOOL_PROGRESS": {
+    "GENGAR_TOOL_PROGRESS": {
         "description": "(deprecated) Use display.tool_progress in config.yaml instead",
         "prompt": "Tool progress (deprecated — use config.yaml)",
         "url": None,
         "password": False,
         "category": "setting",
     },
-    "HERMES_TOOL_PROGRESS_MODE": {
+    "GENGAR_TOOL_PROGRESS_MODE": {
         "description": "(deprecated) Use display.tool_progress in config.yaml instead",
         "prompt": "Progress mode (deprecated — use config.yaml)",
         "url": None,
         "password": False,
         "category": "setting",
     },
-    "HERMES_PREFILL_MESSAGES_FILE": {
+    "GENGAR_PREFILL_MESSAGES_FILE": {
         "description": "Path to JSON file with ephemeral prefill messages for few-shot priming",
         "prompt": "Prefill messages file path",
         "url": None,
         "password": False,
         "category": "setting",
     },
-    "HERMES_EPHEMERAL_SYSTEM_PROMPT": {
+    "GENGAR_EPHEMERAL_SYSTEM_PROMPT": {
         "description": "Ephemeral system prompt injected at API-call time (never persisted to sessions)",
         "prompt": "Ephemeral system prompt",
         "url": None,
@@ -2477,7 +2477,7 @@ def get_missing_config_fields() -> List[Dict[str, Any]]:
 def get_missing_skill_config_vars() -> List[Dict[str, Any]]:
     """Return skill-declared config vars that are missing or empty in config.yaml.
 
-    Scans all enabled skills for ``metadata.hermes.config`` entries, then checks
+    Scans all enabled skills for ``metadata.gengar.config`` entries, then checks
     which ones are absent or empty under ``skills.config.<key>`` in the user's
     config.yaml.  Returns a list of dicts suitable for prompting.
     """
@@ -2490,7 +2490,7 @@ def get_missing_skill_config_vars() -> List[Dict[str, Any]]:
         all_vars = discover_all_skill_config_vars()
     except Exception as e:
         # A malformed SKILL.md, unreadable external skill dir, or similar
-        # should never break `hermes update`.  Skill-config prompting is a
+        # should never break `gengar update`.  Skill-config prompting is a
         # post-migration nicety, not a blocker.
         import logging
         logging.getLogger(__name__).debug(
@@ -2625,7 +2625,7 @@ def _normalize_custom_provider_entry(
     if isinstance(models, dict) and models:
         normalized["models"] = models
     elif isinstance(models, list) and models:
-        # Hand-edited configs (and older Hermes versions) write ``models`` as
+        # Hand-edited configs (and older Gengar versions) write ``models`` as
         # a plain list of model ids. Preserve them by converting to the dict
         # shape downstream code expects; otherwise normalize silently drops
         # the list and /model shows the provider with (0) models.
@@ -2832,7 +2832,7 @@ def validate_config_structure(config: Optional[Dict[str, Any]] = None) -> List["
         try:
             config = load_config()
         except Exception:
-            return [ConfigIssue("error", "Could not load config.yaml", "Run 'hermes setup' to create a valid config")]
+            return [ConfigIssue("error", "Could not load config.yaml", "Run 'gengar setup' to create a valid config")]
 
     issues: List[ConfigIssue] = []
 
@@ -2942,7 +2942,7 @@ def validate_config_structure(config: Optional[Dict[str, Any]] = None) -> List["
     if cp and not model_cfg:
         issues.append(ConfigIssue(
             "warning",
-            "custom_providers defined but no 'model' section — Hermes won't know which provider to use",
+            "custom_providers defined but no 'model' section — Gengar won't know which provider to use",
             "Add a model section:\n"
             "  model:\n"
             "    provider: custom\n"
@@ -2982,7 +2982,7 @@ def print_config_warnings(config: Optional[Dict[str, Any]] = None) -> None:
     for ci in issues:
         marker = "\033[31m✗\033[0m" if ci.severity == "error" else "\033[33m⚠\033[0m"
         lines.append(f"  {marker} {ci.message}")
-    lines.append("  \033[2mRun 'hermes doctor' for fix suggestions.\033[0m")
+    lines.append("  \033[2mRun 'gengar doctor' for fix suggestions.\033[0m")
     sys.stderr.write("\n".join(lines) + "\n\n")
 
 
@@ -3019,7 +3019,7 @@ def warn_deprecated_cwd_env_vars(config: Optional[Dict[str, Any]] = None) -> Non
             f"this is deprecated."
         )
     if lines:
-        hint_path = os.environ.get("HERMES_HOME", "~/.hermes")
+        hint_path = os.environ.get("GENGAR_HOME", "~/.gengar")
         lines.insert(0, "\033[33m⚠ Deprecated .env settings detected:\033[0m")
         lines.append(
             f"  \033[2mMove to config.yaml instead:  "
@@ -3062,14 +3062,14 @@ def migrate_config(interactive: bool = True, quiet: bool = False) -> Dict[str, A
         if not isinstance(display, dict):
             display = {}
         if "tool_progress" not in display:
-            old_enabled = get_env_value("HERMES_TOOL_PROGRESS")
-            old_mode = get_env_value("HERMES_TOOL_PROGRESS_MODE")
+            old_enabled = get_env_value("GENGAR_TOOL_PROGRESS")
+            old_mode = get_env_value("GENGAR_TOOL_PROGRESS_MODE")
             if old_enabled and old_enabled.lower() in ("false", "0", "no"):
                 display["tool_progress"] = "off"
-                results["config_added"].append("display.tool_progress=off (from HERMES_TOOL_PROGRESS=false)")
+                results["config_added"].append("display.tool_progress=off (from GENGAR_TOOL_PROGRESS=false)")
             elif old_mode and old_mode.lower() in ("new", "all"):
                 display["tool_progress"] = old_mode.lower()
-                results["config_added"].append(f"display.tool_progress={old_mode.lower()} (from HERMES_TOOL_PROGRESS_MODE)")
+                results["config_added"].append(f"display.tool_progress={old_mode.lower()} (from GENGAR_TOOL_PROGRESS_MODE)")
             else:
                 display["tool_progress"] = "all"
                 results["config_added"].append("display.tool_progress=all (default)")
@@ -3082,10 +3082,10 @@ def migrate_config(interactive: bool = True, quiet: bool = False) -> Dict[str, A
     if current_ver < 5:
         config = load_config()
         if "timezone" not in config:
-            old_tz = os.getenv("HERMES_TIMEZONE", "")
+            old_tz = os.getenv("GENGAR_TIMEZONE", "")
             if old_tz and old_tz.strip():
                 config["timezone"] = old_tz.strip()
-                results["config_added"].append(f"timezone={old_tz.strip()} (from HERMES_TIMEZONE)")
+                results["config_added"].append(f"timezone={old_tz.strip()} (from GENGAR_TIMEZONE)")
             else:
                 config["timezone"] = ""
                 results["config_added"].append("timezone= (empty, uses server-local)")
@@ -3331,7 +3331,7 @@ def migrate_config(interactive: bool = True, quiet: bool = False) -> Dict[str, A
                 disabled = []
             disabled_set = set(disabled)
 
-            # Scan ``$HERMES_HOME/plugins/`` for currently installed user plugins.
+            # Scan ``$GENGAR_HOME/plugins/`` for currently installed user plugins.
             grandfathered: List[str] = []
             try:
                 user_plugins_dir = get_hermes_home() / "plugins"
@@ -3371,7 +3371,7 @@ def migrate_config(interactive: bool = True, quiet: bool = False) -> Dict[str, A
                 else:
                     print(
                         "  ✓ Plugins now opt-in: no existing plugins to grandfather. "
-                        "Use `hermes plugins enable <name>` to activate."
+                        "Use `gengar plugins enable <name>` to activate."
                     )
 
     # ── Version 22 → 23: seed curator defaults + create logs/curator/ ──
@@ -3380,7 +3380,7 @@ def migrate_config(interactive: bool = True, quiet: bool = False) -> Dict[str, A
     # unification under `auxiliary.curator`) never wrote the curator section
     # to disk. The runtime deep-merge in `load_config()` fills defaults at
     # read time, so the curator *functions*; but users can't see/edit the
-    # settings in their `config.yaml`, and `hermes curator status` has no
+    # settings in their `config.yaml`, and `gengar curator status` has no
     # stable logs dir to point at until the first run mkdir's it.
     #
     # This migration:
@@ -3390,7 +3390,7 @@ def migrate_config(interactive: bool = True, quiet: bool = False) -> Dict[str, A
     #   2. Writes the `auxiliary.curator` aux-task slot (provider, model,
     #      base_url, api_key, timeout, extra_body) — canonical slot for
     #      routing the curator fork to a cheaper aux model.
-    #   3. Creates `~/.hermes/logs/curator/` if missing (belt-and-suspenders
+    #   3. Creates `~/.gengar/logs/curator/` if missing (belt-and-suspenders
     #      on top of ensure_hermes_home() — old profiles that predate this
     #      migration still benefit).
     if current_ver < 23:
@@ -3538,7 +3538,7 @@ def migrate_config(interactive: bool = True, quiet: bool = False) -> Dict[str, A
                         print(f"  ✓ Saved {name}")
                     print()
             else:
-                print("  Set later with: hermes config set <key> <value>")
+                print("  Set later with: gengar config set <key> <value>")
     
     # Check for missing config fields
     missing_config = get_missing_config_fields()
@@ -3566,7 +3566,7 @@ def migrate_config(interactive: bool = True, quiet: bool = False) -> Dict[str, A
 
     # ── Skill-declared config vars ──────────────────────────────────────
     # Skills can declare config.yaml settings they need via
-    # metadata.hermes.config in their SKILL.md frontmatter.
+    # metadata.gengar.config in their SKILL.md frontmatter.
     # Prompt for any that are missing/empty.
     missing_skill_config = get_missing_skill_config_vars()
     if missing_skill_config and interactive and not quiet:
@@ -3605,7 +3605,7 @@ def migrate_config(interactive: bool = True, quiet: bool = False) -> Dict[str, A
                 print()
             save_config(config)
         else:
-            print("  Set later with: hermes config set <key> <value>")
+            print("  Set later with: gengar config set <key> <value>")
 
     return results
 
@@ -3823,7 +3823,7 @@ def cfg_get(cfg: Optional[Dict[str, Any]], *keys: str, default: Any = None) -> A
 
 
 def read_raw_config() -> Dict[str, Any]:
-    """Read ~/.hermes/config.yaml as-is, without merging defaults or migrating.
+    """Read ~/.gengar/config.yaml as-is, without merging defaults or migrating.
 
     Returns the raw YAML dict, or ``{}`` if the file doesn't exist or can't
     be parsed.  Use this for lightweight config reads where you just need a
@@ -3859,13 +3859,13 @@ def read_raw_config() -> Dict[str, Any]:
 
 
 def load_config() -> Dict[str, Any]:
-    """Load configuration from ~/.hermes/config.yaml.
+    """Load configuration from ~/.gengar/config.yaml.
 
     Cached on the config file's (mtime_ns, size). Returns a deepcopy of
     the cached value when unchanged, since most call sites mutate the
     result (e.g. ``cfg["model"]["default"] = ...`` before ``save_config``).
     The cache is keyed on ``str(config_path)`` so profile switches
-    (which change ``HERMES_HOME`` and therefore ``get_config_path()``)
+    (which change ``GENGAR_HOME`` and therefore ``get_config_path()``)
     don't collide.
     """
     ensure_hermes_home()
@@ -3936,8 +3936,8 @@ _FALLBACK_COMMENT = """
 #
 # Supported providers:
 #   openrouter   (OPENROUTER_API_KEY)  — routes to any model
-#   openai-codex (OAuth — hermes auth) — OpenAI Codex
-#   nous         (OAuth — hermes auth) — Nous Portal
+#   openai-codex (OAuth — gengar auth) — OpenAI Codex
+#   nous         (OAuth — gengar auth) — Nous Portal
 #   zai          (ZAI_API_KEY)         — Z.AI / GLM
 #   kimi-coding  (KIMI_API_KEY)        — Kimi / Moonshot
 #   kimi-coding-cn (KIMI_CN_API_KEY)   — Kimi / Moonshot (China)
@@ -3967,8 +3967,8 @@ _COMMENTED_SECTIONS = """
 #
 # Supported providers:
 #   openrouter   (OPENROUTER_API_KEY)  — routes to any model
-#   openai-codex (OAuth — hermes auth) — OpenAI Codex
-#   nous         (OAuth — hermes auth) — Nous Portal
+#   openai-codex (OAuth — gengar auth) — OpenAI Codex
+#   nous         (OAuth — gengar auth) — Nous Portal
 #   zai          (ZAI_API_KEY)         — Z.AI / GLM
 #   kimi-coding  (KIMI_API_KEY)        — Kimi / Moonshot
 #   kimi-coding-cn (KIMI_CN_API_KEY)   — Kimi / Moonshot (China)
@@ -3984,7 +3984,7 @@ _COMMENTED_SECTIONS = """
 
 
 def save_config(config: Dict[str, Any]):
-    """Save configuration to ~/.hermes/config.yaml."""
+    """Save configuration to ~/.gengar/config.yaml."""
     if is_managed():
         managed_error("save configuration")
         return
@@ -4027,7 +4027,7 @@ def save_config(config: Dict[str, Any]):
 
 
 def load_env() -> Dict[str, str]:
-    """Load environment variables from ~/.hermes/.env.
+    """Load environment variables from ~/.gengar/.env.
 
     Sanitizes lines before parsing so that corrupted files (e.g.
     concatenated KEY=VALUE pairs on a single line) are handled
@@ -4064,7 +4064,7 @@ def _sanitize_env_lines(lines: list) -> list:
     2. Stale ``KEY=***`` placeholder entries left by incomplete setup runs.
 
     Uses a known-keys set (OPTIONAL_ENV_VARS + _EXTRA_ENV_KEYS) so we only
-    split on real Hermes env var names, avoiding false positives from values
+    split on real Gengar env var names, avoiding false positives from values
     that happen to contain uppercase text with ``=``.
     """
     # Build the known keys set lazily from OPTIONAL_ENV_VARS + extras.
@@ -4116,7 +4116,7 @@ def _sanitize_env_lines(lines: list) -> list:
 
 
 def sanitize_env_file() -> int:
-    """Read, sanitize, and rewrite ~/.hermes/.env in place.
+    """Read, sanitize, and rewrite ~/.gengar/.env in place.
 
     Returns the number of lines that were fixed (concatenation splits +
     placeholder removals).  Returns 0 when no changes are needed.
@@ -4201,7 +4201,7 @@ def _check_non_ascii_credential(key: str, value: str) -> str:
 
 
 def save_env_value(key: str, value: str):
-    """Save or update a value in ~/.hermes/.env."""
+    """Save or update a value in ~/.gengar/.env."""
     if is_managed():
         managed_error(f"set {key}")
         return
@@ -4271,7 +4271,7 @@ def save_env_value(key: str, value: str):
 
 
 def remove_env_value(key: str) -> bool:
-    """Remove a key from ~/.hermes/.env and os.environ.
+    """Remove a key from ~/.gengar/.env and os.environ.
 
     Returns True if the key was found and removed, False otherwise.
     """
@@ -4358,10 +4358,10 @@ def save_env_value_secure(key: str, value: str) -> Dict[str, Any]:
 
 
 def reload_env() -> int:
-    """Re-read ~/.hermes/.env into os.environ. Returns count of vars updated.
+    """Re-read ~/.gengar/.env into os.environ. Returns count of vars updated.
 
     Adds/updates vars that changed and removes vars that were deleted from
-    the .env file (but only vars known to Hermes — OPTIONAL_ENV_VARS and
+    the .env file (but only vars known to Gengar — OPTIONAL_ENV_VARS and
     _EXTRA_ENV_KEYS — to avoid clobbering unrelated environment).
     """
     env_vars = load_env()
@@ -4371,7 +4371,7 @@ def reload_env() -> int:
         if os.environ.get(key) != value:
             os.environ[key] = value
             count += 1
-    # Remove known Hermes vars that are no longer in .env
+    # Remove known Gengar vars that are no longer in .env
     for key in known_keys:
         if key not in env_vars and key in os.environ:
             del os.environ[key]
@@ -4380,7 +4380,7 @@ def reload_env() -> int:
 
 
 def get_env_value(key: str) -> Optional[str]:
-    """Get a value from ~/.hermes/.env or environment."""
+    """Get a value from ~/.gengar/.env or environment."""
     # Check environment first
     if key in os.environ:
         return os.environ[key]
@@ -4410,7 +4410,7 @@ def show_config():
     
     print()
     print(color("┌─────────────────────────────────────────────────────────┐", Colors.CYAN))
-    print(color("│              ⚕ Hermes Configuration                    │", Colors.CYAN))
+    print(color("│              ⚕ Gengar Configuration                    │", Colors.CYAN))
     print(color("└─────────────────────────────────────────────────────────┘", Colors.CYAN))
     
     # Paths
@@ -4567,9 +4567,9 @@ def show_config():
 
     print()
     print(color("─" * 60, Colors.DIM))
-    print(color("  hermes config edit     # Edit config file", Colors.DIM))
-    print(color("  hermes config set <key> <value>", Colors.DIM))
-    print(color("  hermes setup           # Run setup wizard", Colors.DIM))
+    print(color("  gengar config edit     # Edit config file", Colors.DIM))
+    print(color("  gengar config set <key> <value>", Colors.DIM))
+    print(color("  gengar setup           # Run setup wizard", Colors.DIM))
     print()
 
 
@@ -4708,12 +4708,12 @@ def config_command(args):
         key = getattr(args, 'key', None)
         value = getattr(args, 'value', None)
         if not key or value is None:
-            print("Usage: hermes config set <key> <value>")
+            print("Usage: gengar config set <key> <value>")
             print()
             print("Examples:")
-            print("  hermes config set model anthropic/claude-sonnet-4")
-            print("  hermes config set terminal.backend docker")
-            print("  hermes config set OPENROUTER_API_KEY sk-or-...")
+            print("  gengar config set model anthropic/claude-sonnet-4")
+            print("  gengar config set terminal.backend docker")
+            print("  gengar config set OPENROUTER_API_KEY sk-or-...")
             sys.exit(1)
         set_config_value(key, value)
     
@@ -4813,7 +4813,7 @@ def config_command(args):
         if missing_config:
             print()
             print(color(f"  {len(missing_config)} new config option(s) available", Colors.YELLOW))
-            print("    Run 'hermes config migrate' to add them")
+            print("    Run 'gengar config migrate' to add them")
         
         print()
     
@@ -4821,11 +4821,11 @@ def config_command(args):
         print(f"Unknown config command: {subcmd}")
         print()
         print("Available commands:")
-        print("  hermes config           Show current configuration")
-        print("  hermes config edit      Open config in editor")
-        print("  hermes config set <key> <value>   Set a config value")
-        print("  hermes config check     Check for missing/outdated config")
-        print("  hermes config migrate   Update config with new options")
-        print("  hermes config path      Show config file path")
-        print("  hermes config env-path  Show .env file path")
+        print("  gengar config           Show current configuration")
+        print("  gengar config edit      Open config in editor")
+        print("  gengar config set <key> <value>   Set a config value")
+        print("  gengar config check     Check for missing/outdated config")
+        print("  gengar config migrate   Update config with new options")
+        print("  gengar config path      Show config file path")
+        print("  gengar config env-path  Show .env file path")
         sys.exit(1)

@@ -36,7 +36,7 @@ class TestUserSystemdPrivateSocketPreflight:
 
 class TestSystemdServiceRefresh:
     def test_systemd_install_repairs_outdated_unit_without_force(self, tmp_path, monkeypatch):
-        unit_path = tmp_path / "hermes-gateway.service"
+        unit_path = tmp_path / "gengar-gateway.service"
         unit_path.write_text("old unit\n", encoding="utf-8")
 
         monkeypatch.setattr(gateway_cli, "get_systemd_unit_path", lambda system=False: unit_path)
@@ -59,7 +59,7 @@ class TestSystemdServiceRefresh:
         ]
 
     def test_systemd_start_refreshes_outdated_unit(self, tmp_path, monkeypatch):
-        unit_path = tmp_path / "hermes-gateway.service"
+        unit_path = tmp_path / "gengar-gateway.service"
         unit_path.write_text("old unit\n", encoding="utf-8")
 
         monkeypatch.setattr(gateway_cli, "get_systemd_unit_path", lambda system=False: unit_path)
@@ -82,7 +82,7 @@ class TestSystemdServiceRefresh:
         ]
 
     def test_systemd_restart_refreshes_outdated_unit(self, tmp_path, monkeypatch):
-        unit_path = tmp_path / "hermes-gateway.service"
+        unit_path = tmp_path / "gengar-gateway.service"
         unit_path.write_text("old unit\n", encoding="utf-8")
 
         monkeypatch.setattr(gateway_cli, "get_systemd_unit_path", lambda system=False: unit_path)
@@ -145,7 +145,7 @@ class TestGatewayStopCleanup:
     def test_stop_only_kills_current_profile_by_default(self, tmp_path, monkeypatch):
         """Without --all, stop uses systemd (if available) and does NOT call
         the global kill_gateway_processes()."""
-        unit_path = tmp_path / "hermes-gateway.service"
+        unit_path = tmp_path / "gengar-gateway.service"
         unit_path.write_text("unit\n", encoding="utf-8")
 
         monkeypatch.setattr(gateway_cli, "supports_systemd_services", lambda: True)
@@ -171,7 +171,7 @@ class TestGatewayStopCleanup:
 
     def test_stop_all_sweeps_all_gateway_processes(self, tmp_path, monkeypatch):
         """With --all, stop uses systemd AND calls the global kill_gateway_processes()."""
-        unit_path = tmp_path / "hermes-gateway.service"
+        unit_path = tmp_path / "gengar-gateway.service"
         unit_path.write_text("unit\n", encoding="utf-8")
 
         monkeypatch.setattr(gateway_cli, "supports_systemd_services", lambda: True)
@@ -197,7 +197,7 @@ class TestGatewayStopCleanup:
 
 class TestLaunchdServiceRecovery:
     def test_get_restart_drain_timeout_prefers_env_then_config_then_default(self, monkeypatch):
-        monkeypatch.delenv("HERMES_RESTART_DRAIN_TIMEOUT", raising=False)
+        monkeypatch.delenv("GENGAR_RESTART_DRAIN_TIMEOUT", raising=False)
         monkeypatch.setattr(gateway_cli, "read_raw_config", lambda: {})
 
         assert (
@@ -212,17 +212,17 @@ class TestLaunchdServiceRecovery:
         )
         assert gateway_cli._get_restart_drain_timeout() == 14.0
 
-        monkeypatch.setenv("HERMES_RESTART_DRAIN_TIMEOUT", "9")
+        monkeypatch.setenv("GENGAR_RESTART_DRAIN_TIMEOUT", "9")
         assert gateway_cli._get_restart_drain_timeout() == 9.0
 
-        monkeypatch.setenv("HERMES_RESTART_DRAIN_TIMEOUT", "invalid")
+        monkeypatch.setenv("GENGAR_RESTART_DRAIN_TIMEOUT", "invalid")
         assert (
             gateway_cli._get_restart_drain_timeout()
             == DEFAULT_GATEWAY_RESTART_DRAIN_TIMEOUT
         )
 
     def test_launchd_install_repairs_outdated_plist_without_force(self, tmp_path, monkeypatch):
-        plist_path = tmp_path / "ai.hermes.gateway.plist"
+        plist_path = tmp_path / "ai.gengar.gateway.plist"
         plist_path.write_text("<plist>old content</plist>", encoding="utf-8")
 
         monkeypatch.setattr(gateway_cli, "get_launchd_plist_path", lambda: plist_path)
@@ -246,7 +246,7 @@ class TestLaunchdServiceRecovery:
         ]
 
     def test_launchd_start_reloads_unloaded_job_and_retries(self, tmp_path, monkeypatch):
-        plist_path = tmp_path / "ai.hermes.gateway.plist"
+        plist_path = tmp_path / "ai.gengar.gateway.plist"
         plist_path.write_text(gateway_cli.generate_launchd_plist(), encoding="utf-8")
         label = gateway_cli.get_launchd_label()
 
@@ -274,7 +274,7 @@ class TestLaunchdServiceRecovery:
 
     def test_launchd_start_reloads_on_kickstart_exit_code_113(self, tmp_path, monkeypatch):
         """Exit code 113 (\"Could not find service\") should also trigger bootstrap recovery."""
-        plist_path = tmp_path / "ai.hermes.gateway.plist"
+        plist_path = tmp_path / "ai.gengar.gateway.plist"
         plist_path.write_text(gateway_cli.generate_launchd_plist(), encoding="utf-8")
         label = gateway_cli.get_launchd_label()
 
@@ -407,7 +407,7 @@ class TestLaunchdServiceRecovery:
         assert wait_called[0] == {"timeout": 10.0, "force_after": 5.0}
 
     def test_launchd_status_reports_local_stale_plist_when_unloaded(self, tmp_path, monkeypatch, capsys):
-        plist_path = tmp_path / "ai.hermes.gateway.plist"
+        plist_path = tmp_path / "ai.gengar.gateway.plist"
         plist_path.write_text("<plist>old content</plist>", encoding="utf-8")
 
         monkeypatch.setattr(gateway_cli, "get_launchd_plist_path", lambda: plist_path)
@@ -693,7 +693,7 @@ class TestGatewaySystemServiceRouting:
 
         out = capsys.readouterr().out
         assert "not supported on Termux" in out
-        assert "Run manually: hermes gateway" in out
+        assert "Run manually: gengar gateway" in out
 
     def test_gateway_status_prefers_system_service_when_only_system_unit_exists(self, monkeypatch):
         user_unit = SimpleNamespace(exists=lambda: False)
@@ -766,11 +766,11 @@ class TestGatewaySystemServiceRouting:
 
         out = capsys.readouterr().out
         assert "Gateway is not running" in out
-        assert "nohup hermes gateway" in out
+        assert "nohup gengar gateway" in out
         assert "install as user service" not in out
 
     def test_gateway_restart_does_not_fallback_to_foreground_when_launchd_restart_fails(self, tmp_path, monkeypatch):
-        plist_path = tmp_path / "ai.hermes.gateway.plist"
+        plist_path = tmp_path / "ai.gengar.gateway.plist"
         plist_path.write_text("plist\n", encoding="utf-8")
 
         monkeypatch.setattr(gateway_cli, "is_linux", lambda: False)
@@ -780,7 +780,7 @@ class TestGatewaySystemServiceRouting:
             gateway_cli,
             "launchd_restart",
             lambda: (_ for _ in ()).throw(
-                gateway_cli.subprocess.CalledProcessError(5, ["launchctl", "kickstart", "-k", "gui/501/ai.hermes.gateway"])
+                gateway_cli.subprocess.CalledProcessError(5, ["launchctl", "kickstart", "-k", "gui/501/ai.gengar.gateway"])
             ),
         )
 
@@ -857,13 +857,13 @@ class TestDetectVenvDir:
         assert result is None
 
 
-class TestSystemUnitHermesHome:
-    """HERMES_HOME in system units must reference the target user, not root."""
+class TestSystemUnitGengarHome:
+    """GENGAR_HOME in system units must reference the target user, not root."""
 
     def test_system_unit_uses_target_user_home_not_calling_user(self, monkeypatch):
         # Simulate sudo: Path.home() returns /root, target user is alice
         monkeypatch.setattr(Path, "home", staticmethod(lambda: Path("/root")))
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("GENGAR_HOME", raising=False)
         monkeypatch.setattr(
             gateway_cli, "_system_service_identity",
             lambda run_as_user=None: ("alice", "alice", "/home/alice"),
@@ -875,13 +875,13 @@ class TestSystemUnitHermesHome:
 
         unit = gateway_cli.generate_systemd_unit(system=True, run_as_user="alice")
 
-        assert 'HERMES_HOME=/home/alice/.hermes' in unit
-        assert '/root/.hermes' not in unit
+        assert 'GENGAR_HOME=/home/alice/.gengar' in unit
+        assert '/root/.gengar' not in unit
 
     def test_system_unit_remaps_profile_to_target_user(self, monkeypatch):
-        # Simulate sudo with a profile: HERMES_HOME was resolved under root
+        # Simulate sudo with a profile: GENGAR_HOME was resolved under root
         monkeypatch.setattr(Path, "home", staticmethod(lambda: Path("/root")))
-        monkeypatch.setenv("HERMES_HOME", "/root/.hermes/profiles/coder")
+        monkeypatch.setenv("GENGAR_HOME", "/root/.gengar/profiles/coder")
         monkeypatch.setattr(
             gateway_cli, "_system_service_identity",
             lambda run_as_user=None: ("alice", "alice", "/home/alice"),
@@ -893,13 +893,13 @@ class TestSystemUnitHermesHome:
 
         unit = gateway_cli.generate_systemd_unit(system=True, run_as_user="alice")
 
-        assert 'HERMES_HOME=/home/alice/.hermes/profiles/coder' in unit
+        assert 'GENGAR_HOME=/home/alice/.gengar/profiles/coder' in unit
         assert '/root/' not in unit
 
     def test_system_unit_preserves_custom_hermes_home(self, monkeypatch):
-        # Custom HERMES_HOME not under any user's home — keep as-is
+        # Custom GENGAR_HOME not under any user's home — keep as-is
         monkeypatch.setattr(Path, "home", staticmethod(lambda: Path("/root")))
-        monkeypatch.setenv("HERMES_HOME", "/opt/hermes-shared")
+        monkeypatch.setenv("GENGAR_HOME", "/opt/gengar-shared")
         monkeypatch.setattr(
             gateway_cli, "_system_service_identity",
             lambda run_as_user=None: ("alice", "alice", "/home/alice"),
@@ -911,46 +911,46 @@ class TestSystemUnitHermesHome:
 
         unit = gateway_cli.generate_systemd_unit(system=True, run_as_user="alice")
 
-        assert 'HERMES_HOME=/opt/hermes-shared' in unit
+        assert 'GENGAR_HOME=/opt/gengar-shared' in unit
 
     def test_user_unit_unaffected_by_change(self):
-        # User-scope units should still use the calling user's HERMES_HOME
+        # User-scope units should still use the calling user's GENGAR_HOME
         unit = gateway_cli.generate_systemd_unit(system=False)
 
         hermes_home = str(gateway_cli.get_hermes_home().resolve())
-        assert f'HERMES_HOME={hermes_home}' in unit
+        assert f'GENGAR_HOME={hermes_home}' in unit
 
 
-class TestHermesHomeForTargetUser:
+class TestGengarHomeForTargetUser:
     """Unit tests for _hermes_home_for_target_user()."""
 
     def test_remaps_default_home(self, monkeypatch):
         monkeypatch.setattr(Path, "home", staticmethod(lambda: Path("/root")))
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("GENGAR_HOME", raising=False)
 
         result = gateway_cli._hermes_home_for_target_user("/home/alice")
-        assert result == "/home/alice/.hermes"
+        assert result == "/home/alice/.gengar"
 
     def test_remaps_profile_path(self, monkeypatch):
         monkeypatch.setattr(Path, "home", staticmethod(lambda: Path("/root")))
-        monkeypatch.setenv("HERMES_HOME", "/root/.hermes/profiles/coder")
+        monkeypatch.setenv("GENGAR_HOME", "/root/.gengar/profiles/coder")
 
         result = gateway_cli._hermes_home_for_target_user("/home/alice")
-        assert result == "/home/alice/.hermes/profiles/coder"
+        assert result == "/home/alice/.gengar/profiles/coder"
 
     def test_keeps_custom_path(self, monkeypatch):
         monkeypatch.setattr(Path, "home", staticmethod(lambda: Path("/root")))
-        monkeypatch.setenv("HERMES_HOME", "/opt/hermes")
+        monkeypatch.setenv("GENGAR_HOME", "/opt/gengar")
 
         result = gateway_cli._hermes_home_for_target_user("/home/alice")
-        assert result == "/opt/hermes"
+        assert result == "/opt/gengar"
 
     def test_noop_when_same_user(self, monkeypatch):
         monkeypatch.setattr(Path, "home", staticmethod(lambda: Path("/home/alice")))
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("GENGAR_HOME", raising=False)
 
         result = gateway_cli._hermes_home_for_target_user("/home/alice")
-        assert result == "/home/alice/.hermes"
+        assert result == "/home/alice/.gengar"
 
 
 class TestGeneratedUnitUsesDetectedVenv:
@@ -1163,7 +1163,7 @@ class TestPreflightUserSystemd:
 
         msg = str(exc_info.value)
         assert "sudo loginctl enable-linger" in msg
-        assert "hermes gateway run" in msg  # foreground fallback mentioned
+        assert "gengar gateway run" in msg  # foreground fallback mentioned
         assert "Interactive authentication required" in msg
 
     def test_raises_when_loginctl_missing(self, monkeypatch):
@@ -1247,56 +1247,56 @@ class TestProfileArg:
     """Tests for _profile_arg — returns '--profile <name>' for named profiles."""
 
     def test_default_hermes_home_returns_empty(self, tmp_path, monkeypatch):
-        """Default ~/.hermes should not produce a --profile flag."""
-        hermes_home = tmp_path / ".hermes"
+        """Default ~/.gengar should not produce a --profile flag."""
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         result = gateway_cli._profile_arg(str(hermes_home))
         assert result == ""
 
     def test_named_profile_returns_flag(self, tmp_path, monkeypatch):
-        """~/.hermes/profiles/mybot should return '--profile mybot'."""
-        profile_dir = tmp_path / ".hermes" / "profiles" / "mybot"
+        """~/.gengar/profiles/mybot should return '--profile mybot'."""
+        profile_dir = tmp_path / ".gengar" / "profiles" / "mybot"
         profile_dir.mkdir(parents=True)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / ".gengar"))
         result = gateway_cli._profile_arg(str(profile_dir))
         assert result == "--profile mybot"
 
     def test_hash_path_returns_empty(self, tmp_path, monkeypatch):
-        """Arbitrary non-profile HERMES_HOME should return empty string."""
-        custom_home = tmp_path / "custom" / "hermes"
+        """Arbitrary non-profile GENGAR_HOME should return empty string."""
+        custom_home = tmp_path / "custom" / "gengar"
         custom_home.mkdir(parents=True)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / ".gengar"))
         result = gateway_cli._profile_arg(str(custom_home))
         assert result == ""
 
     def test_nested_profile_path_returns_empty(self, tmp_path, monkeypatch):
-        """~/.hermes/profiles/mybot/subdir should NOT match — too deep."""
-        nested = tmp_path / ".hermes" / "profiles" / "mybot" / "subdir"
+        """~/.gengar/profiles/mybot/subdir should NOT match — too deep."""
+        nested = tmp_path / ".gengar" / "profiles" / "mybot" / "subdir"
         nested.mkdir(parents=True)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / ".gengar"))
         result = gateway_cli._profile_arg(str(nested))
         assert result == ""
 
     def test_invalid_profile_name_returns_empty(self, tmp_path, monkeypatch):
         """Profile names with invalid chars should not match the regex."""
-        bad_profile = tmp_path / ".hermes" / "profiles" / "My Bot!"
+        bad_profile = tmp_path / ".gengar" / "profiles" / "My Bot!"
         bad_profile.mkdir(parents=True)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path / ".gengar"))
         result = gateway_cli._profile_arg(str(bad_profile))
         assert result == ""
 
     def test_systemd_unit_includes_profile(self, tmp_path, monkeypatch):
         """generate_systemd_unit should include --profile in ExecStart for named profiles."""
-        profile_dir = tmp_path / ".hermes" / "profiles" / "mybot"
+        profile_dir = tmp_path / ".gengar" / "profiles" / "mybot"
         profile_dir.mkdir(parents=True)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(profile_dir))
+        monkeypatch.setenv("GENGAR_HOME", str(profile_dir))
         monkeypatch.setattr(gateway_cli, "get_hermes_home", lambda: profile_dir)
         unit = gateway_cli.generate_systemd_unit(system=False)
         assert "--profile mybot" in unit
@@ -1304,17 +1304,17 @@ class TestProfileArg:
 
     def test_launchd_plist_includes_profile(self, tmp_path, monkeypatch):
         """generate_launchd_plist should include --profile in ProgramArguments for named profiles."""
-        profile_dir = tmp_path / ".hermes" / "profiles" / "mybot"
+        profile_dir = tmp_path / ".gengar" / "profiles" / "mybot"
         profile_dir.mkdir(parents=True)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(profile_dir))
+        monkeypatch.setenv("GENGAR_HOME", str(profile_dir))
         monkeypatch.setattr(gateway_cli, "get_hermes_home", lambda: profile_dir)
         plist = gateway_cli.generate_launchd_plist()
         assert "<string>--profile</string>" in plist
         assert "<string>mybot</string>" in plist
 
     def test_launchd_plist_path_uses_real_user_home_not_profile_home(self, tmp_path, monkeypatch):
-        profile_dir = tmp_path / ".hermes" / "profiles" / "orcha"
+        profile_dir = tmp_path / ".gengar" / "profiles" / "orcha"
         profile_dir.mkdir(parents=True)
         machine_home = tmp_path / "machine-home"
         machine_home.mkdir()
@@ -1322,13 +1322,13 @@ class TestProfileArg:
         profile_home.mkdir()
 
         monkeypatch.setattr(Path, "home", lambda: profile_home)
-        monkeypatch.setenv("HERMES_HOME", str(profile_dir))
+        monkeypatch.setenv("GENGAR_HOME", str(profile_dir))
         monkeypatch.setattr(gateway_cli, "get_hermes_home", lambda: profile_dir)
         monkeypatch.setattr(pwd, "getpwuid", lambda uid: SimpleNamespace(pw_dir=str(machine_home)))
 
         plist_path = gateway_cli.get_launchd_plist_path()
 
-        assert plist_path == machine_home / "Library" / "LaunchAgents" / "ai.hermes.gateway-orcha.plist"
+        assert plist_path == machine_home / "Library" / "LaunchAgents" / "ai.gengar.gateway-orcha.plist"
 
 
 class TestRemapPathForUser:
@@ -1338,21 +1338,21 @@ class TestRemapPathForUser:
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "root")
         (tmp_path / "root").mkdir()
         result = gateway_cli._remap_path_for_user(
-            str(tmp_path / "root" / ".hermes" / "hermes-agent"),
+            str(tmp_path / "root" / ".gengar" / "gengar"),
             str(tmp_path / "alice"),
         )
-        assert result == str(tmp_path / "alice" / ".hermes" / "hermes-agent")
+        assert result == str(tmp_path / "alice" / ".gengar" / "gengar")
 
     def test_keeps_system_path_unchanged(self, monkeypatch, tmp_path):
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "root")
         (tmp_path / "root").mkdir()
-        result = gateway_cli._remap_path_for_user("/opt/hermes", str(tmp_path / "alice"))
-        assert result == "/opt/hermes"
+        result = gateway_cli._remap_path_for_user("/opt/gengar", str(tmp_path / "alice"))
+        assert result == "/opt/gengar"
 
     def test_noop_when_same_user(self, monkeypatch, tmp_path):
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "alice")
         (tmp_path / "alice").mkdir()
-        original = str(tmp_path / "alice" / ".hermes" / "hermes-agent")
+        original = str(tmp_path / "alice" / ".gengar" / "gengar")
         result = gateway_cli._remap_path_for_user(original, str(tmp_path / "alice"))
         assert result == original
 
@@ -1363,7 +1363,7 @@ class TestSystemUnitPathRemapping:
     def test_system_unit_has_no_root_paths(self, monkeypatch, tmp_path):
         root_home = tmp_path / "root"
         root_home.mkdir()
-        project = root_home / ".hermes" / "hermes-agent"
+        project = root_home / ".gengar" / "gengar"
         project.mkdir(parents=True)
         venv_bin = project / "venv" / "bin"
         venv_bin.mkdir(parents=True)
@@ -1372,8 +1372,8 @@ class TestSystemUnitPathRemapping:
         target_home = "/home/alice"
 
         monkeypatch.setattr(Path, "home", lambda: root_home)
-        monkeypatch.setenv("HERMES_HOME", str(root_home / ".hermes"))
-        monkeypatch.setattr(gateway_cli, "get_hermes_home", lambda: root_home / ".hermes")
+        monkeypatch.setenv("GENGAR_HOME", str(root_home / ".gengar"))
+        monkeypatch.setattr(gateway_cli, "get_hermes_home", lambda: root_home / ".gengar")
         monkeypatch.setattr(gateway_cli, "PROJECT_ROOT", project)
         monkeypatch.setattr(gateway_cli, "_detect_venv_dir", lambda: project / "venv")
         monkeypatch.setattr(gateway_cli, "get_python_path", lambda: str(venv_bin / "python"))
@@ -1388,7 +1388,7 @@ class TestSystemUnitPathRemapping:
         assert str(root_home) not in unit
         # Target user paths should be present
         assert "/home/alice" in unit
-        assert "WorkingDirectory=/home/alice/.hermes/hermes-agent" in unit
+        assert "WorkingDirectory=/home/alice/.gengar/gengar" in unit
 
 
 class TestDockerAwareGateway:
@@ -1404,7 +1404,7 @@ class TestDockerAwareGateway:
         monkeypatch.setattr(gateway_cli.subprocess, "run", fake_run)
 
         with pytest.raises(RuntimeError, match="systemctl is not available"):
-            gateway_cli._run_systemctl(["start", "hermes-gateway"])
+            gateway_cli._run_systemctl(["start", "gengar-gateway"])
 
     def test_run_systemctl_passes_through_on_success(self, monkeypatch):
         """_run_systemctl delegates to subprocess.run when systemctl exists."""
@@ -1416,13 +1416,13 @@ class TestDockerAwareGateway:
 
         monkeypatch.setattr(gateway_cli.subprocess, "run", fake_run)
 
-        result = gateway_cli._run_systemctl(["status", "hermes-gateway"])
+        result = gateway_cli._run_systemctl(["status", "gengar-gateway"])
         assert result.returncode == 0
         assert len(calls) == 1
         assert "status" in calls[0]
 
     def test_install_in_container_prints_docker_guidance(self, monkeypatch, capsys):
-        """'hermes gateway install' inside Docker exits 0 with container guidance."""
+        """'gengar gateway install' inside Docker exits 0 with container guidance."""
         import pytest
 
         monkeypatch.setattr(gateway_cli, "is_managed", lambda: False)
@@ -1442,7 +1442,7 @@ class TestDockerAwareGateway:
         assert "restart" in out.lower()
 
     def test_uninstall_in_container_prints_docker_guidance(self, monkeypatch, capsys):
-        """'hermes gateway uninstall' inside Docker exits 0 with container guidance."""
+        """'gengar gateway uninstall' inside Docker exits 0 with container guidance."""
         import pytest
 
         monkeypatch.setattr(gateway_cli, "is_managed", lambda: False)
@@ -1460,7 +1460,7 @@ class TestDockerAwareGateway:
         assert "docker" in out.lower()
 
     def test_start_in_container_prints_docker_guidance(self, monkeypatch, capsys):
-        """'hermes gateway start' inside Docker exits 0 with container guidance."""
+        """'gengar gateway start' inside Docker exits 0 with container guidance."""
         import pytest
 
         monkeypatch.setattr(gateway_cli, "is_termux", lambda: False)
@@ -1476,26 +1476,26 @@ class TestDockerAwareGateway:
         assert exc_info.value.code == 0
         out = capsys.readouterr().out
         assert "docker" in out.lower()
-        assert "hermes gateway run" in out
+        assert "gengar gateway run" in out
 
 
-class TestLegacyHermesUnitDetection:
+class TestLegacyGengarUnitDetection:
     """Tests for _find_legacy_hermes_units / has_legacy_hermes_units.
 
     These guard against the scenario that tripped Luis in April 2026: an
-    older install left a ``hermes.service`` unit behind when the service was
-    renamed to ``hermes-gateway.service``. After PR #5646 (signal recovery
+    older install left a ``gengar.service`` unit behind when the service was
+    renamed to ``gengar-gateway.service``. After PR #5646 (signal recovery
     via systemd), the two services began SIGTERM-flapping over the same
     Telegram bot token in a 30-second cycle.
 
-    The detector must flag ``hermes.service`` ONLY when it actually runs our
+    The detector must flag ``gengar.service`` ONLY when it actually runs our
     gateway, and must NEVER flag profile units
-    (``hermes-gateway-<profile>.service``) or unrelated third-party services.
+    (``gengar-gateway-<profile>.service``) or unrelated third-party services.
     """
 
     # Minimal ExecStart that looks like our gateway
     _OUR_UNIT_TEXT = (
-        "[Unit]\nDescription=Hermes Gateway\n[Service]\n"
+        "[Unit]\nDescription=Gengar Gateway\n[Service]\n"
         "ExecStart=/usr/bin/python -m hermes_cli.main gateway run --replace\n"
     )
 
@@ -1515,48 +1515,48 @@ class TestLegacyHermesUnitDetection:
 
     def test_detects_legacy_hermes_service_in_user_scope(self, tmp_path, monkeypatch):
         user_dir, _ = self._setup_search_paths(tmp_path, monkeypatch)
-        legacy = user_dir / "hermes.service"
+        legacy = user_dir / "gengar.service"
         legacy.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
         results = gateway_cli._find_legacy_hermes_units()
 
         assert len(results) == 1
         name, path, is_system = results[0]
-        assert name == "hermes.service"
+        assert name == "gengar.service"
         assert path == legacy
         assert is_system is False
         assert gateway_cli.has_legacy_hermes_units() is True
 
     def test_detects_legacy_hermes_service_in_system_scope(self, tmp_path, monkeypatch):
         _, system_dir = self._setup_search_paths(tmp_path, monkeypatch)
-        legacy = system_dir / "hermes.service"
+        legacy = system_dir / "gengar.service"
         legacy.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
         results = gateway_cli._find_legacy_hermes_units()
 
         assert len(results) == 1
         name, path, is_system = results[0]
-        assert name == "hermes.service"
+        assert name == "gengar.service"
         assert path == legacy
         assert is_system is True
 
     def test_ignores_profile_unit_hermes_gateway_coder(self, tmp_path, monkeypatch):
         """CRITICAL: profile units must NOT be flagged as legacy.
 
-        Teknium's concern — ``hermes-gateway-coder.service`` is our standard
+        Teknium's concern — ``gengar-gateway-coder.service`` is our standard
         naming for the ``coder`` profile. The legacy detector is an explicit
         allowlist, not a glob, so profile units are safe.
         """
         user_dir, system_dir = self._setup_search_paths(tmp_path, monkeypatch)
         # Drop profile units in BOTH scopes with our ExecStart
         for base in (user_dir, system_dir):
-            (base / "hermes-gateway-coder.service").write_text(
+            (base / "gengar-gateway-coder.service").write_text(
                 self._OUR_UNIT_TEXT, encoding="utf-8"
             )
-            (base / "hermes-gateway-orcha.service").write_text(
+            (base / "gengar-gateway-orcha.service").write_text(
                 self._OUR_UNIT_TEXT, encoding="utf-8"
             )
-            (base / "hermes-gateway.service").write_text(
+            (base / "gengar-gateway.service").write_text(
                 self._OUR_UNIT_TEXT, encoding="utf-8"
             )
 
@@ -1566,15 +1566,15 @@ class TestLegacyHermesUnitDetection:
         assert gateway_cli.has_legacy_hermes_units() is False
 
     def test_ignores_unrelated_hermes_service(self, tmp_path, monkeypatch):
-        """Third-party ``hermes.service`` that isn't ours stays untouched.
+        """Third-party ``gengar.service`` that isn't ours stays untouched.
 
-        If a user has some other package named ``hermes`` installed as a
+        If a user has some other package named ``gengar`` installed as a
         service, we must not flag it.
         """
         user_dir, _ = self._setup_search_paths(tmp_path, monkeypatch)
-        (user_dir / "hermes.service").write_text(
-            "[Unit]\nDescription=Some Other Hermes\n[Service]\n"
-            "ExecStart=/opt/other-hermes/bin/daemon --foreground\n",
+        (user_dir / "gengar.service").write_text(
+            "[Unit]\nDescription=Some Other Gengar\n[Service]\n"
+            "ExecStart=/opt/other-gengar/bin/daemon --foreground\n",
             encoding="utf-8",
         )
 
@@ -1593,8 +1593,8 @@ class TestLegacyHermesUnitDetection:
         """When a user has BOTH user-scope and system-scope legacy units,
         both are reported so the migration step can remove them together."""
         user_dir, system_dir = self._setup_search_paths(tmp_path, monkeypatch)
-        (user_dir / "hermes.service").write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
-        (system_dir / "hermes.service").write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
+        (user_dir / "gengar.service").write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
+        (system_dir / "gengar.service").write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
         results = gateway_cli._find_legacy_hermes_units()
 
@@ -1607,21 +1607,21 @@ class TestLegacyHermesUnitDetection:
         ExecStart variants we've seen in the wild:
           - python -m hermes_cli.main gateway run
           - python path/to/hermes_cli/main.py gateway run
-          - hermes gateway run   (direct binary)
+          - gengar gateway run   (direct binary)
           - python path/to/gateway/run.py
         """
         user_dir, _ = self._setup_search_paths(tmp_path, monkeypatch)
         variants = [
             "ExecStart=/venv/bin/python -m hermes_cli.main gateway run --replace",
-            "ExecStart=/venv/bin/python /opt/hermes/hermes_cli/main.py gateway run",
-            "ExecStart=/usr/local/bin/hermes gateway run --replace",
-            "ExecStart=/venv/bin/python /opt/hermes/gateway/run.py",
+            "ExecStart=/venv/bin/python /opt/gengar/hermes_cli/main.py gateway run",
+            "ExecStart=/usr/local/bin/gengar gateway run --replace",
+            "ExecStart=/venv/bin/python /opt/gengar/gateway/run.py",
         ]
         for i, execstart in enumerate(variants):
-            name = f"hermes.service" if i == 0 else f"hermes.service"  # same name
+            name = f"gengar.service" if i == 0 else f"gengar.service"  # same name
             # Test each variant fresh
-            (user_dir / "hermes.service").write_text(
-                f"[Unit]\nDescription=Old Hermes\n[Service]\n{execstart}\n",
+            (user_dir / "gengar.service").write_text(
+                f"[Unit]\nDescription=Old Gengar\n[Service]\n{execstart}\n",
                 encoding="utf-8",
             )
             results = gateway_cli._find_legacy_hermes_units()
@@ -1637,19 +1637,19 @@ class TestLegacyHermesUnitDetection:
 
     def test_print_legacy_unit_warning_shows_migration_hint(self, tmp_path, monkeypatch, capsys):
         user_dir, _ = self._setup_search_paths(tmp_path, monkeypatch)
-        (user_dir / "hermes.service").write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
+        (user_dir / "gengar.service").write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
         gateway_cli.print_legacy_unit_warning()
         out = capsys.readouterr().out
 
         assert "Legacy" in out
-        assert "hermes.service" in out
-        assert "hermes gateway migrate-legacy" in out
+        assert "gengar.service" in out
+        assert "gengar gateway migrate-legacy" in out
 
     def test_handles_unreadable_unit_file_gracefully(self, tmp_path, monkeypatch):
         """A permission error reading a unit file must not crash detection."""
         user_dir, _ = self._setup_search_paths(tmp_path, monkeypatch)
-        unreadable = user_dir / "hermes.service"
+        unreadable = user_dir / "gengar.service"
         unreadable.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
         # Simulate a read failure — monkeypatch Path.read_text to raise
         original_read_text = gateway_cli.Path.read_text
@@ -1666,11 +1666,11 @@ class TestLegacyHermesUnitDetection:
         assert results == []
 
 
-class TestRemoveLegacyHermesUnits:
+class TestRemoveLegacyGengarUnits:
     """Tests for remove_legacy_hermes_units (the migration action)."""
 
     _OUR_UNIT_TEXT = (
-        "[Unit]\nDescription=Hermes Gateway\n[Service]\n"
+        "[Unit]\nDescription=Gengar Gateway\n[Service]\n"
         "ExecStart=/usr/bin/python -m hermes_cli.main gateway run --replace\n"
     )
 
@@ -1707,7 +1707,7 @@ class TestRemoveLegacyHermesUnits:
 
     def test_dry_run_lists_without_removing(self, tmp_path, monkeypatch, capsys):
         user_dir, _, calls = self._setup(tmp_path, monkeypatch)
-        legacy = user_dir / "hermes.service"
+        legacy = user_dir / "gengar.service"
         legacy.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
         removed, remaining = gateway_cli.remove_legacy_hermes_units(
@@ -1723,7 +1723,7 @@ class TestRemoveLegacyHermesUnits:
 
     def test_removes_user_scope_legacy_unit(self, tmp_path, monkeypatch, capsys):
         user_dir, _, calls = self._setup(tmp_path, monkeypatch)
-        legacy = user_dir / "hermes.service"
+        legacy = user_dir / "gengar.service"
         legacy.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
         removed, remaining = gateway_cli.remove_legacy_hermes_units(interactive=False)
@@ -1733,13 +1733,13 @@ class TestRemoveLegacyHermesUnits:
         assert not legacy.exists()
         # Must have invoked stop → disable → daemon-reload on user scope
         cmds_joined = [" ".join(c) for c in calls]
-        assert any("--user stop hermes.service" in c for c in cmds_joined)
-        assert any("--user disable hermes.service" in c for c in cmds_joined)
+        assert any("--user stop gengar.service" in c for c in cmds_joined)
+        assert any("--user disable gengar.service" in c for c in cmds_joined)
         assert any("--user daemon-reload" in c for c in cmds_joined)
 
     def test_system_scope_without_root_defers_removal(self, tmp_path, monkeypatch, capsys):
         _, system_dir, calls = self._setup(tmp_path, monkeypatch, as_root=False)
-        legacy = system_dir / "hermes.service"
+        legacy = system_dir / "gengar.service"
         legacy.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
         removed, remaining = gateway_cli.remove_legacy_hermes_units(interactive=False)
@@ -1748,11 +1748,11 @@ class TestRemoveLegacyHermesUnits:
         assert remaining == [legacy]
         assert legacy.exists()  # Not removed — requires sudo
         out = capsys.readouterr().out
-        assert "sudo hermes gateway migrate-legacy" in out
+        assert "sudo gengar gateway migrate-legacy" in out
 
     def test_system_scope_with_root_removes(self, tmp_path, monkeypatch, capsys):
         _, system_dir, calls = self._setup(tmp_path, monkeypatch, as_root=True)
-        legacy = system_dir / "hermes.service"
+        legacy = system_dir / "gengar.service"
         legacy.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
         removed, remaining = gateway_cli.remove_legacy_hermes_units(interactive=False)
@@ -1763,16 +1763,16 @@ class TestRemoveLegacyHermesUnits:
         cmds_joined = [" ".join(c) for c in calls]
         # System-scope uses plain "systemctl" (no --user)
         assert any(
-            c.startswith("systemctl stop hermes.service") for c in cmds_joined
+            c.startswith("systemctl stop gengar.service") for c in cmds_joined
         )
         assert any(
-            c.startswith("systemctl disable hermes.service") for c in cmds_joined
+            c.startswith("systemctl disable gengar.service") for c in cmds_joined
         )
 
     def test_removes_both_scopes_with_root(self, tmp_path, monkeypatch, capsys):
         user_dir, system_dir, _ = self._setup(tmp_path, monkeypatch, as_root=True)
-        user_legacy = user_dir / "hermes.service"
-        system_legacy = system_dir / "hermes.service"
+        user_legacy = user_dir / "gengar.service"
+        system_legacy = system_dir / "gengar.service"
         user_legacy.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
         system_legacy.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
@@ -1786,13 +1786,13 @@ class TestRemoveLegacyHermesUnits:
     def test_does_not_touch_profile_units_during_migration(
         self, tmp_path, monkeypatch, capsys
     ):
-        """Teknium's constraint: profile units (hermes-gateway-coder.service)
+        """Teknium's constraint: profile units (gengar-gateway-coder.service)
         must survive a migration call, even if we somehow include them in the
         search dir."""
         user_dir, _, _ = self._setup(tmp_path, monkeypatch, as_root=True)
-        profile_unit = user_dir / "hermes-gateway-coder.service"
+        profile_unit = user_dir / "gengar-gateway-coder.service"
         profile_unit.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
-        default_unit = user_dir / "hermes-gateway.service"
+        default_unit = user_dir / "gengar-gateway.service"
         default_unit.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
         removed, remaining = gateway_cli.remove_legacy_hermes_units(interactive=False)
@@ -1806,7 +1806,7 @@ class TestRemoveLegacyHermesUnits:
     def test_interactive_prompt_no_skips_removal(self, tmp_path, monkeypatch, capsys):
         """When interactive=True and user answers no, no removal happens."""
         user_dir, _, _ = self._setup(tmp_path, monkeypatch)
-        legacy = user_dir / "hermes.service"
+        legacy = user_dir / "gengar.service"
         legacy.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
         monkeypatch.setattr(gateway_cli, "prompt_yes_no", lambda *a, **k: False)
@@ -1819,7 +1819,7 @@ class TestRemoveLegacyHermesUnits:
 
 
 class TestMigrateLegacyCommand:
-    """Tests for the `hermes gateway migrate-legacy` subcommand dispatch."""
+    """Tests for the `gengar gateway migrate-legacy` subcommand dispatch."""
 
     def test_migrate_legacy_subparser_accepts_dry_run_and_yes(self):
         """Verify the argparse subparser is registered and parses flags."""
@@ -1829,7 +1829,7 @@ class TestMigrateLegacyCommand:
         # Fall back to calling main's setup helper if direct access isn't exposed
         # The key thing: the subparser must exist. We verify by constructing
         # a namespace through argparse directly — but if build_parser isn't
-        # public, just confirm that `hermes gateway --help` shows it.
+        # public, just confirm that `gengar gateway --help` shows it.
         import subprocess
         import sys
 
@@ -1946,7 +1946,7 @@ class TestSystemdInstallOffersLegacyRemoval:
         monkeypatch.setattr(gateway_cli, "prompt_yes_no", lambda *a, **k: True)
 
         # Mock the rest of the install flow
-        unit_path = tmp_path / "hermes-gateway.service"
+        unit_path = tmp_path / "gengar-gateway.service"
         monkeypatch.setattr(
             gateway_cli, "get_systemd_unit_path", lambda system=False: unit_path
         )
@@ -1983,7 +1983,7 @@ class TestSystemdInstallOffersLegacyRemoval:
         monkeypatch.setattr(gateway_cli, "print_legacy_unit_warning", lambda: None)
         monkeypatch.setattr(gateway_cli, "prompt_yes_no", lambda *a, **k: False)
 
-        unit_path = tmp_path / "hermes-gateway.service"
+        unit_path = tmp_path / "gengar-gateway.service"
         monkeypatch.setattr(
             gateway_cli, "get_systemd_unit_path", lambda system=False: unit_path
         )
@@ -2027,7 +2027,7 @@ class TestSystemdInstallOffersLegacyRemoval:
         monkeypatch.setattr(gateway_cli, "remove_legacy_hermes_units", fake_remove)
         monkeypatch.setattr(gateway_cli, "prompt_yes_no", counting_prompt)
 
-        unit_path = tmp_path / "hermes-gateway.service"
+        unit_path = tmp_path / "gengar-gateway.service"
         monkeypatch.setattr(
             gateway_cli, "get_systemd_unit_path", lambda system=False: unit_path
         )

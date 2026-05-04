@@ -147,7 +147,7 @@ def test_main_top_level_tui_accepts_toolsets(monkeypatch, main_mod):
 
     import hermes_cli.config as config_mod
 
-    monkeypatch.setattr(sys, "argv", ["hermes", "--tui", "--toolsets", "web,terminal"])
+    monkeypatch.setattr(sys, "argv", ["gengar", "--tui", "--toolsets", "web,terminal"])
     monkeypatch.setitem(sys.modules, "hermes_cli.plugins", types.SimpleNamespace(discover_plugins=lambda: None))
     monkeypatch.setitem(sys.modules, "tools.mcp_tool", types.SimpleNamespace(discover_mcp_tools=lambda: None))
     monkeypatch.setattr(config_mod, "load_config", lambda: {})
@@ -169,7 +169,7 @@ def test_main_top_level_oneshot_accepts_toolsets(monkeypatch, main_mod):
 
     import hermes_cli.config as config_mod
 
-    monkeypatch.setattr(sys, "argv", ["hermes", "-z", "hello", "--toolsets", "web,terminal"])
+    monkeypatch.setattr(sys, "argv", ["gengar", "-z", "hello", "--toolsets", "web,terminal"])
     monkeypatch.setitem(sys.modules, "hermes_cli.plugins", types.SimpleNamespace(discover_plugins=lambda: None))
     monkeypatch.setitem(sys.modules, "tools.mcp_tool", types.SimpleNamespace(discover_mcp_tools=lambda: None))
     monkeypatch.setattr(config_mod, "load_config", lambda: {})
@@ -280,7 +280,7 @@ def test_oneshot_rejects_disabled_mcp_toolset(monkeypatch, capsys):
     valid, error = _validate_explicit_toolsets("mcp-off")
 
     assert valid is None
-    assert error == "hermes -z: --toolsets did not contain any valid toolsets.\n"
+    assert error == "gengar -z: --toolsets did not contain any valid toolsets.\n"
     err = capsys.readouterr().err
     assert "ignoring disabled MCP servers" in err
     assert "mcp-off" in err
@@ -321,23 +321,23 @@ def test_launch_tui_exports_model_provider_and_toolsets(monkeypatch, main_mod):
     def fake_call(argv, cwd=None, env=None):
         nonlocal active_path_during_call
         captured.update({"argv": argv, "cwd": cwd, "env": env})
-        active_path_during_call = Path(env["HERMES_TUI_ACTIVE_SESSION_FILE"])
+        active_path_during_call = Path(env["GENGAR_TUI_ACTIVE_SESSION_FILE"])
         assert active_path_during_call.exists()
         return 1
 
     monkeypatch.setattr(main_mod.subprocess, "call", fake_call)
 
     with pytest.raises(SystemExit):
-        main_mod._launch_tui(model="nous/hermes-test", provider="nous", toolsets="web, terminal")
+        main_mod._launch_tui(model="nous/gengar-test", provider="nous", toolsets="web, terminal")
 
     env = captured["env"]
-    assert env["HERMES_MODEL"] == "nous/hermes-test"
-    assert env["HERMES_INFERENCE_MODEL"] == "nous/hermes-test"
-    assert env["HERMES_TUI_PROVIDER"] == "nous"
-    assert env["HERMES_INFERENCE_PROVIDER"] == "nous"
-    assert env["HERMES_TUI_TOOLSETS"] == "web,terminal"
-    active_path = Path(env["HERMES_TUI_ACTIVE_SESSION_FILE"])
-    assert active_path.name.startswith("hermes-tui-active-session-")
+    assert env["GENGAR_MODEL"] == "nous/gengar-test"
+    assert env["GENGAR_INFERENCE_MODEL"] == "nous/gengar-test"
+    assert env["GENGAR_TUI_PROVIDER"] == "nous"
+    assert env["GENGAR_INFERENCE_PROVIDER"] == "nous"
+    assert env["GENGAR_TUI_TOOLSETS"] == "web,terminal"
+    active_path = Path(env["GENGAR_TUI_ACTIVE_SESSION_FILE"])
+    assert active_path.name.startswith("gengar-tui-active-session-")
     assert active_path.suffix == ".json"
     assert active_path_during_call == active_path
     assert not active_path.exists()
@@ -373,8 +373,8 @@ def test_print_tui_exit_summary_includes_resume_and_token_totals(monkeypatch, ca
     out = capsys.readouterr().out
 
     assert "Resume this session with:" in out
-    assert "hermes --tui --resume 20260409_000001_abc123" in out
-    assert 'hermes --tui -c "demo title"' in out
+    assert "gengar --tui --resume 20260409_000001_abc123" in out
+    assert 'gengar --tui -c "demo title"' in out
     assert "Tokens:         21 (in 10, out 6, cache 4, reasoning 1)" in out
 
 
@@ -413,5 +413,5 @@ def test_print_tui_exit_summary_prefers_actual_active_session_file(
     out = capsys.readouterr().out
 
     assert seen == ["actual_session"]
-    assert "hermes --tui --resume actual_session" in out
+    assert "gengar --tui --resume actual_session" in out
     assert "startup_resume" not in out

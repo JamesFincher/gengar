@@ -1,13 +1,13 @@
 """Regression tests for the /model picker's credential-discovery paths.
 
 Covers:
- - Normal path (tokens already in Hermes auth store)
+ - Normal path (tokens already in Gengar auth store)
  - Claude Code fallback (tokens only in ~/.claude/.credentials.json)
  - Negative case (no credentials anywhere)
 
-Note: auto-import from ~/.codex/auth.json was removed in #12360 — Hermes
+Note: auto-import from ~/.codex/auth.json was removed in #12360 — Gengar
 now owns its own openai-codex auth state, and users explicitly adopt
-existing Codex CLI tokens via `hermes auth openai-codex`. The old
+existing Codex CLI tokens via `gengar auth openai-codex`. The old
 "Codex CLI shared file" discovery tests were removed with that change.
 """
 
@@ -33,11 +33,11 @@ def _make_fake_jwt(expiry_offset: int = 3600) -> str:
 
 @pytest.fixture()
 def hermes_auth_only_env(tmp_path, monkeypatch):
-    """Tokens already in Hermes auth store (no Codex CLI needed)."""
-    hermes_home = tmp_path / ".hermes"
+    """Tokens already in Gengar auth store (no Codex CLI needed)."""
+    hermes_home = tmp_path / ".gengar"
     hermes_home.mkdir()
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
     # Point CODEX_HOME to nonexistent dir to prove it's not needed
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "no_codex"))
 
@@ -64,7 +64,7 @@ def hermes_auth_only_env(tmp_path, monkeypatch):
 
 
 def test_normal_path_still_works(hermes_auth_only_env):
-    """openai-codex appears when tokens are already in Hermes auth store."""
+    """openai-codex appears when tokens are already in Gengar auth store."""
     from hermes_cli.model_switch import list_authenticated_providers
 
     providers = list_authenticated_providers(
@@ -78,12 +78,12 @@ def test_normal_path_still_works(hermes_auth_only_env):
 @pytest.fixture()
 def claude_code_only_env(tmp_path, monkeypatch):
     """Set up an environment where Anthropic credentials only exist in
-    ~/.claude/.credentials.json (Claude Code) — not in env vars or Hermes
+    ~/.claude/.credentials.json (Claude Code) — not in env vars or Gengar
     auth store."""
-    hermes_home = tmp_path / ".hermes"
+    hermes_home = tmp_path / ".gengar"
     hermes_home.mkdir()
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
     # No Codex CLI
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "no_codex"))
 
@@ -135,10 +135,10 @@ def test_claude_code_file_detected_by_model_picker(claude_code_only_env):
 
 def test_no_codex_when_no_credentials(tmp_path, monkeypatch):
     """openai-codex should NOT appear when no credentials exist anywhere."""
-    hermes_home = tmp_path / ".hermes"
+    hermes_home = tmp_path / ".gengar"
     hermes_home.mkdir()
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "no_codex"))
 
     (hermes_home / "auth.json").write_text(

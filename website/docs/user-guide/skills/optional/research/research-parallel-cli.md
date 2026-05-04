@@ -14,10 +14,10 @@ Optional vendor skill for Parallel CLI — agent-native web search, extraction, 
 
 | | |
 |---|---|
-| Source | Optional — install with `hermes skills install official/research/parallel-cli` |
+| Source | Optional — install with `gengar skills install official/research/parallel-cli` |
 | Path | `optional-skills/research/parallel-cli` |
 | Version | `1.1.0` |
-| Author | Hermes Agent |
+| Author | Gengar |
 | License | MIT |
 | Tags | `Research`, `Web`, `Search`, `Deep-Research`, `Enrichment`, `CLI` |
 | Related skills | [`duckduckgo-search`](/docs/user-guide/skills/optional/research/research-duckduckgo-search), [`mcporter`](/docs/user-guide/skills/optional/mcp/mcp-mcporter) |
@@ -25,18 +25,18 @@ Optional vendor skill for Parallel CLI — agent-native web search, extraction, 
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Gengar loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # Parallel CLI
 
 Use `parallel-cli` when the user explicitly wants Parallel, or when a terminal-native workflow would benefit from Parallel's vendor-specific stack for web search, extraction, deep research, enrichment, entity discovery, or monitoring.
 
-This is an optional third-party workflow, not a Hermes core capability.
+This is an optional third-party workflow, not a Gengar core capability.
 
 Important expectations:
 - Parallel is a paid service with a free tier, not a fully free local tool.
-- It overlaps with Hermes native `web_search` / `web_extract`, so do not prefer it by default for ordinary lookups.
+- It overlaps with Gengar native `web_search` / `web_extract`, so do not prefer it by default for ordinary lookups.
 - Prefer this skill when the user mentions Parallel specifically or needs capabilities like Parallel's enrichment, FindAll, or monitor workflows.
 
 `parallel-cli` is designed for agents:
@@ -54,7 +54,7 @@ Prefer this skill when:
 - You need async deep research jobs that can be launched and polled later
 - You need structured enrichment, FindAll entity discovery, or monitoring
 
-Prefer Hermes native `web_search` / `web_extract` for quick one-off lookups when Parallel is not specifically requested.
+Prefer Gengar native `web_search` / `web_extract` for quick one-off lookups when Parallel is not specifically requested.
 
 ## Installation
 
@@ -127,7 +127,7 @@ If auth requires browser interaction, run with `pty=true`.
 4. Cite only URLs returned by the CLI output.
 5. Save large JSON outputs to a temp file when follow-up questions are likely.
 6. Use background processes only for genuinely long-running workflows; otherwise run in foreground.
-7. Prefer Hermes native tools unless the user wants Parallel specifically or needs Parallel-only workflows.
+7. Prefer Gengar native tools unless the user wants Parallel specifically or needs Parallel-only workflows.
 
 ## Quick reference
 
@@ -250,7 +250,7 @@ parallel-cli research run \
   --json
 ```
 
-Recommended Hermes workflow:
+Recommended Gengar workflow:
 1. launch with `--no-wait --json`
 2. capture the returned run/task ID
 3. if the user wants to continue other work, keep moving
@@ -343,7 +343,7 @@ parallel-cli monitor create --help
 
 Use this when the user wants recurring tracking of a page or source rather than a one-time fetch.
 
-## Recommended Hermes usage patterns
+## Recommended Gengar usage patterns
 
 ### Fast answer with citations
 1. Run `parallel-cli search ... --json`
@@ -406,5 +406,5 @@ parallel-cli config auto-update-check off
 - `login` may require PTY/browser interaction.
 - Prefer foreground execution for short tasks; do not overuse background processes.
 - For large result sets, save JSON to `/tmp/*.json` instead of stuffing everything into context.
-- Do not silently choose Parallel when Hermes native tools are already sufficient.
+- Do not silently choose Parallel when Gengar native tools are already sufficient.
 - Remember this is a vendor workflow that usually requires account auth and paid usage beyond the free tier.

@@ -1,4 +1,4 @@
-"""ACP tool-call helpers for mapping hermes tools to ACP ToolKind and building content."""
+"""ACP tool-call helpers for mapping gengar tools to ACP ToolKind and building content."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from acp.schema import (
 )
 
 # ---------------------------------------------------------------------------
-# Map hermes tool names -> ACP ToolKind
+# Map gengar tool names -> ACP ToolKind
 # ---------------------------------------------------------------------------
 
 TOOL_KIND_MAP: Dict[str, ToolKind] = {
@@ -79,7 +79,7 @@ _POLISHED_TOOLS = {
 
 
 def get_tool_kind(tool_name: str) -> ToolKind:
-    """Return the ACP ToolKind for a hermes tool, defaulting to 'other'."""
+    """Return the ACP ToolKind for a gengar tool, defaulting to 'other'."""
     return TOOL_KIND_MAP.get(tool_name, "other")
 
 
@@ -192,7 +192,7 @@ def _json_loads_maybe(value: Optional[str]) -> Any:
     except Exception:
         pass
 
-    # Some Hermes tools append a human hint after a JSON payload, e.g.
+    # Some Gengar tools append a human hint after a JSON payload, e.g.
     # ``{...}\n\n[Hint: Results truncated...]``. Keep the structured rendering path
     # by decoding the first JSON value instead of falling back to raw text.
     try:
@@ -268,7 +268,7 @@ def _format_read_file_result(result: Optional[str], args: Optional[Dict[str, Any
     header = f"Read {path}{suffix}"
     if data.get("total_lines") is not None:
         header += f" — {data.get('total_lines')} total lines"
-    # Hermes read_file output is line-numbered with `|`. If we send it as raw
+    # Gengar read_file output is line-numbered with `|`. If we send it as raw
     # Markdown, Zed can interpret pipes as tables and collapse the layout.
     # Fence the payload so file lines stay readable and literal.
     return _truncate_text(f"{header}\n\n{_fenced_text(content)}")
@@ -929,7 +929,7 @@ def build_tool_start(
     tool_name: str,
     arguments: Dict[str, Any],
 ) -> ToolCallStart:
-    """Create a ToolCallStart event for the given hermes tool invocation."""
+    """Create a ToolCallStart event for the given gengar tool invocation."""
     kind = get_tool_kind(tool_name)
     title = build_tool_title(tool_name, arguments)
     locations = extract_locations(arguments)

@@ -1,25 +1,25 @@
 """SQLite-backed Kanban board for multi-profile collaboration.
 
 The board lives at ``<root>/kanban.db`` where ``<root>`` is the **shared
-Hermes root** (the parent of any active profile). Profiles intentionally
+Gengar root** (the parent of any active profile). Profiles intentionally
 collapse onto a single board: it IS the cross-profile coordination
-primitive. A worker spawned with ``hermes -p <profile>`` joins the same
+primitive. A worker spawned with ``gengar -p <profile>`` joins the same
 board as the dispatcher that claimed the task. The same applies to
 ``<root>/kanban/workspaces/`` and ``<root>/kanban/logs/``.
 
-In standard installs ``<root>`` is ``~/.hermes``. In Docker / custom
-deployments where ``HERMES_HOME`` points outside ``~/.hermes`` (e.g.
-``/opt/hermes``), ``<root>`` is ``HERMES_HOME``. Three env-var overrides
+In standard installs ``<root>`` is ``~/.gengar``. In Docker / custom
+deployments where ``GENGAR_HOME`` points outside ``~/.gengar`` (e.g.
+``/opt/gengar``), ``<root>`` is ``GENGAR_HOME``. Three env-var overrides
 are available (highest precedence first, all optional):
 
-* ``HERMES_KANBAN_DB`` — pin the database file path directly.
-* ``HERMES_KANBAN_WORKSPACES_ROOT`` — pin the workspaces root directly.
-* ``HERMES_KANBAN_HOME`` — pin the umbrella root that anchors all three
+* ``GENGAR_KANBAN_DB`` — pin the database file path directly.
+* ``GENGAR_KANBAN_WORKSPACES_ROOT`` — pin the workspaces root directly.
+* ``GENGAR_KANBAN_HOME`` — pin the umbrella root that anchors all three
   kanban paths (db + workspaces + logs). Useful for tests and unusual
   deployments where a single override is enough.
 
-The dispatcher injects ``HERMES_KANBAN_DB`` and
-``HERMES_KANBAN_WORKSPACES_ROOT`` into the worker subprocess env as a
+The dispatcher injects ``GENGAR_KANBAN_DB`` and
+``GENGAR_KANBAN_WORKSPACES_ROOT`` into the worker subprocess env as a
 defense-in-depth measure: even if the worker's ``get_default_hermes_root()``
 resolution somehow disagrees with the dispatcher's (unusual symlink or
 Docker layout), the two processes still converge on the same files.
@@ -27,7 +27,7 @@ Docker layout), the two processes still converge on the same files.
 Schema is intentionally small: tasks, task_links, task_comments,
 task_events.  The ``workspace_kind`` field decouples coordination from git
 worktrees so that research / ops / digital-twin workloads work alongside
-coding workloads.  See ``docs/hermes-kanban-v1-spec.pdf`` for the full
+coding workloads.  See ``docs/gengar-kanban-v1-spec.pdf`` for the full
 design specification.
 
 Concurrency strategy: WAL mode + ``BEGIN IMMEDIATE`` for write
@@ -82,22 +82,22 @@ _CTX_MAX_COMMENT_BYTES  = 2 * 1024   # 2 KB per comment
 # ---------------------------------------------------------------------------
 
 def kanban_home() -> Path:
-    """Return the shared Hermes root that anchors the kanban board.
+    """Return the shared Gengar root that anchors the kanban board.
 
     Resolution order:
 
-    1. ``HERMES_KANBAN_HOME`` env var when set and non-empty (explicit
+    1. ``GENGAR_KANBAN_HOME`` env var when set and non-empty (explicit
        override for tests and unusual deployments).
     2. ``get_default_hermes_root()``, which already returns ``<root>``
-       when ``HERMES_HOME`` is ``<root>/profiles/<name>``, and returns
-       ``HERMES_HOME`` directly for Docker / custom deployments.
+       when ``GENGAR_HOME`` is ``<root>/profiles/<name>``, and returns
+       ``GENGAR_HOME`` directly for Docker / custom deployments.
 
     The kanban board is shared across profiles **by design** (see the
     module docstring). Resolving the kanban paths through the active
-    profile's ``HERMES_HOME`` would silently fork the board per profile,
+    profile's ``GENGAR_HOME`` would silently fork the board per profile,
     which breaks the dispatcher / worker handoff.
     """
-    override = os.environ.get("HERMES_KANBAN_HOME", "").strip()
+    override = os.environ.get("GENGAR_KANBAN_HOME", "").strip()
     if override:
         return Path(override).expanduser()
     from hermes_constants import get_default_hermes_root
@@ -108,12 +108,12 @@ def kanban_db_path() -> Path:
     """Return the path to the shared ``kanban.db``.
 
     Anchored at :func:`kanban_home`, not the active profile's
-    ``HERMES_HOME``, so profile workers and the dispatcher converge on
-    the same board.  ``HERMES_KANBAN_DB`` pins the path directly (highest
+    ``GENGAR_HOME``, so profile workers and the dispatcher converge on
+    the same board.  ``GENGAR_KANBAN_DB`` pins the path directly (highest
     precedence) — the dispatcher injects this into worker subprocess env
     as defense-in-depth.
     """
-    override = os.environ.get("HERMES_KANBAN_DB", "").strip()
+    override = os.environ.get("GENGAR_KANBAN_DB", "").strip()
     if override:
         return Path(override).expanduser()
     return kanban_home() / "kanban.db"
@@ -124,11 +124,11 @@ def workspaces_root() -> Path:
 
     Anchored at :func:`kanban_home` so workspace paths are stable across
     profile workers spawned by the dispatcher.
-    ``HERMES_KANBAN_WORKSPACES_ROOT`` pins the path directly (highest
+    ``GENGAR_KANBAN_WORKSPACES_ROOT`` pins the path directly (highest
     precedence) — the dispatcher injects this into worker subprocess env
     as defense-in-depth.
     """
-    override = os.environ.get("HERMES_KANBAN_WORKSPACES_ROOT", "").strip()
+    override = os.environ.get("GENGAR_KANBAN_WORKSPACES_ROOT", "").strip()
     if override:
         return Path(override).expanduser()
     return kanban_home() / "kanban" / "workspaces"
@@ -462,7 +462,7 @@ def connect(db_path: Optional[Path] = None) -> sqlite3.Connection:
 def init_db(db_path: Optional[Path] = None) -> Path:
     """Create the schema if it doesn't exist; return the path used.
 
-    Kept as a public entry point so CLI ``hermes kanban init`` and the
+    Kept as a public entry point so CLI ``gengar kanban init`` and the
     daemon have something explicit to call. Unlike :func:`connect`'s
     first-time auto-init (which caches by path), ``init_db`` always
     re-runs the migration pass. Callers that know the on-disk schema
@@ -687,7 +687,7 @@ def create_task(
 
     ``skills`` is an optional list of skill names to force-load into
     the worker when dispatched. Stored as JSON; the dispatcher passes
-    each name to ``hermes --skills ...`` alongside the built-in
+    each name to ``gengar --skills ...`` alongside the built-in
     ``kanban-worker``. Use this to pin a task to a specialist skill
     (e.g. ``skills=["translation"]`` so the worker loads the
     translation skill regardless of the profile's default config).
@@ -704,7 +704,7 @@ def create_task(
     # Normalise + validate skills: strip whitespace, drop empties, dedupe
     # (preserving order). Refuse commas inside a single name so we don't
     # invisibly splatter a comma-joined string into one argv slot — the
-    # `hermes --skills X,Y` comma syntax is handled in the dispatcher,
+    # `gengar --skills X,Y` comma syntax is handled in the dispatcher,
     # not here.
     skills_list: Optional[list[str]] = None
     if skills is not None:
@@ -1105,7 +1105,7 @@ def _end_run(
     timed_out / spawn_failed / gave_up / reclaimed). ``status`` is the
     run-row status (usually just ``outcome``, but callers can pass it
     explicitly). Returns the closed run_id or ``None`` if no active run
-    existed (e.g. a CLI user calling ``hermes kanban complete`` on a
+    existed (e.g. a CLI user calling ``gengar kanban complete`` on a
     task that was never claimed).
     """
     now = int(time.time())
@@ -1165,7 +1165,7 @@ def _synthesize_ended_run(
     """Insert a zero-duration, already-closed run row.
 
     Used when a terminal transition happens on a task that was never
-    claimed (CLI user calling ``hermes kanban complete <ready-task>
+    claimed (CLI user calling ``gengar kanban complete <ready-task>
     --summary X``, or dashboard "mark done" on a ready task). Without
     this, the handoff fields (summary / metadata / error) would be
     silently dropped: ``_end_run`` is a no-op because there's no
@@ -1406,7 +1406,7 @@ def complete_task(
     """Transition ``running|ready -> done`` and record ``result``.
 
     Accepts a task that's merely ``ready`` too, so a manual CLI
-    completion (``hermes kanban complete <id>``) works without requiring
+    completion (``gengar kanban complete <id>``) works without requiring
     a claim/start/complete sequence.
 
     ``summary`` and ``metadata`` are stored on the closing run (if any)
@@ -1578,7 +1578,7 @@ def resolve_workspace(task: Task) -> Path:
     """Resolve (and create if needed) the workspace for a task.
 
     - ``scratch``: a fresh dir under ``<kanban-root>/kanban/workspaces/<id>/``,
-      where ``<kanban-root>`` is the shared Hermes root (see
+      where ``<kanban-root>`` is the shared Gengar root (see
       :func:`kanban_home`). The path is the same for the dispatcher and
       every profile worker, so handoff is path-stable.
     - ``dir:<path>``: the path stored in ``workspace_path``.  Created
@@ -1985,7 +1985,7 @@ def _record_spawn_failure(
 def _set_worker_pid(conn: sqlite3.Connection, task_id: str, pid: int) -> None:
     """Record the spawned child's pid + emit a ``spawned`` event.
 
-    The event's payload carries the pid so a human reading ``hermes kanban
+    The event's payload carries the pid so a human reading ``gengar kanban
     tail`` can correlate log lines with OS-level traces without opening
     the drawer.
     """
@@ -2117,7 +2117,7 @@ def _rotate_worker_log(log_path: Path, max_bytes: int) -> None:
 
 
 def _default_spawn(task: Task, workspace: str) -> Optional[int]:
-    """Fire-and-forget ``hermes -p <profile> chat -q ...`` subprocess.
+    """Fire-and-forget ``gengar -p <profile> chat -q ...`` subprocess.
 
     Returns the spawned child's PID so the dispatcher can detect crashes
     before the claim TTL expires. The child's completion is still observed
@@ -2131,25 +2131,25 @@ def _default_spawn(task: Task, workspace: str) -> Optional[int]:
     prompt = f"work kanban task {task.id}"
     env = dict(os.environ)
     if task.tenant:
-        env["HERMES_TENANT"] = task.tenant
-    env["HERMES_KANBAN_TASK"] = task.id
-    env["HERMES_KANBAN_WORKSPACE"] = workspace
+        env["GENGAR_TENANT"] = task.tenant
+    env["GENGAR_KANBAN_TASK"] = task.id
+    env["GENGAR_KANBAN_WORKSPACE"] = workspace
     # Pin the shared board + workspaces root the dispatcher resolved, so
-    # that even when the worker activates a profile (`hermes -p <name>`
-    # rewrites HERMES_HOME), its kanban paths still match the
+    # that even when the worker activates a profile (`gengar -p <name>`
+    # rewrites GENGAR_HOME), its kanban paths still match the
     # dispatcher's. Belt-and-braces with the `get_default_hermes_root()`
     # resolution in `kanban_home()` — symmetric resolution is the norm,
     # but unusual symlink / Docker layouts are caught here too.
-    env["HERMES_KANBAN_DB"] = str(kanban_db_path())
-    env["HERMES_KANBAN_WORKSPACES_ROOT"] = str(workspaces_root())
-    # HERMES_PROFILE is the author the kanban_comment tool defaults to.
-    # `hermes -p <assignee>` activates the profile, but the env var is
+    env["GENGAR_KANBAN_DB"] = str(kanban_db_path())
+    env["GENGAR_KANBAN_WORKSPACES_ROOT"] = str(workspaces_root())
+    # GENGAR_PROFILE is the author the kanban_comment tool defaults to.
+    # `gengar -p <assignee>` activates the profile, but the env var is
     # what the tool reads — set it explicitly here so comments are
     # attributed correctly regardless of how the child loads config.
-    env["HERMES_PROFILE"] = task.assignee
+    env["GENGAR_PROFILE"] = task.assignee
 
     cmd = [
-        "hermes",
+        "gengar",
         "-p", task.assignee,
         # Auto-load the kanban-worker skill so every dispatched worker
         # has the pattern library (good summary/metadata shapes, retry
@@ -2178,7 +2178,7 @@ def _default_spawn(task: Task, workspace: str) -> Optional[int]:
     ])
     # Redirect output to a per-task log under <kanban-root>/kanban/logs/.
     # Anchored at the shared kanban root, not the worker's profile home,
-    # so `hermes kanban tail` reads the same file the worker writes to.
+    # so `gengar kanban tail` reads the same file the worker writes to.
     log_dir = kanban_home() / "kanban" / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     log_path = log_dir / f"{task.id}.log"
@@ -2199,8 +2199,8 @@ def _default_spawn(task: Task, workspace: str) -> Optional[int]:
     except FileNotFoundError:
         log_f.close()
         raise RuntimeError(
-            "`hermes` executable not found on PATH. "
-            "Install Hermes Agent or activate its venv before running the kanban dispatcher."
+            "`gengar` executable not found on PATH. "
+            "Install Gengar or activate its venv before running the kanban dispatcher."
         )
     # NOTE: we intentionally do NOT close log_f here — we want Popen's
     # child process to keep writing after this function returns.  The
@@ -2225,7 +2225,7 @@ def run_daemon(
     """Run the dispatcher in a loop until interrupted.
 
     Calls :func:`dispatch_once` every ``interval`` seconds. Exits cleanly
-    on SIGINT / SIGTERM so ``hermes kanban daemon`` is systemd-friendly.
+    on SIGINT / SIGTERM so ``gengar kanban daemon`` is systemd-friendly.
     ``stop_event`` (a :class:`threading.Event`) and ``on_tick`` (a
     callable receiving the :class:`DispatchResult`) are test hooks.
     """
@@ -2726,13 +2726,13 @@ def read_worker_log(
 def list_profiles_on_disk() -> list[str]:
     """Return the set of named profiles discovered on disk.
 
-    Reads ``~/.hermes/profiles/`` directly so this module has no import
+    Reads ``~/.gengar/profiles/`` directly so this module has no import
     dependency on ``hermes_cli.profiles`` (which pulls in a large chunk
     of the CLI startup path). Only returns directories that contain a
     ``config.yaml`` — a bare dir without config isn't a real profile.
     """
     try:
-        home = Path.home() / ".hermes" / "profiles"
+        home = Path.home() / ".gengar" / "profiles"
     except Exception:
         return []
     if not home.is_dir():
@@ -2756,7 +2756,7 @@ def known_assignees(conn: sqlite3.Connection) -> list[dict]:
     A name is included when it's a configured profile on disk OR when
     any non-archived task has it as the assignee. Used by:
 
-    - ``hermes kanban assignees`` for the terminal.
+    - ``gengar kanban assignees`` for the terminal.
     - The dashboard assignee dropdown (so a fresh profile appears in
       the picker even before it's been given any task).
     - Router-profile heuristics ("who's overloaded?") without scanning

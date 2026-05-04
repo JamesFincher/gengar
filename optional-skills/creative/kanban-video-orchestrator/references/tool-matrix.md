@@ -1,13 +1,13 @@
 # Tool Matrix — Skills + Toolsets per Role
 
-Maps each role archetype to the Hermes skills it should `always_load` and the
-toolsets it needs. Only references skills that ship in the public hermes-agent
+Maps each role archetype to the Gengar skills it should `always_load` and the
+toolsets it needs. Only references skills that ship in the public gengar
 repository (under `skills/` or `optional-skills/`). External APIs and CLIs are
 called from the terminal toolset; they don't appear in `always_load`.
 
-## Hermes skills relevant to video production
+## Gengar skills relevant to video production
 
-### Visual / rendering skills (`hermes-agent/skills/creative/`)
+### Visual / rendering skills (`gengar/skills/creative/`)
 
 | Skill | What it does | Best fit for |
 |-------|--------------|--------------|
@@ -23,7 +23,7 @@ called from the terminal toolset; they don't appear in `always_load`.
 | `baoyu-infographic` | Infographic generation | Renderer for data-driven explainer scenes |
 | `meme-generation` *(optional)* | Generate meme images by overlaying text on templates | Generator for satirical/social content; meme-style stills |
 
-### Design / pre-production skills (`hermes-agent/skills/creative/`)
+### Design / pre-production skills (`gengar/skills/creative/`)
 
 | Skill | What it does | Best fit for |
 |-------|--------------|--------------|
@@ -38,7 +38,7 @@ called from the terminal toolset; they don't appear in `always_load`.
 | `creative-ideation` | Constraint-driven project ideation | Director / cinematographer when the brief is wide-open and needs framing |
 | `humanizer` | Strip AI-isms from text, add real voice | Writer / copywriter post-process to avoid AI-tells in scripts and VO copy |
 
-### Audio / media skills (`hermes-agent/skills/creative/` + `skills/media/`)
+### Audio / media skills (`gengar/skills/creative/` + `skills/media/`)
 
 | Skill | What it does | Best fit for |
 |-------|--------------|--------------|
@@ -50,7 +50,7 @@ called from the terminal toolset; they don't appear in `always_load`.
 | `gif-search` | Find existing GIFs | Editor / concept artist sourcing references |
 | `gifs` | GIF tooling | Masterer producing GIF deliverables |
 
-### Kanban infrastructure (`hermes-agent/skills/devops/`)
+### Kanban infrastructure (`gengar/skills/devops/`)
 
 | Skill | What it does | When to load |
 |-------|--------------|--------------|
@@ -65,7 +65,7 @@ profile needs them.
 
 ## External tools (called from terminal toolset)
 
-These are **not** Hermes skills but external CLIs / APIs that profiles invoke.
+These are **not** Gengar skills but external CLIs / APIs that profiles invoke.
 They don't appear in `always_load`; instead the role's terminal commands hit
 them directly.
 
@@ -272,7 +272,7 @@ env_required:
 ## API key requirements
 
 Track these in the project setup. The setup script should verify each required
-key is present in `~/.hermes/.env` (or macOS Keychain) before firing the kanban.
+key is present in `~/.gengar/.env` (or macOS Keychain) before firing the kanban.
 
 | Service | Env var | Used by |
 |---------|---------|---------|
@@ -286,10 +286,10 @@ key is present in `~/.hermes/.env` (or macOS Keychain) before firing the kanban.
 | Luma | `LUMA_API_KEY` | image-to-video-generator (alternate) |
 | Suno | `SUNO_API_KEY` | music-supervisor (paired with `songwriting-and-ai-music`) |
 | Spotify | `SPOTIFY_CLIENT_ID` + `SPOTIFY_CLIENT_SECRET` | music-supervisor (paired with `spotify` skill) |
-| Anthropic | `ANTHROPIC_API_KEY` | every Hermes profile (Claude) |
+| Anthropic | `ANTHROPIC_API_KEY` | every Gengar profile (Claude) |
 
 If a key is missing, prompt the user to add it. Storage methods, in order of
-preference: macOS Keychain → `~/.hermes/.env` → environment variable.
+preference: macOS Keychain → `~/.gengar/.env` → environment variable.
 
 ## Skill version pinning
 
@@ -298,7 +298,7 @@ If a specific skill version is desired, pass it via the per-task
 
 ## Adding a new skill to the matrix
 
-When a new Hermes-public video skill ships:
+When a new Gengar-public video skill ships:
 
 1. Add a row to the relevant table at the top of this file
 2. If it warrants a specialized renderer variant, add to `role-archetypes.md`

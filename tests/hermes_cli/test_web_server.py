@@ -50,7 +50,7 @@ class TestReloadEnv:
         os.environ.pop("TEST_RELOAD_VAR", None)
 
     def test_removes_deleted_known_vars(self, tmp_path):
-        """reload_env() removes known Hermes vars not present in .env."""
+        """reload_env() removes known Gengar vars not present in .env."""
         env_file = tmp_path / ".env"
         env_file.write_text("")  # empty .env
         # Pick a known key from OPTIONAL_ENV_VARS
@@ -62,7 +62,7 @@ class TestReloadEnv:
             assert count >= 1
 
     def test_does_not_remove_unknown_vars(self, tmp_path):
-        """reload_env() preserves non-Hermes env vars even when absent from .env."""
+        """reload_env() preserves non-Gengar env vars even when absent from .env."""
         env_file = tmp_path / ".env"
         env_file.write_text("")
         with patch.dict(reload_env.__globals__, {"get_env_path": lambda: env_file}):
@@ -102,7 +102,7 @@ class TestWebServerEndpoints:
 
     @pytest.fixture(autouse=True)
     def _setup_test_client(self, monkeypatch, _isolate_hermes_home):
-        """Create a TestClient and isolate the state DB under the test HERMES_HOME."""
+        """Create a TestClient and isolate the state DB under the test GENGAR_HOME."""
         try:
             from starlette.testclient import TestClient
         except ImportError:
@@ -675,7 +675,7 @@ class TestNewEndpoints:
         resp = self.client.get("/api/profiles/default/setup-command")
 
         assert resp.status_code == 200
-        assert resp.json()["command"] == "hermes setup"
+        assert resp.json()["command"] == "gengar setup"
 
     def test_profiles_create_creates_wrapper_alias_when_safe(self, monkeypatch, tmp_path):
         import hermes_cli.profiles as profiles_mod
@@ -692,7 +692,7 @@ class TestNewEndpoints:
         assert resp.status_code == 200
         wrapper_path = wrapper_dir / "writer"
         assert wrapper_path.exists()
-        assert wrapper_path.read_text() == '#!/bin/sh\nexec hermes -p writer "$@"\n'
+        assert wrapper_path.read_text() == '#!/bin/sh\nexec gengar -p writer "$@"\n'
 
     def test_profiles_create_with_clone_from_default_copies_default_skills(self, monkeypatch):
         from hermes_constants import get_hermes_home
@@ -1651,15 +1651,15 @@ class TestNormaliseThemeDefinition:
 
 
 class TestDiscoverUserThemes:
-    """Tests for _discover_user_themes() — scans ~/.hermes/dashboard-themes/."""
+    """Tests for _discover_user_themes() — scans ~/.gengar/dashboard-themes/."""
 
     def test_returns_empty_when_dir_missing(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
         from hermes_cli import web_server
         assert web_server._discover_user_themes() == []
 
     def test_loads_and_normalises_yaml(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
         themes_dir = tmp_path / "dashboard-themes"
         themes_dir.mkdir()
         (themes_dir / "ocean.yaml").write_text(
@@ -1683,7 +1683,7 @@ class TestDiscoverUserThemes:
         assert "fontSans" in results[0]["typography"]
 
     def test_malformed_yaml_skipped(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
         themes_dir = tmp_path / "dashboard-themes"
         themes_dir.mkdir()
         (themes_dir / "bad.yaml").write_text("::: not valid yaml :::\n\tindent wrong")
@@ -1838,7 +1838,7 @@ class TestDashboardPluginManifestExtensions:
         return plug_dir
 
     def test_override_and_hidden_carried_through(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
         self._write_plugin(tmp_path, "skin-home", {
             "name": "skin-home",
             "label": "Skin Home",
@@ -1856,7 +1856,7 @@ class TestDashboardPluginManifestExtensions:
         assert entry["slots"] == ["sidebar", "header-left"]
 
     def test_override_requires_leading_slash(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
         self._write_plugin(tmp_path, "bad-override", {
             "name": "bad-override",
             "label": "Bad",
@@ -1870,7 +1870,7 @@ class TestDashboardPluginManifestExtensions:
         assert "override" not in entry["tab"]
 
     def test_slots_default_empty(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
         self._write_plugin(tmp_path, "no-slots", {
             "name": "no-slots",
             "label": "No Slots",
@@ -1886,7 +1886,7 @@ class TestDashboardPluginManifestExtensions:
         assert "override" not in entry["tab"]
 
     def test_slots_filters_non_string_entries(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
         self._write_plugin(tmp_path, "mixed-slots", {
             "name": "mixed-slots",
             "label": "Mixed",
@@ -1905,7 +1905,7 @@ class TestDashboardPluginManifestExtensions:
         the manifest loader untouched.  The backend has no allowlist — the
         frontend ``<PluginSlot name="...">`` placements decide what actually
         renders — but the loader must not mangle colons in slot names."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
         self._write_plugin(tmp_path, "page-slots", {
             "name": "page-slots",
             "label": "Page Slots",
@@ -1944,7 +1944,7 @@ class TestDashboardPluginManifestExtensions:
 # /api/pty WebSocket — terminal bridge for the dashboard "Chat" tab.
 #
 # These tests drive the endpoint with a tiny fake command (typically ``cat``
-# or ``sh -c 'printf …'``) instead of the real ``hermes --tui`` binary.  The
+# or ``sh -c 'printf …'``) instead of the real ``gengar --tui`` binary.  The
 # endpoint resolves its argv through ``_resolve_chat_argv``, so tests
 # monkeypatch that hook.
 # ---------------------------------------------------------------------------
@@ -2021,7 +2021,7 @@ class TestPtyWebSocket:
             self.ws_module,
             "_resolve_chat_argv",
             lambda resume=None, sidecar_url=None: (
-                ["/bin/sh", "-c", "printf hermes-ws-ok"],
+                ["/bin/sh", "-c", "printf gengar-ws-ok"],
                 None,
                 None,
             ),
@@ -2040,9 +2040,9 @@ class TestPtyWebSocket:
                     break
                 if frame:
                     buf += frame
-                if b"hermes-ws-ok" in buf:
+                if b"gengar-ws-ok" in buf:
                     break
-            assert b"hermes-ws-ok" in buf
+            assert b"gengar-ws-ok" in buf
 
     def test_client_input_reaches_child_stdin(self, monkeypatch):
         # ``cat`` echoes stdin back, so a write → read round-trip proves
@@ -2143,7 +2143,7 @@ class TestPtyWebSocket:
 
     def test_channel_param_propagates_sidecar_url(self, monkeypatch):
         """When /api/pty is opened with ?channel=, the PTY child gets a
-        HERMES_TUI_SIDECAR_URL env var pointing back at /api/pub on the
+        GENGAR_TUI_SIDECAR_URL env var pointing back at /api/pub on the
         same channel — which is how tool events reach the dashboard sidebar."""
         captured: dict = {}
 

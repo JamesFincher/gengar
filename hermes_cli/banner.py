@@ -1,6 +1,6 @@
 """Welcome banner, ASCII art, skills summary, and update check for the CLI.
 
-Pure display functions with no HermesCLI state dependency.
+Pure display functions with no GengarCLI state dependency.
 """
 
 import json
@@ -67,14 +67,14 @@ def _skin_branding(key: str, fallback: str) -> str:
 
 from hermes_cli import __version__ as VERSION, __release_date__ as RELEASE_DATE
 
-HERMES_AGENT_LOGO = """[bold #FFD700]██╗  ██╗███████╗██████╗ ███╗   ███╗███████╗███████╗       █████╗  ██████╗ ███████╗███╗   ██╗████████╗[/]
+GENGAR_AGENT_LOGO = """[bold #FFD700]██╗  ██╗███████╗██████╗ ███╗   ███╗███████╗███████╗       █████╗  ██████╗ ███████╗███╗   ██╗████████╗[/]
 [bold #FFD700]██║  ██║██╔════╝██╔══██╗████╗ ████║██╔════╝██╔════╝      ██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝[/]
 [#FFBF00]███████║█████╗  ██████╔╝██╔████╔██║█████╗  ███████╗█████╗███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║[/]
 [#FFBF00]██╔══██║██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══╝  ╚════██║╚════╝██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║[/]
 [#CD7F32]██║  ██║███████╗██║  ██║██║ ╚═╝ ██║███████╗███████║      ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║[/]
 [#CD7F32]╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚══════╝      ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝[/]"""
 
-HERMES_CADUCEUS = """[#CD7F32]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⡀⠀⣀⣀⠀⢀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
+GENGAR_CADUCEUS = """[#CD7F32]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⡀⠀⣀⣀⠀⢀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
 [#CD7F32]⠀⠀⠀⠀⠀⠀⢀⣠⣴⣾⣿⣿⣇⠸⣿⣿⠇⣸⣿⣿⣷⣦⣄⡀⠀⠀⠀⠀⠀⠀[/]
 [#FFBF00]⠀⢀⣠⣴⣶⠿⠋⣩⡿⣿⡿⠻⣿⡇⢠⡄⢸⣿⠟⢿⣿⢿⣍⠙⠿⣶⣦⣄⡀⠀[/]
 [#FFBF00]⠀⠀⠉⠉⠁⠶⠟⠋⠀⠉⠀⢀⣈⣁⡈⢁⣈⣁⡀⠀⠉⠀⠙⠻⠶⠈⠉⠉⠀⠀[/]
@@ -124,10 +124,10 @@ def get_available_skills() -> Dict[str, List[str]]:
 _UPDATE_CHECK_CACHE_SECONDS = 6 * 3600
 
 # Sentinel returned when we know an update exists but can't count commits
-# (e.g. nix-built hermes — no local git history to count against).
+# (e.g. nix-built gengar — no local git history to count against).
 UPDATE_AVAILABLE_NO_COUNT = -1
 
-_UPSTREAM_REPO_URL = "https://github.com/NousResearch/hermes-agent.git"
+_UPSTREAM_REPO_URL = "https://github.com/jamesfincher/gengar.git"
 
 
 def _check_via_rev(local_rev: str) -> Optional[int]:
@@ -176,9 +176,9 @@ def _check_via_local_git(repo_dir: Path) -> Optional[int]:
 
 
 def check_for_updates() -> Optional[int]:
-    """Check whether a Hermes update is available.
+    """Check whether a Gengar update is available.
 
-    Two paths: if ``HERMES_REVISION`` is set (nix builds embed it), compare
+    Two paths: if ``GENGAR_REVISION`` is set (nix builds embed it), compare
     it to upstream main via ``git ls-remote``. Otherwise look for a local
     git checkout and count commits behind ``origin/main``.
 
@@ -188,7 +188,7 @@ def check_for_updates() -> Optional[int]:
     """
     hermes_home = get_hermes_home()
     cache_file = hermes_home / ".update_check"
-    embedded_rev = os.environ.get("HERMES_REVISION") or None
+    embedded_rev = os.environ.get("GENGAR_REVISION") or None
 
     # Read cache — invalidate if the embedded rev has changed since last check
     now = time.time()
@@ -206,7 +206,7 @@ def check_for_updates() -> Optional[int]:
     if embedded_rev:
         behind = _check_via_rev(embedded_rev)
     else:
-        repo_dir = hermes_home / "hermes-agent"
+        repo_dir = hermes_home / "gengar"
         if not (repo_dir / ".git").exists():
             repo_dir = Path(__file__).parent.parent.resolve()
         if not (repo_dir / ".git").exists():
@@ -222,9 +222,9 @@ def check_for_updates() -> Optional[int]:
 
 
 def _resolve_repo_dir() -> Optional[Path]:
-    """Return the active Hermes git checkout, or None if this isn't a git install."""
+    """Return the active Gengar git checkout, or None if this isn't a git install."""
     hermes_home = get_hermes_home()
-    repo_dir = hermes_home / "hermes-agent"
+    repo_dir = hermes_home / "gengar"
     if not (repo_dir / ".git").exists():
         repo_dir = Path(__file__).parent.parent.resolve()
     return repo_dir if (repo_dir / ".git").exists() else None
@@ -276,7 +276,7 @@ def get_git_banner_state(repo_dir: Optional[Path] = None) -> Optional[dict]:
     return {"upstream": upstream, "local": local, "ahead": max(ahead, 0)}
 
 
-_RELEASE_URL_BASE = "https://github.com/NousResearch/hermes-agent/releases/tag"
+_RELEASE_URL_BASE = "https://github.com/jamesfincher/gengar/releases/tag"
 _latest_release_cache: Optional[tuple] = None  # (tag, url) once resolved
 
 
@@ -284,8 +284,8 @@ def get_latest_release_tag(repo_dir: Optional[Path] = None) -> Optional[tuple]:
     """Return ``(tag, release_url)`` for the latest git tag, or None.
 
     Local-only — runs ``git describe --tags --abbrev=0`` against the
-    Hermes checkout. Cached per-process. Release URL always points at the
-    canonical NousResearch/hermes-agent repo (forks don't get a link).
+    Gengar checkout. Cached per-process. Release URL always points at the
+    canonical jamesfincher/gengar repo (forks don't get a link).
     """
     global _latest_release_cache
     if _latest_release_cache is not None:
@@ -324,7 +324,7 @@ def get_latest_release_tag(repo_dir: Optional[Path] = None) -> Optional[tuple]:
 
 def format_banner_version_label() -> str:
     """Return the version label shown in the startup banner title."""
-    base = f"Hermes Agent v{VERSION} ({RELEASE_DATE})"
+    base = f"Gengar v{VERSION} ({RELEASE_DATE})"
     state = get_git_banner_state()
     if not state:
         return base
@@ -450,10 +450,10 @@ def build_welcome_banner(console: Console, model: str, cwd: str,
     try:
         from hermes_cli.skin_engine import get_active_skin
         _bskin = get_active_skin()
-        _hero = _bskin.banner_hero if hasattr(_bskin, 'banner_hero') and _bskin.banner_hero else HERMES_CADUCEUS
+        _hero = _bskin.banner_hero if hasattr(_bskin, 'banner_hero') and _bskin.banner_hero else GENGAR_CADUCEUS
     except Exception:
         _bskin = None
-        _hero = HERMES_CADUCEUS
+        _hero = GENGAR_CADUCEUS
     left_lines = ["", _hero, ""]
     model_short = model.split("/")[-1] if "/" in model else model
     if model_short.endswith(".gguf"):
@@ -461,7 +461,7 @@ def build_welcome_banner(console: Console, model: str, cwd: str,
     if len(model_short) > 28:
         model_short = model_short[:25] + "..."
     ctx_str = f" [dim {dim}]·[/] [dim {dim}]{_format_context_length(context_length)} context[/]" if context_length else ""
-    left_lines.append(f"[{accent}]{model_short}[/]{ctx_str} [dim {dim}]·[/] [dim {dim}]Nous Research[/]")
+    left_lines.append(f"[{accent}]{model_short}[/]{ctx_str} [dim {dim}]·[/] [dim {dim}]James Fincher[/]")
     left_lines.append(f"[dim {dim}]{cwd}[/]")
     if session_id:
         left_lines.append(f"[dim {session_color}]Session: {session_id}[/]")
@@ -596,7 +596,7 @@ def build_welcome_banner(console: Console, model: str, cwd: str,
                     f"[dim yellow] — run [bold]{recommended_update_command()}[/bold] to update[/]"
                 )
             else:
-                # UPDATE_AVAILABLE_NO_COUNT: nix-built hermes; we know an update
+                # UPDATE_AVAILABLE_NO_COUNT: nix-built gengar; we know an update
                 # exists but not by how much, and we don't know how the user
                 # installed it (nix run, profile, system flake, home-manager).
                 managed_cmd = get_managed_update_command()
@@ -629,7 +629,7 @@ def build_welcome_banner(console: Console, model: str, cwd: str,
     console.print()
     term_width = shutil.get_terminal_size().columns
     if term_width >= 95:
-        _logo = _bskin.banner_logo if _bskin and hasattr(_bskin, 'banner_logo') and _bskin.banner_logo else HERMES_AGENT_LOGO
+        _logo = _bskin.banner_logo if _bskin and hasattr(_bskin, 'banner_logo') and _bskin.banner_logo else GENGAR_AGENT_LOGO
         console.print(_logo)
         console.print()
     console.print(outer_panel)

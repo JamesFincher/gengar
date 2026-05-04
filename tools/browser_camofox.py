@@ -17,7 +17,7 @@ Setup::
     # Option 2: Docker
     docker run -p 9377:9377 -e CAMOFOX_PORT=9377 jo-inc/camofox-browser
 
-Then set ``CAMOFOX_URL=http://localhost:9377`` in ``~/.hermes/.env``.
+Then set ``CAMOFOX_URL=http://localhost:9377`` in ``~/.gengar/.env``.
 """
 
 from __future__ import annotations
@@ -99,7 +99,7 @@ def get_vnc_url() -> Optional[str]:
 
 
 def _managed_persistence_enabled() -> bool:
-    """Return whether Hermes-managed persistence is enabled for Camofox.
+    """Return whether Gengar-managed persistence is enabled for Camofox.
 
     When enabled, sessions use a stable profile-scoped userId so the
     Camofox server can map it to a persistent browser profile directory.
@@ -127,7 +127,7 @@ def _get_session(task_id: Optional[str]) -> Dict[str, Any]:
     """Get or create a camofox session for the given task.
 
     When managed persistence is enabled, uses a deterministic userId
-    derived from the Hermes profile so the Camofox server can map it
+    derived from the Gengar profile so the Camofox server can map it
     to the same persistent browser profile across restarts.
     """
     task_id = task_id or "default"

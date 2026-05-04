@@ -1,6 +1,6 @@
-# Hermes Agent - Development Guide
+# Gengar - Development Guide
 
-Instructions for AI coding assistants and developers working on the hermes-agent codebase.
+Instructions for AI coding assistants and developers working on the gengar codebase.
 
 ## Development Environment
 
@@ -10,7 +10,7 @@ source .venv/bin/activate   # or: source venv/bin/activate
 ```
 
 `scripts/run_tests.sh` probes `.venv` first, then `venv`, then
-`$HOME/.hermes/hermes-agent/venv` (for worktrees that share a venv with the
+`$HOME/.gengar/gengar/venv` (for worktrees that share a venv with the
 main checkout).
 
 ## Project Structure
@@ -20,11 +20,11 @@ The canonical source is the filesystem. The notes call out the load-bearing
 entry points you'll actually edit.
 
 ```
-hermes-agent/
+gengar/
 ├── run_agent.py          # AIAgent class — core conversation loop (~12k LOC)
 ├── model_tools.py        # Tool orchestration, discover_builtin_tools(), handle_function_call()
-├── toolsets.py           # Toolset definitions, _HERMES_CORE_TOOLS list
-├── cli.py                # HermesCLI class — interactive CLI orchestrator (~11k LOC)
+├── toolsets.py           # Toolset definitions, _GENGAR_CORE_TOOLS list
+├── cli.py                # GengarCLI class — interactive CLI orchestrator (~11k LOC)
 ├── hermes_state.py       # SessionDB — SQLite session store (FTS5 search)
 ├── hermes_constants.py   # get_hermes_home(), display_hermes_home() — profile-aware paths
 ├── hermes_logging.py     # setup_logging() — agent.log / errors.log / gateway.log (profile-aware)
@@ -45,7 +45,7 @@ hermes-agent/
 │   └── <others>/         # Dashboard, image-gen, disk-cleanup, examples, ...
 ├── optional-skills/      # Heavier/niche skills shipped but NOT active by default
 ├── skills/               # Built-in skills bundled with the repo
-├── ui-tui/               # Ink (React) terminal UI — `hermes --tui`
+├── ui-tui/               # Ink (React) terminal UI — `gengar --tui`
 │   └── src/              # entry.tsx, app.tsx, gatewayClient.ts + app/components/hooks/lib
 ├── tui_gateway/          # Python JSON-RPC backend for the TUI
 ├── acp_adapter/          # ACP server (VS Code / Zed / JetBrains integration)
@@ -56,10 +56,10 @@ hermes-agent/
 └── tests/                # Pytest suite (~15k tests across ~700 files as of Apr 2026)
 ```
 
-**User config:** `~/.hermes/config.yaml` (settings), `~/.hermes/.env` (API keys only).
-**Logs:** `~/.hermes/logs/` — `agent.log` (INFO+), `errors.log` (WARNING+),
+**User config:** `~/.gengar/config.yaml` (settings), `~/.gengar/.env` (API keys only).
+**Logs:** `~/.gengar/logs/` — `agent.log` (INFO+), `errors.log` (WARNING+),
 `gateway.log` when running the gateway. Profile-aware via `get_hermes_home()`.
-Browse with `hermes logs [--follow] [--level ...] [--session ...]`.
+Browse with `gengar logs [--follow] [--level ...] [--session ...]`.
 
 ## File Dependency Chain
 
@@ -141,8 +141,8 @@ Reasoning content is stored in `assistant_msg["reasoning"]`.
 - **KawaiiSpinner** (`agent/display.py`) — animated faces during API calls, `┊` activity feed for tool results
 - `load_cli_config()` in cli.py merges hardcoded defaults + user config YAML
 - **Skin engine** (`hermes_cli/skin_engine.py`) — data-driven CLI theming; initialized from `display.skin` config key at startup; skins customize banner colors, spinner faces/verbs/wings, tool prefix, response box, branding text
-- `process_command()` is a method on `HermesCLI` — dispatches on canonical command name resolved via `resolve_command()` from the central registry
-- Skill slash commands: `agent/skill_commands.py` scans `~/.hermes/skills/`, injects as **user message** (not system prompt) to preserve prompt caching
+- `process_command()` is a method on `GengarCLI` — dispatches on canonical command name resolved via `resolve_command()` from the central registry
+- Skill slash commands: `agent/skill_commands.py` scans `~/.gengar/skills/`, injects as **user message** (not system prompt) to preserve prompt caching
 
 ### Slash Command Registry (`hermes_cli/commands.py`)
 
@@ -152,7 +152,7 @@ All slash commands are defined in a central `COMMAND_REGISTRY` list of `CommandD
 - **Gateway** — `GATEWAY_KNOWN_COMMANDS` frozenset for hook emission, `resolve_command()` for dispatch
 - **Gateway help** — `gateway_help_lines()` generates `/help` output
 - **Telegram** — `telegram_bot_commands()` generates the BotCommand menu
-- **Slack** — `slack_subcommand_map()` generates `/hermes` subcommand routing
+- **Slack** — `slack_subcommand_map()` generates `/gengar` subcommand routing
 - **Autocomplete** — `COMMANDS` flat dict feeds `SlashCommandCompleter`
 - **CLI help** — `COMMANDS_BY_CATEGORY` dict feeds `show_help()`
 
@@ -163,7 +163,7 @@ All slash commands are defined in a central `COMMAND_REGISTRY` list of `CommandD
 CommandDef("mycommand", "Description of what it does", "Session",
            aliases=("mc",), args_hint="[arg]"),
 ```
-2. Add handler in `HermesCLI.process_command()` in `cli.py`:
+2. Add handler in `GengarCLI.process_command()` in `cli.py`:
 ```python
 elif canonical == "mycommand":
     self._handle_mycommand(cmd_original)
@@ -191,12 +191,12 @@ if canonical == "mycommand":
 
 ## TUI Architecture (ui-tui + tui_gateway)
 
-The TUI is a full replacement for the classic (prompt_toolkit) CLI, activated via `hermes --tui` or `HERMES_TUI=1`.
+The TUI is a full replacement for the classic (prompt_toolkit) CLI, activated via `gengar --tui` or `GENGAR_TUI=1`.
 
 ### Process Model
 
 ```
-hermes --tui
+gengar --tui
   └─ Node (Ink)  ──stdio JSON-RPC──  Python (tui_gateway)
        │                                  └─ AIAgent + tools + sessions
        └─ renders transcript, composer, prompts, activity
@@ -231,25 +231,25 @@ Newline-delimited JSON-RPC over stdio. Requests from Ink, events from Python. Se
 ```bash
 cd ui-tui
 npm install       # first time
-npm run dev       # watch mode (rebuilds hermes-ink + tsx --watch)
+npm run dev       # watch mode (rebuilds gengar-ink + tsx --watch)
 npm start         # production
-npm run build     # full build (hermes-ink + tsc)
+npm run build     # full build (gengar-ink + tsc)
 npm run type-check # typecheck only (tsc --noEmit)
 npm run lint      # eslint
 npm run fmt       # prettier
 npm test          # vitest
 ```
 
-### TUI in the Dashboard (`hermes dashboard` → `/chat`)
+### TUI in the Dashboard (`gengar dashboard` → `/chat`)
 
-The dashboard embeds the real `hermes --tui` — **not** a rewrite.  See `hermes_cli/pty_bridge.py` + the `@app.websocket("/api/pty")` endpoint in `hermes_cli/web_server.py`.
+The dashboard embeds the real `gengar --tui` — **not** a rewrite.  See `hermes_cli/pty_bridge.py` + the `@app.websocket("/api/pty")` endpoint in `hermes_cli/web_server.py`.
 
 - Browser loads `web/src/pages/ChatPage.tsx`, which mounts xterm.js's `Terminal` with the WebGL renderer, `@xterm/addon-fit` for container-driven resize, and `@xterm/addon-unicode11` for modern wide-character widths.
 - `/api/pty?token=…` upgrades to a WebSocket; auth uses the same ephemeral `_SESSION_TOKEN` as REST, via query param (browsers can't set `Authorization` on WS upgrade).
-- The server spawns whatever `hermes --tui` would spawn, through `ptyprocess` (POSIX PTY — WSL works, native Windows does not).
+- The server spawns whatever `gengar --tui` would spawn, through `ptyprocess` (POSIX PTY — WSL works, native Windows does not).
 - Frames: raw PTY bytes each direction; resize via `\x1b[RESIZE:<cols>;<rows>]` intercepted on the server and applied with `TIOCSWINSZ`.
 
-**Do not re-implement the primary chat experience in React.** The main transcript, composer/input flow (including slash-command behavior), and PTY-backed terminal belong to the embedded `hermes --tui` — anything new you add to Ink shows up in the dashboard automatically. If you find yourself rebuilding the transcript or composer for the dashboard, stop and extend Ink instead.
+**Do not re-implement the primary chat experience in React.** The main transcript, composer/input flow (including slash-command behavior), and PTY-backed terminal belong to the embedded `gengar --tui` — anything new you add to Ink shows up in the dashboard automatically. If you find yourself rebuilding the transcript or composer for the dashboard, stop and extend Ink instead.
 
 **Structured React UI around the TUI is allowed when it is not a second chat surface.** Sidebar widgets, inspectors, summaries, status panels, and similar supporting views (e.g. `ChatSidebar`, `ModelPickerDialog`, `ToolCall`) are fine when they complement the embedded TUI rather than replacing the transcript / composer / terminal. Keep their state independent of the PTY child's session and surface their failures non-destructively so the terminal pane keeps working unimpaired.
 
@@ -280,15 +280,15 @@ registry.register(
 )
 ```
 
-**2. Add to `toolsets.py`** — either `_HERMES_CORE_TOOLS` (all platforms) or a new toolset.
+**2. Add to `toolsets.py`** — either `_GENGAR_CORE_TOOLS` (all platforms) or a new toolset.
 
 Auto-discovery: any `tools/*.py` file with a top-level `registry.register()` call is imported automatically — no manual import list to maintain.
 
 The registry handles schema collection, dispatch, availability checking, and error wrapping. All handlers MUST return a JSON string.
 
-**Path references in tool schemas**: If the schema description mentions file paths (e.g. default output directories), use `display_hermes_home()` to make them profile-aware. The schema is generated at import time, which is after `_apply_profile_override()` sets `HERMES_HOME`.
+**Path references in tool schemas**: If the schema description mentions file paths (e.g. default output directories), use `display_hermes_home()` to make them profile-aware. The schema is generated at import time, which is after `_apply_profile_override()` sets `GENGAR_HOME`.
 
-**State files**: If a tool stores persistent state (caches, logs, checkpoints), use `get_hermes_home()` for the base directory — never `Path.home() / ".hermes"`. This ensures each profile gets its own state.
+**State files**: If a tool stores persistent state (caches, logs, checkpoints), use `get_hermes_home()` for the base directory — never `Path.home() / ".gengar"`. This ensures each profile gets its own state.
 
 **Agent-level tools** (todo, memory): intercepted by `run_agent.py` before `handle_function_call()`. See `tools/todo_tool.py` for the pattern.
 
@@ -326,7 +326,7 @@ the env var in code (see `gateway_timeout`, `terminal.cwd` → `TERMINAL_CWD`).
 | Loader | Used by | Location |
 |--------|---------|----------|
 | `load_cli_config()` | CLI mode | `cli.py` — merges CLI-specific defaults + user YAML |
-| `load_config()` | `hermes tools`, `hermes setup`, most CLI subcommands | `hermes_cli/config.py` — merges `DEFAULT_CONFIG` + user YAML |
+| `load_config()` | `gengar tools`, `gengar setup`, most CLI subcommands | `hermes_cli/config.py` — merges `DEFAULT_CONFIG` + user YAML |
 | Direct YAML load | Gateway runtime | `gateway/run.py` + `gateway/config.py` — reads user YAML raw |
 
 If you add a new key and the CLI sees it but the gateway doesn't (or vice
@@ -350,7 +350,7 @@ The skin engine (`hermes_cli/skin_engine.py`) provides data-driven CLI visual cu
 
 ```
 hermes_cli/skin_engine.py    # SkinConfig dataclass, built-in skins, YAML loader
-~/.hermes/skins/*.yaml       # User-installed custom skins (drop-in)
+~/.gengar/skins/*.yaml       # User-installed custom skins (drop-in)
 ```
 
 - `init_skin_from_config()` — called at CLI startup, reads `display.skin` from config
@@ -382,7 +382,7 @@ hermes_cli/skin_engine.py    # SkinConfig dataclass, built-in skins, YAML loader
 
 ### Built-in skins
 
-- `default` — Classic Hermes gold/kawaii (the current look)
+- `default` — Classic Gengar gold/kawaii (the current look)
 - `ares` — Crimson/bronze war-god theme with custom spinner wings
 - `mono` — Clean grayscale monochrome
 - `slate` — Cool blue developer-focused theme
@@ -404,7 +404,7 @@ Add to `_BUILTIN_SKINS` dict in `hermes_cli/skin_engine.py`:
 
 ### User skins (YAML)
 
-Users create `~/.hermes/skins/<name>.yaml`:
+Users create `~/.gengar/skins/<name>.yaml`:
 
 ```yaml
 name: cyberpunk
@@ -433,13 +433,13 @@ Activate with `/skin cyberpunk` or `display.skin: cyberpunk` in config.yaml.
 
 ## Plugins
 
-Hermes has two plugin surfaces. Both live under `plugins/` in the repo so
+Gengar has two plugin surfaces. Both live under `plugins/` in the repo so
 repo-shipped plugins can be discovered alongside user-installed ones in
-`~/.hermes/plugins/` and pip-installed entry points.
+`~/.gengar/plugins/` and pip-installed entry points.
 
 ### General plugins (`hermes_cli/plugins.py` + `plugins/<name>/`)
 
-`PluginManager` discovers plugins from `~/.hermes/plugins/`, `./.hermes/plugins/`,
+`PluginManager` discovers plugins from `~/.gengar/plugins/`, `./.gengar/plugins/`,
 and pip entry points. Each plugin exposes a `register(ctx)` function that
 can:
 
@@ -448,8 +448,8 @@ can:
   `on_session_start`, `on_session_end`
 - Register new tools via `ctx.register_tool(...)`
 - Register CLI subcommands via `ctx.register_cli_command(...)` — the
-  plugin's argparse tree is wired into `hermes` at startup so
-  `hermes <pluginname> <subcmd>` works with no change to `main.py`
+  plugin's argparse tree is wired into `gengar` at startup so
+  `gengar <pluginname> <subcmd>` works with no change to `main.py`
 
 Hooks are invoked from `model_tools.py` (pre/post tool) and `run_agent.py`
 (lifecycle). **Discovery timing pitfall:** `discover_plugins()` only runs
@@ -470,10 +470,10 @@ and is orchestrated by `agent/memory_manager.py`. Lifecycle hooks include
 
 **CLI commands via `plugins/memory/<name>/cli.py`:** if a memory plugin
 defines `register_cli(subparser)`, `discover_plugin_cli_commands()` finds
-it at argparse setup time and wires it into `hermes <plugin>`. The
+it at argparse setup time and wires it into `gengar <plugin>`. The
 framework only exposes CLI commands for the **currently active** memory
 provider (read from `memory.provider` in config.yaml), so disabled
-providers don't clutter `hermes --help`.
+providers don't clutter `gengar --help`.
 
 **Rule (Teknium, May 2026):** plugins MUST NOT modify core files
 (`run_agent.py`, `cli.py`, `gateway/run.py`, `hermes_cli/main.py`, etc.).
@@ -499,7 +499,7 @@ Two parallel surfaces:
   Organized by category directories (e.g. `skills/github/`, `skills/mlops/`).
 - **`optional-skills/`** — heavier or niche skills shipped with the repo but
   NOT active by default. Installed explicitly via
-  `hermes skills install official/<category>/<skill>`. Adapter lives in
+  `gengar skills install official/<category>/<skill>`. Adapter lives in
   `tools/skills_hub.py` (`OptionalSkillSource`). Categories include
   `autonomous-ai-agents`, `blockchain`, `communication`, `creative`,
   `devops`, `email`, `health`, `mcp`, `migration`, `mlops`, `productivity`,
@@ -512,8 +512,8 @@ niche skills belong in `optional-skills/`.
 
 Standard fields: `name`, `description`, `version`, `platforms`
 (OS-gating list: `[macos]`, `[linux, macos]`, ...),
-`metadata.hermes.tags`, `metadata.hermes.category`,
-`metadata.hermes.config` (config.yaml settings the skill needs — stored
+`metadata.gengar.tags`, `metadata.gengar.category`,
+`metadata.gengar.config` (config.yaml settings the skill needs — stored
 under `skills.config.<key>`, prompted during setup, injected at load time).
 
 ---
@@ -522,7 +522,7 @@ under `skills.config.<key>`, prompted during setup, injected at load time).
 
 ### Prompt Caching Must Not Break
 
-Hermes-Agent ensures caching remains valid throughout a conversation. **Do NOT implement changes that would:**
+Gengar ensures caching remains valid throughout a conversation. **Do NOT implement changes that would:**
 - Alter past context mid-conversation
 - Change toolsets mid-conversation
 - Reload memories or rebuild system prompts mid-conversation
@@ -539,7 +539,7 @@ invalidation. See `/skills install --now` for the canonical pattern.
 When `terminal(background=true, notify_on_complete=true)` is used, the gateway runs a watcher that
 detects process completion and triggers a new agent turn. Control verbosity of background process
 messages with `display.background_process_notifications`
-in config.yaml (or `HERMES_BACKGROUND_NOTIFICATIONS` env var):
+in config.yaml (or `GENGAR_BACKGROUND_NOTIFICATIONS` env var):
 
 - `all` — running-output updates + final message (default)
 - `result` — only the final completion message
@@ -550,46 +550,46 @@ in config.yaml (or `HERMES_BACKGROUND_NOTIFICATIONS` env var):
 
 ## Profiles: Multi-Instance Support
 
-Hermes supports **profiles** — multiple fully isolated instances, each with its own
-`HERMES_HOME` directory (config, API keys, memory, sessions, skills, gateway, etc.).
+Gengar supports **profiles** — multiple fully isolated instances, each with its own
+`GENGAR_HOME` directory (config, API keys, memory, sessions, skills, gateway, etc.).
 
 The core mechanism: `_apply_profile_override()` in `hermes_cli/main.py` sets
-`HERMES_HOME` before any module imports. All `get_hermes_home()` references
+`GENGAR_HOME` before any module imports. All `get_hermes_home()` references
 automatically scope to the active profile.
 
 ### Rules for profile-safe code
 
-1. **Use `get_hermes_home()` for all HERMES_HOME paths.** Import from `hermes_constants`.
-   NEVER hardcode `~/.hermes` or `Path.home() / ".hermes"` in code that reads/writes state.
+1. **Use `get_hermes_home()` for all GENGAR_HOME paths.** Import from `hermes_constants`.
+   NEVER hardcode `~/.gengar` or `Path.home() / ".gengar"` in code that reads/writes state.
    ```python
    # GOOD
    from hermes_constants import get_hermes_home
    config_path = get_hermes_home() / "config.yaml"
 
    # BAD — breaks profiles
-   config_path = Path.home() / ".hermes" / "config.yaml"
+   config_path = Path.home() / ".gengar" / "config.yaml"
    ```
 
 2. **Use `display_hermes_home()` for user-facing messages.** Import from `hermes_constants`.
-   This returns `~/.hermes` for default or `~/.hermes/profiles/<name>` for profiles.
+   This returns `~/.gengar` for default or `~/.gengar/profiles/<name>` for profiles.
    ```python
    # GOOD
    from hermes_constants import display_hermes_home
    print(f"Config saved to {display_hermes_home()}/config.yaml")
 
    # BAD — shows wrong path for profiles
-   print("Config saved to ~/.hermes/config.yaml")
+   print("Config saved to ~/.gengar/config.yaml")
    ```
 
 3. **Module-level constants are fine** — they cache `get_hermes_home()` at import time,
    which is AFTER `_apply_profile_override()` sets the env var. Just use `get_hermes_home()`,
-   not `Path.home() / ".hermes"`.
+   not `Path.home() / ".gengar"`.
 
-4. **Tests that mock `Path.home()` must also set `HERMES_HOME`** — since code now uses
-   `get_hermes_home()` (reads env var), not `Path.home() / ".hermes"`:
+4. **Tests that mock `Path.home()` must also set `GENGAR_HOME`** — since code now uses
+   `get_hermes_home()` (reads env var), not `Path.home() / ".gengar"`:
    ```python
    with patch.object(Path, "home", return_value=tmp_path), \
-        patch.dict(os.environ, {"HERMES_HOME": str(tmp_path / ".hermes")}):
+        patch.dict(os.environ, {"GENGAR_HOME": str(tmp_path / ".gengar")}):
        ...
    ```
 
@@ -599,17 +599,17 @@ automatically scope to the active profile.
    `disconnect()`/`stop()`. This prevents two profiles from using the same credential.
    See `gateway/platforms/telegram.py` for the canonical pattern.
 
-6. **Profile operations are HOME-anchored, not HERMES_HOME-anchored** — `_get_profiles_root()`
-   returns `Path.home() / ".hermes" / "profiles"`, NOT `get_hermes_home() / "profiles"`.
-   This is intentional — it lets `hermes -p coder profile list` see all profiles regardless
+6. **Profile operations are HOME-anchored, not GENGAR_HOME-anchored** — `_get_profiles_root()`
+   returns `Path.home() / ".gengar" / "profiles"`, NOT `get_hermes_home() / "profiles"`.
+   This is intentional — it lets `gengar -p coder profile list` see all profiles regardless
    of which one is active.
 
 ## Known Pitfalls
 
-### DO NOT hardcode `~/.hermes` paths
+### DO NOT hardcode `~/.gengar` paths
 Use `get_hermes_home()` from `hermes_constants` for code paths. Use `display_hermes_home()`
-for user-facing print/log messages. Hardcoding `~/.hermes` breaks profiles — each profile
-has its own `HERMES_HOME` directory. This was the source of 5 bugs fixed in PR #3575.
+for user-facing print/log messages. Hardcoding `~/.gengar` breaks profiles — each profile
+has its own `GENGAR_HOME` directory. This was the source of 5 bugs fixed in PR #3575.
 
 ### DO NOT introduce new `simple_term_menu` usage
 Existing call sites in `hermes_cli/main.py` remain for legacy fallback only;
@@ -649,10 +649,10 @@ red flag.
 ### Don't wire in dead code without E2E validation
 Unused code that was never shipped was dead for a reason. Before wiring an
 unused module into a live code path, E2E test the real resolution chain
-with actual imports (not mocks) against a temp `HERMES_HOME`.
+with actual imports (not mocks) against a temp `GENGAR_HOME`.
 
-### Tests must not write to `~/.hermes/`
-The `_isolate_hermes_home` autouse fixture in `tests/conftest.py` redirects `HERMES_HOME` to a temp dir. Never hardcode `~/.hermes/` paths in tests.
+### Tests must not write to `~/.gengar/`
+The `_isolate_hermes_home` autouse fixture in `tests/conftest.py` redirects `GENGAR_HOME` to a temp dir. Never hardcode `~/.gengar/` paths in tests.
 
 **Profile tests**: When testing profile features, also mock `Path.home()` so that
 `_get_profiles_root()` and `_get_default_hermes_home()` resolve within the temp dir.
@@ -660,10 +660,10 @@ Use the pattern from `tests/hermes_cli/test_profiles.py`:
 ```python
 @pytest.fixture
 def profile_env(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
     return home
 ```
 
@@ -691,7 +691,7 @@ Five real sources of local-vs-CI drift the script closes:
 | | Without wrapper | With wrapper |
 |---|---|---|
 | Provider API keys | Whatever is in your env (auto-detects pool) | All `*_API_KEY`/`*_TOKEN`/etc. unset |
-| HOME / `~/.hermes/` | Your real config+auth.json | Temp dir per test |
+| HOME / `~/.gengar/` | Your real config+auth.json | Temp dir per test |
 | Timezone | Local TZ (PDT etc.) | UTC |
 | Locale | Whatever is set | C.UTF-8 |
 | xdist workers | `-n auto` = all cores (20+ on a workstation) | `-n 4` matching CI |

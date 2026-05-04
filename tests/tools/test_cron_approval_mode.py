@@ -89,13 +89,13 @@ class TestCronApprovalModeParsing:
 # ---------------------------------------------------------------------------
 
 class TestCronDenyMode:
-    """When HERMES_CRON_SESSION is set and cron_mode=deny, dangerous commands are blocked."""
+    """When GENGAR_CRON_SESSION is set and cron_mode=deny, dangerous commands are blocked."""
 
     def test_dangerous_command_blocked_in_cron_deny_mode(self, monkeypatch):
-        monkeypatch.setenv("HERMES_CRON_SESSION", "1")
-        monkeypatch.delenv("HERMES_INTERACTIVE", raising=False)
-        monkeypatch.delenv("HERMES_GATEWAY_SESSION", raising=False)
-        monkeypatch.delenv("HERMES_YOLO_MODE", raising=False)
+        monkeypatch.setenv("GENGAR_CRON_SESSION", "1")
+        monkeypatch.delenv("GENGAR_INTERACTIVE", raising=False)
+        monkeypatch.delenv("GENGAR_GATEWAY_SESSION", raising=False)
+        monkeypatch.delenv("GENGAR_YOLO_MODE", raising=False)
 
         from unittest.mock import patch as mock_patch
         with mock_patch("tools.approval._get_cron_approval_mode", return_value="deny"):
@@ -106,10 +106,10 @@ class TestCronDenyMode:
 
     def test_safe_command_allowed_in_cron_deny_mode(self, monkeypatch):
         """Non-dangerous commands still work even with cron_mode=deny."""
-        monkeypatch.setenv("HERMES_CRON_SESSION", "1")
-        monkeypatch.delenv("HERMES_INTERACTIVE", raising=False)
-        monkeypatch.delenv("HERMES_GATEWAY_SESSION", raising=False)
-        monkeypatch.delenv("HERMES_YOLO_MODE", raising=False)
+        monkeypatch.setenv("GENGAR_CRON_SESSION", "1")
+        monkeypatch.delenv("GENGAR_INTERACTIVE", raising=False)
+        monkeypatch.delenv("GENGAR_GATEWAY_SESSION", raising=False)
+        monkeypatch.delenv("GENGAR_YOLO_MODE", raising=False)
 
         from unittest.mock import patch as mock_patch
         with mock_patch("tools.approval._get_cron_approval_mode", return_value="deny"):
@@ -118,10 +118,10 @@ class TestCronDenyMode:
 
     def test_multiple_dangerous_patterns_blocked(self, monkeypatch):
         """All dangerous patterns are blocked, not just rm."""
-        monkeypatch.setenv("HERMES_CRON_SESSION", "1")
-        monkeypatch.delenv("HERMES_INTERACTIVE", raising=False)
-        monkeypatch.delenv("HERMES_GATEWAY_SESSION", raising=False)
-        monkeypatch.delenv("HERMES_YOLO_MODE", raising=False)
+        monkeypatch.setenv("GENGAR_CRON_SESSION", "1")
+        monkeypatch.delenv("GENGAR_INTERACTIVE", raising=False)
+        monkeypatch.delenv("GENGAR_GATEWAY_SESSION", raising=False)
+        monkeypatch.delenv("GENGAR_YOLO_MODE", raising=False)
 
         dangerous_commands = [
             "rm -rf /",
@@ -141,10 +141,10 @@ class TestCronDenyMode:
 
     def test_block_message_includes_description(self, monkeypatch):
         """The block message should mention what pattern was matched."""
-        monkeypatch.setenv("HERMES_CRON_SESSION", "1")
-        monkeypatch.delenv("HERMES_INTERACTIVE", raising=False)
-        monkeypatch.delenv("HERMES_GATEWAY_SESSION", raising=False)
-        monkeypatch.delenv("HERMES_YOLO_MODE", raising=False)
+        monkeypatch.setenv("GENGAR_CRON_SESSION", "1")
+        monkeypatch.delenv("GENGAR_INTERACTIVE", raising=False)
+        monkeypatch.delenv("GENGAR_GATEWAY_SESSION", raising=False)
+        monkeypatch.delenv("GENGAR_YOLO_MODE", raising=False)
 
         from unittest.mock import patch as mock_patch
         with mock_patch("tools.approval._get_cron_approval_mode", return_value="deny"):
@@ -155,13 +155,13 @@ class TestCronDenyMode:
 
 
 class TestCronApproveMode:
-    """When HERMES_CRON_SESSION is set and cron_mode=approve, dangerous commands pass through."""
+    """When GENGAR_CRON_SESSION is set and cron_mode=approve, dangerous commands pass through."""
 
     def test_dangerous_command_allowed_in_cron_approve_mode(self, monkeypatch):
-        monkeypatch.setenv("HERMES_CRON_SESSION", "1")
-        monkeypatch.delenv("HERMES_INTERACTIVE", raising=False)
-        monkeypatch.delenv("HERMES_GATEWAY_SESSION", raising=False)
-        monkeypatch.delenv("HERMES_YOLO_MODE", raising=False)
+        monkeypatch.setenv("GENGAR_CRON_SESSION", "1")
+        monkeypatch.delenv("GENGAR_INTERACTIVE", raising=False)
+        monkeypatch.delenv("GENGAR_GATEWAY_SESSION", raising=False)
+        monkeypatch.delenv("GENGAR_YOLO_MODE", raising=False)
 
         from unittest.mock import patch as mock_patch
         with mock_patch("tools.approval._get_cron_approval_mode", return_value="approve"):
@@ -177,11 +177,11 @@ class TestCronDenyModeAllGuards:
     """The combined guard function also respects cron_mode."""
 
     def test_dangerous_command_blocked_in_combined_guard(self, monkeypatch):
-        monkeypatch.setenv("HERMES_CRON_SESSION", "1")
-        monkeypatch.delenv("HERMES_INTERACTIVE", raising=False)
-        monkeypatch.delenv("HERMES_GATEWAY_SESSION", raising=False)
-        monkeypatch.delenv("HERMES_EXEC_ASK", raising=False)
-        monkeypatch.delenv("HERMES_YOLO_MODE", raising=False)
+        monkeypatch.setenv("GENGAR_CRON_SESSION", "1")
+        monkeypatch.delenv("GENGAR_INTERACTIVE", raising=False)
+        monkeypatch.delenv("GENGAR_GATEWAY_SESSION", raising=False)
+        monkeypatch.delenv("GENGAR_EXEC_ASK", raising=False)
+        monkeypatch.delenv("GENGAR_YOLO_MODE", raising=False)
 
         from unittest.mock import patch as mock_patch
         with mock_patch("tools.approval._get_cron_approval_mode", return_value="deny"):
@@ -190,11 +190,11 @@ class TestCronDenyModeAllGuards:
             assert "BLOCKED" in result["message"]
 
     def test_safe_command_allowed_in_combined_guard(self, monkeypatch):
-        monkeypatch.setenv("HERMES_CRON_SESSION", "1")
-        monkeypatch.delenv("HERMES_INTERACTIVE", raising=False)
-        monkeypatch.delenv("HERMES_GATEWAY_SESSION", raising=False)
-        monkeypatch.delenv("HERMES_EXEC_ASK", raising=False)
-        monkeypatch.delenv("HERMES_YOLO_MODE", raising=False)
+        monkeypatch.setenv("GENGAR_CRON_SESSION", "1")
+        monkeypatch.delenv("GENGAR_INTERACTIVE", raising=False)
+        monkeypatch.delenv("GENGAR_GATEWAY_SESSION", raising=False)
+        monkeypatch.delenv("GENGAR_EXEC_ASK", raising=False)
+        monkeypatch.delenv("GENGAR_YOLO_MODE", raising=False)
 
         from unittest.mock import patch as mock_patch
         with mock_patch("tools.approval._get_cron_approval_mode", return_value="deny"):
@@ -202,11 +202,11 @@ class TestCronDenyModeAllGuards:
             assert result["approved"]
 
     def test_combined_guard_approve_mode(self, monkeypatch):
-        monkeypatch.setenv("HERMES_CRON_SESSION", "1")
-        monkeypatch.delenv("HERMES_INTERACTIVE", raising=False)
-        monkeypatch.delenv("HERMES_GATEWAY_SESSION", raising=False)
-        monkeypatch.delenv("HERMES_EXEC_ASK", raising=False)
-        monkeypatch.delenv("HERMES_YOLO_MODE", raising=False)
+        monkeypatch.setenv("GENGAR_CRON_SESSION", "1")
+        monkeypatch.delenv("GENGAR_INTERACTIVE", raising=False)
+        monkeypatch.delenv("GENGAR_GATEWAY_SESSION", raising=False)
+        monkeypatch.delenv("GENGAR_EXEC_ASK", raising=False)
+        monkeypatch.delenv("GENGAR_YOLO_MODE", raising=False)
 
         from unittest.mock import patch as mock_patch
         with mock_patch("tools.approval._get_cron_approval_mode", return_value="approve"):
@@ -223,10 +223,10 @@ class TestCronModeInteractions:
 
     def test_container_env_still_auto_approves(self, monkeypatch):
         """Docker/sandbox environments bypass approvals regardless of cron_mode."""
-        monkeypatch.setenv("HERMES_CRON_SESSION", "1")
-        monkeypatch.delenv("HERMES_INTERACTIVE", raising=False)
-        monkeypatch.delenv("HERMES_GATEWAY_SESSION", raising=False)
-        monkeypatch.delenv("HERMES_YOLO_MODE", raising=False)
+        monkeypatch.setenv("GENGAR_CRON_SESSION", "1")
+        monkeypatch.delenv("GENGAR_INTERACTIVE", raising=False)
+        monkeypatch.delenv("GENGAR_GATEWAY_SESSION", raising=False)
+        monkeypatch.delenv("GENGAR_YOLO_MODE", raising=False)
 
         from unittest.mock import patch as mock_patch
         with mock_patch("tools.approval._get_cron_approval_mode", return_value="deny"):
@@ -235,10 +235,10 @@ class TestCronModeInteractions:
 
     def test_yolo_overrides_cron_deny(self, monkeypatch):
         """--yolo still bypasses cron_mode=deny for dangerous (non-hardline) commands."""
-        monkeypatch.setenv("HERMES_CRON_SESSION", "1")
-        monkeypatch.setenv("HERMES_YOLO_MODE", "1")
-        monkeypatch.delenv("HERMES_INTERACTIVE", raising=False)
-        monkeypatch.delenv("HERMES_GATEWAY_SESSION", raising=False)
+        monkeypatch.setenv("GENGAR_CRON_SESSION", "1")
+        monkeypatch.setenv("GENGAR_YOLO_MODE", "1")
+        monkeypatch.delenv("GENGAR_INTERACTIVE", raising=False)
+        monkeypatch.delenv("GENGAR_GATEWAY_SESSION", raising=False)
 
         from unittest.mock import patch as mock_patch
         with mock_patch("tools.approval._get_cron_approval_mode", return_value="deny"):
@@ -249,10 +249,10 @@ class TestCronModeInteractions:
 
     def test_non_cron_non_interactive_still_auto_approves(self, monkeypatch):
         """Non-cron, non-interactive sessions (e.g. scripted usage) still auto-approve."""
-        monkeypatch.delenv("HERMES_CRON_SESSION", raising=False)
-        monkeypatch.delenv("HERMES_INTERACTIVE", raising=False)
-        monkeypatch.delenv("HERMES_GATEWAY_SESSION", raising=False)
-        monkeypatch.delenv("HERMES_YOLO_MODE", raising=False)
+        monkeypatch.delenv("GENGAR_CRON_SESSION", raising=False)
+        monkeypatch.delenv("GENGAR_INTERACTIVE", raising=False)
+        monkeypatch.delenv("GENGAR_GATEWAY_SESSION", raising=False)
+        monkeypatch.delenv("GENGAR_YOLO_MODE", raising=False)
 
         result = check_dangerous_command("rm -rf /tmp/stuff", "local")
         assert result["approved"]

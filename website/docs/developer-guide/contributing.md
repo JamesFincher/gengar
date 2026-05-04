@@ -1,12 +1,12 @@
 ---
 sidebar_position: 4
 title: "Contributing"
-description: "How to contribute to Hermes Agent — dev setup, code style, PR process"
+description: "How to contribute to Gengar — dev setup, code style, PR process"
 ---
 
 # Contributing
 
-Thank you for contributing to Hermes Agent! This guide covers setting up your dev environment, understanding the codebase, and getting your PR merged.
+Thank you for contributing to Gengar! This guide covers setting up your dev environment, understanding the codebase, and getting your PR merged.
 
 ## Contribution Priorities
 
@@ -40,8 +40,8 @@ We value contributions in this order:
 ### Clone and Install
 
 ```bash
-git clone --recurse-submodules https://github.com/NousResearch/hermes-agent.git
-cd hermes-agent
+git clone --recurse-submodules https://github.com/jamesfincher/gengar.git
+cd gengar
 
 # Create venv with Python 3.11
 uv venv venv --python 3.11
@@ -58,12 +58,12 @@ npm install
 ### Configure for Development
 
 ```bash
-mkdir -p ~/.hermes/{cron,sessions,logs,memories,skills}
-cp cli-config.yaml.example ~/.hermes/config.yaml
-touch ~/.hermes/.env
+mkdir -p ~/.gengar/{cron,sessions,logs,memories,skills}
+cp cli-config.yaml.example ~/.gengar/config.yaml
+touch ~/.gengar/.env
 
 # Add at minimum an LLM provider key:
-echo 'OPENROUTER_API_KEY=sk-or-v1-your-key' >> ~/.hermes/.env
+echo 'OPENROUTER_API_KEY=sk-or-v1-your-key' >> ~/.gengar/.env
 ```
 
 ### Run
@@ -71,11 +71,11 @@ echo 'OPENROUTER_API_KEY=sk-or-v1-your-key' >> ~/.hermes/.env
 ```bash
 # Symlink for global access
 mkdir -p ~/.local/bin
-ln -sf "$(pwd)/venv/bin/hermes" ~/.local/bin/hermes
+ln -sf "$(pwd)/venv/bin/gengar" ~/.local/bin/gengar
 
 # Verify
-hermes doctor
-hermes chat -q "Hello"
+gengar doctor
+gengar chat -q "Hello"
 ```
 
 ### Run Tests
@@ -90,11 +90,11 @@ pytest tests/ -v
 - **Comments**: Only when explaining non-obvious intent, trade-offs, or API quirks
 - **Error handling**: Catch specific exceptions. Use `logger.warning()`/`logger.error()` with `exc_info=True` for unexpected errors
 - **Cross-platform**: Never assume Unix (see below)
-- **Profile-safe paths**: Never hardcode `~/.hermes` — use `get_hermes_home()` from `hermes_constants` for code paths and `display_hermes_home()` for user-facing messages. See [AGENTS.md](https://github.com/NousResearch/hermes-agent/blob/main/AGENTS.md#profiles-multi-instance-support) for full rules.
+- **Profile-safe paths**: Never hardcode `~/.gengar` — use `get_hermes_home()` from `hermes_constants` for code paths and `display_hermes_home()` for user-facing messages. See [AGENTS.md](https://github.com/jamesfincher/gengar/blob/main/AGENTS.md#profiles-multi-instance-support) for full rules.
 
 ## Cross-Platform Compatibility
 
-Hermes officially supports Linux, macOS, and WSL2. Native Windows is **not supported**, but the codebase includes some defensive coding patterns to avoid hard crashes in edge cases. Key rules:
+Gengar officially supports Linux, macOS, and WSL2. Native Windows is **not supported**, but the codebase includes some defensive coding patterns to avoid hard crashes in edge cases. Key rules:
 
 ### 1. `termios` and `fcntl` are Unix-only
 
@@ -139,7 +139,7 @@ Use `pathlib.Path` instead of string concatenation with `/`.
 
 ## Security Considerations
 
-Hermes has terminal access. Security matters.
+Gengar has terminal access. Security matters.
 
 ### Existing Protections
 
@@ -176,7 +176,7 @@ refactor/description   # Code restructuring
 ### Before Submitting
 
 1. **Run tests**: `pytest tests/ -v`
-2. **Test manually**: Run `hermes` and exercise the code path you changed
+2. **Test manually**: Run `gengar` and exercise the code path you changed
 3. **Check cross-platform impact**: Consider macOS and different Linux distros
 4. **Keep PRs focused**: One logical change per PR
 
@@ -216,18 +216,18 @@ fix(security): prevent shell injection in sudo password piping
 
 ## Reporting Issues
 
-- Use [GitHub Issues](https://github.com/NousResearch/hermes-agent/issues)
-- Include: OS, Python version, Hermes version (`hermes version`), full error traceback
+- Use [GitHub Issues](https://github.com/jamesfincher/gengar/issues)
+- Include: OS, Python version, Gengar version (`gengar version`), full error traceback
 - Include steps to reproduce
 - Check existing issues before creating duplicates
 - For security vulnerabilities, please report privately
 
 ## Community
 
-- **Discord**: [discord.gg/NousResearch](https://discord.gg/NousResearch)
+- **Discord**: [discord.gg/jamesfincher](https://github.com/jamesfincher/gengar)
 - **GitHub Discussions**: For design proposals and architecture discussions
 - **Skills Hub**: Upload specialized skills and share with the community
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the [MIT License](https://github.com/NousResearch/hermes-agent/blob/main/LICENSE).
+By contributing, you agree that your contributions will be licensed under the [MIT License](https://github.com/jamesfincher/gengar/blob/main/LICENSE).

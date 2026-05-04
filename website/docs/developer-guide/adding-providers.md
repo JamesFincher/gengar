@@ -1,16 +1,16 @@
 ---
 sidebar_position: 5
 title: "Adding Providers"
-description: "How to add a new inference provider to Hermes Agent — auth, runtime resolution, CLI flows, adapters, tests, and docs"
+description: "How to add a new inference provider to Gengar — auth, runtime resolution, CLI flows, adapters, tests, and docs"
 ---
 
 # Adding Providers
 
-Hermes can already talk to any OpenAI-compatible endpoint through the custom provider path. Do not add a built-in provider unless you want first-class UX for that service:
+Gengar can already talk to any OpenAI-compatible endpoint through the custom provider path. Do not add a built-in provider unless you want first-class UX for that service:
 
 - provider-specific auth or token refresh
 - a curated model catalog
-- setup / `hermes model` menu entries
+- setup / `gengar model` menu entries
 - provider aliases for `provider:model` syntax
 - a non-OpenAI API shape that needs an adapter
 
@@ -84,7 +84,7 @@ This path includes everything from Path A plus:
 8. user-facing docs under `website/docs/`
 
 :::tip
-`hermes_cli/setup.py` does **not** need changes. The setup wizard delegates provider/model selection to `select_provider_and_model()` in `main.py` — any provider added there is automatically available in `hermes setup`.
+`hermes_cli/setup.py` does **not** need changes. The setup wizard delegates provider/model selection to `select_provider_and_model()` in `main.py` — any provider added there is automatically available in `gengar setup`.
 :::
 
 ### Additional for native / non-OpenAI providers
@@ -137,7 +137,7 @@ Use the existing providers as templates:
 
 Questions to answer here:
 
-- What env vars should Hermes check, and in what priority order?
+- What env vars should Gengar check, and in what priority order?
 - Does the provider need base-URL overrides?
 - Does it need endpoint probing or token refresh?
 - What should the auth error say when credentials are missing?
@@ -186,11 +186,11 @@ Add a branch that returns a dict with at least:
 
 If the provider is OpenAI-compatible, `api_mode` should usually stay `chat_completions`.
 
-Be careful with API-key precedence. Hermes already contains logic to avoid leaking an OpenRouter key to unrelated endpoints. A new provider should be equally explicit about which key goes to which base URL.
+Be careful with API-key precedence. Gengar already contains logic to avoid leaking an OpenRouter key to unrelated endpoints. A new provider should be equally explicit about which key goes to which base URL.
 
 ## Step 5: Wire the CLI in `hermes_cli/main.py`
 
-A provider is not discoverable until it shows up in the interactive `hermes model` flow.
+A provider is not discoverable until it shows up in the interactive `gengar model` flow.
 
 Update these in `hermes_cli/main.py`:
 
@@ -202,7 +202,7 @@ Update these in `hermes_cli/main.py`:
 - a `_model_flow_<provider>()` function, or reuse `_model_flow_api_key_provider()` if it fits
 
 :::tip
-`hermes_cli/setup.py` does not need changes — it calls `select_provider_and_model()` from `main.py`, so your new provider appears in both `hermes model` and `hermes setup` automatically.
+`hermes_cli/setup.py` does not need changes — it calls `select_provider_and_model()` from `main.py`, so your new provider appears in both `gengar model` and `gengar setup` automatically.
 :::
 
 ## Step 6: Keep auxiliary calls working
@@ -273,7 +273,7 @@ Examples already in-tree:
 - OpenRouter gets provider-routing fields
 - not every provider should receive every request-side option
 
-When you add a native provider, double-check that Hermes is only sending fields that provider actually understands.
+When you add a native provider, double-check that Gengar is only sending fields that provider actually understands.
 
 ## Step 8: Tests
 
@@ -394,7 +394,7 @@ Search for `api_mode` and `self.client.`. Do not assume the obvious request path
 
 Fields like provider routing belong only on the providers that support them.
 
-### 7. Updating `hermes model` but not `hermes setup`
+### 7. Updating `gengar model` but not `gengar setup`
 
 Both flows need to know about the provider.
 

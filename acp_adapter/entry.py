@@ -1,6 +1,6 @@
-"""CLI entry point for the hermes-agent ACP adapter.
+"""CLI entry point for the gengar ACP adapter.
 
-Loads environment variables from ``~/.hermes/.env``, configures logging
+Loads environment variables from ``~/.gengar/.env``, configures logging
 to write to stderr (so stdout is reserved for ACP JSON-RPC transport),
 and starts the ACP agent server.
 
@@ -8,9 +8,9 @@ Usage::
 
     python -m acp_adapter.entry
     # or
-    hermes acp
+    gengar acp
     # or
-    hermes-acp
+    gengar-acp
 """
 
 import asyncio
@@ -82,7 +82,7 @@ def _setup_logging() -> None:
 
 
 def _load_env() -> None:
-    """Load .env from HERMES_HOME (default ``~/.hermes``)."""
+    """Load .env from GENGAR_HOME (default ``~/.gengar``)."""
     from hermes_cli.env_loader import load_hermes_dotenv
 
     hermes_home = get_hermes_home()
@@ -102,7 +102,7 @@ def main() -> None:
     _load_env()
 
     logger = logging.getLogger(__name__)
-    logger.info("Starting hermes-agent ACP adapter")
+    logger.info("Starting gengar ACP adapter")
 
     # Ensure the project root is on sys.path so ``from run_agent import AIAgent`` works
     project_root = str(Path(__file__).resolve().parent.parent)
@@ -110,7 +110,7 @@ def main() -> None:
         sys.path.insert(0, project_root)
 
     import acp
-    from .server import HermesACPAgent
+    from .server import GengarACPAgent
 
     # MCP tool discovery from config.yaml — run before asyncio.run() so
     # it's safe to use blocking waits.  (ACP also registers per-session
@@ -123,7 +123,7 @@ def main() -> None:
     except Exception:
         logger.debug("MCP tool discovery failed at ACP startup", exc_info=True)
 
-    agent = HermesACPAgent()
+    agent = GengarACPAgent()
     try:
         asyncio.run(acp.run_agent(agent, use_unstable_protocol=True))
     except KeyboardInterrupt:

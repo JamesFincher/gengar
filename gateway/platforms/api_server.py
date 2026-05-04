@@ -2,11 +2,11 @@
 OpenAI-compatible API server platform adapter.
 
 Exposes an HTTP server with endpoints:
-- POST /v1/chat/completions        — OpenAI Chat Completions format (stateless; opt-in session continuity via X-Hermes-Session-Id header)
+- POST /v1/chat/completions        — OpenAI Chat Completions format (stateless; opt-in session continuity via X-Gengar-Session-Id header)
 - POST /v1/responses               — OpenAI Responses API format (stateful via previous_response_id)
 - GET  /v1/responses/{response_id} — Retrieve a stored response
 - DELETE /v1/responses/{response_id} — Delete a stored response
-- GET  /v1/models                  — lists hermes-agent as an available model
+- GET  /v1/models                  — lists gengar as an available model
 - GET  /v1/capabilities            — machine-readable API capabilities for external UIs
 - POST /v1/runs                    — start a run, returns run_id immediately (202)
 - GET  /v1/runs/{run_id}           — retrieve current run status
@@ -16,7 +16,7 @@ Exposes an HTTP server with endpoints:
 - GET  /health/detailed            — rich status for cross-container dashboard probing
 
 Any OpenAI-compatible frontend (Open WebUI, LobeChat, LibreChat,
-AnythingLLM, NextChat, ChatBox, etc.) can connect to hermes-agent
+AnythingLLM, NextChat, ChatBox, etc.) can connect to gengar
 through this adapter by pointing at http://localhost:8642/v1.
 
 Requires:
@@ -537,7 +537,7 @@ def _derive_chat_session_id(
     conversation history with every request.  The system prompt and first user
     message are constant across all turns of the same conversation, so hashing
     them produces a deterministic session ID that lets the API server reuse
-    the same Hermes session (and therefore the same Docker container sandbox
+    the same Gengar session (and therefore the same Docker container sandbox
     directory) across turns.
     """
     seed = f"{system_prompt or ''}\n{first_user_message}"
@@ -574,7 +574,7 @@ class APIServerAdapter(BasePlatformAdapter):
     OpenAI-compatible HTTP API server adapter.
 
     Runs an aiohttp web server that accepts OpenAI-format requests
-    and routes them through hermes-agent's AIAgent.
+    and routes them through gengar's AIAgent.
     """
 
     def __init__(self, config: PlatformConfig):
@@ -629,7 +629,7 @@ class APIServerAdapter(BasePlatformAdapter):
         Priority:
         1. Explicit override (config extra or API_SERVER_MODEL_NAME env var)
         2. Active profile name (so each profile advertises a distinct model)
-        3. Fallback: "hermes-agent"
+        3. Fallback: "gengar"
         """
         if explicit and explicit.strip():
             return explicit.strip()
@@ -640,7 +640,7 @@ class APIServerAdapter(BasePlatformAdapter):
                 return profile
         except Exception:
             pass
-        return "hermes-agent"
+        return "gengar"
 
     def _cors_headers_for_origin(self, origin: str) -> Optional[Dict[str, str]]:
         """Return CORS headers for an allowed browser origin."""
@@ -705,7 +705,7 @@ class APIServerAdapter(BasePlatformAdapter):
     def _ensure_session_db(self):
         """Lazily initialise and return the shared SessionDB instance.
 
-        Sessions are persisted to ``state.db`` so that ``hermes sessions list``
+        Sessions are persisted to ``state.db`` so that ``gengar sessions list``
         shows API-server conversations alongside CLI and gateway ones.
         """
         if self._session_db is None:
@@ -735,7 +735,7 @@ class APIServerAdapter(BasePlatformAdapter):
         Uses _resolve_runtime_agent_kwargs() to pick up model, api_key,
         base_url, etc. from config.yaml / env vars.  Toolsets are resolved
         from config.yaml platform_toolsets.api_server (same as all other
-        gateway platforms), falling back to the hermes-api-server default.
+        gateway platforms), falling back to the gengar-api-server default.
         """
         from run_agent import AIAgent
         from gateway.run import _resolve_runtime_agent_kwargs, _resolve_gateway_model, _load_gateway_config
@@ -747,7 +747,7 @@ class APIServerAdapter(BasePlatformAdapter):
         user_config = _load_gateway_config()
         enabled_toolsets = sorted(_get_platform_tools(user_config, "api_server"))
 
-        max_iterations = int(os.getenv("HERMES_MAX_ITERATIONS", "90"))
+        max_iterations = int(os.getenv("GENGAR_MAX_ITERATIONS", "90"))
 
         # Load fallback provider chain so the API server platform has the
         # same fallback behaviour as Telegram/Discord/Slack (fixes #4954).
@@ -779,7 +779,7 @@ class APIServerAdapter(BasePlatformAdapter):
 
     async def _handle_health(self, request: "web.Request") -> "web.Response":
         """GET /health — simple health check."""
-        return web.json_response({"status": "ok", "platform": "hermes-agent"})
+        return web.json_response({"status": "ok", "platform": "gengar"})
 
     async def _handle_health_detailed(self, request: "web.Request") -> "web.Response":
         """GET /health/detailed — rich status for cross-container dashboard probing.
@@ -793,7 +793,7 @@ class APIServerAdapter(BasePlatformAdapter):
         runtime = read_runtime_status() or {}
         return web.json_response({
             "status": "ok",
-            "platform": "hermes-agent",
+            "platform": "gengar",
             "gateway_state": runtime.get("gateway_state"),
             "platforms": runtime.get("platforms", {}),
             "active_agents": runtime.get("active_agents", 0),
@@ -803,7 +803,7 @@ class APIServerAdapter(BasePlatformAdapter):
         })
 
     async def _handle_models(self, request: "web.Request") -> "web.Response":
-        """GET /v1/models — return hermes-agent as an available model."""
+        """GET /v1/models — return gengar as an available model."""
         auth_err = self._check_auth(request)
         if auth_err:
             return auth_err
@@ -815,7 +815,7 @@ class APIServerAdapter(BasePlatformAdapter):
                     "id": self._model_name,
                     "object": "model",
                     "created": int(time.time()),
-                    "owned_by": "hermes",
+                    "owned_by": "gengar",
                     "permission": [],
                     "root": self._model_name,
                     "parent": None,
@@ -828,15 +828,15 @@ class APIServerAdapter(BasePlatformAdapter):
 
         External UIs and orchestrators use this endpoint to discover the API
         server's plugin-safe contract without scraping docs or assuming that
-        every Hermes version exposes the same endpoints.
+        every Gengar version exposes the same endpoints.
         """
         auth_err = self._check_auth(request)
         if auth_err:
             return auth_err
 
         return web.json_response({
-            "object": "hermes.api_server.capabilities",
-            "platform": "hermes-agent",
+            "object": "gengar.api_server.capabilities",
+            "platform": "gengar",
             "model": self._model_name,
             "auth": {
                 "type": "bearer",
@@ -852,7 +852,7 @@ class APIServerAdapter(BasePlatformAdapter):
                 "run_events_sse": True,
                 "run_stop": True,
                 "tool_progress_events": True,
-                "session_continuity_header": "X-Hermes-Session-Id",
+                "session_continuity_header": "X-Gengar-Session-Id",
                 "cors": bool(self._cors_origins),
             },
             "endpoints": {
@@ -924,18 +924,18 @@ class APIServerAdapter(BasePlatformAdapter):
                 status=400,
             )
 
-        # Allow caller to continue an existing session by passing X-Hermes-Session-Id.
+        # Allow caller to continue an existing session by passing X-Gengar-Session-Id.
         # When provided, history is loaded from state.db instead of from the request body.
         #
         # Security: session continuation exposes conversation history, so it is
         # only allowed when the API key is configured and the request is
         # authenticated.  Without this gate, any unauthenticated client could
         # read arbitrary session history by guessing/enumerating session IDs.
-        provided_session_id = request.headers.get("X-Hermes-Session-Id", "").strip()
+        provided_session_id = request.headers.get("X-Gengar-Session-Id", "").strip()
         if provided_session_id:
             if not self._api_key:
                 logger.warning(
-                    "Session continuation via X-Hermes-Session-Id rejected: "
+                    "Session continuation via X-Gengar-Session-Id rejected: "
                     "no API key configured.  Set API_SERVER_KEY to enable "
                     "session continuity."
                 )
@@ -963,7 +963,7 @@ class APIServerAdapter(BasePlatformAdapter):
         else:
             # Derive a stable session ID from the conversation fingerprint so
             # that consecutive messages from the same Open WebUI (or similar)
-            # conversation map to the same Hermes session.  The first user
+            # conversation map to the same Gengar session.  The first user
             # message + system prompt are constant across all turns.
             first_user = ""
             for cm in conversation_messages:
@@ -999,7 +999,7 @@ class APIServerAdapter(BasePlatformAdapter):
             _started_tool_call_ids: set[str] = set()
 
             def _on_tool_start(tool_call_id, function_name, function_args):
-                """Emit ``hermes.tool.progress`` with ``status: running``.
+                """Emit ``gengar.tool.progress`` with ``status: running``.
 
                 Replaces the old ``tool_progress_callback("tool.started",
                 ...)`` emit so SSE consumers receive a single event per
@@ -1121,7 +1121,7 @@ class APIServerAdapter(BasePlatformAdapter):
             },
         }
 
-        return web.json_response(response_data, headers={"X-Hermes-Session-Id": session_id})
+        return web.json_response(response_data, headers={"X-Gengar-Session-Id": session_id})
 
     async def _write_sse_chat_completion(
         self, request: "web.Request", completion_id: str, model: str,
@@ -1147,7 +1147,7 @@ class APIServerAdapter(BasePlatformAdapter):
         if cors:
             sse_headers.update(cors)
         if session_id:
-            sse_headers["X-Hermes-Session-Id"] = session_id
+            sse_headers["X-Gengar-Session-Id"] = session_id
         response = web.StreamResponse(status=200, headers=sse_headers)
         await response.prepare(request)
 
@@ -1169,7 +1169,7 @@ class APIServerAdapter(BasePlatformAdapter):
 
                 Plain strings are sent as normal ``delta.content`` chunks.
                 Tagged tuples ``("__tool_progress__", payload)`` are sent
-                as a custom ``event: hermes.tool.progress`` SSE event so
+                as a custom ``event: gengar.tool.progress`` SSE event so
                 frontends can display them without storing the markers in
                 conversation history.  See #6972 for the original event,
                 #16588 for the ``toolCallId``/``status`` lifecycle fields.
@@ -1177,7 +1177,7 @@ class APIServerAdapter(BasePlatformAdapter):
                 if isinstance(item, tuple) and len(item) == 2 and item[0] == "__tool_progress__":
                     event_data = json.dumps(item[1])
                     await response.write(
-                        f"event: hermes.tool.progress\ndata: {event_data}\n\n".encode()
+                        f"event: gengar.tool.progress\ndata: {event_data}\n\n".encode()
                     )
                 else:
                     content_chunk = {
@@ -1312,7 +1312,7 @@ class APIServerAdapter(BasePlatformAdapter):
         if cors:
             sse_headers.update(cors)
         if session_id:
-            sse_headers["X-Hermes-Session-Id"] = session_id
+            sse_headers["X-Gengar-Session-Id"] = session_id
         response = web.StreamResponse(status=200, headers=sse_headers)
         await response.prepare(request)
 
@@ -2390,7 +2390,7 @@ class APIServerAdapter(BasePlatformAdapter):
         now = time.time()
         current = self._run_statuses.get(run_id, {})
         current.update({
-            "object": "hermes.run",
+            "object": "gengar.run",
             "run_id": run_id,
             "status": status,
             "updated_at": now,

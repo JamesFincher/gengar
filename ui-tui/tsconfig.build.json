@@ -3,7 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@hermes/ink": ["src/types/hermes-ink.d.ts"]
+      "@gengar/ink": ["src/types/gengar-ink.d.ts"]
     }
   }
 }

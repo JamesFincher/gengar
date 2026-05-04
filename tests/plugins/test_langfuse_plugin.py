@@ -34,9 +34,9 @@ class TestManifest:
             "pre_llm_call", "post_llm_call",
             "pre_tool_call", "post_tool_call",
         }
-        # Required env vars are the user-facing HERMES_ prefixed keys.
-        assert "HERMES_LANGFUSE_PUBLIC_KEY" in data["requires_env"]
-        assert "HERMES_LANGFUSE_SECRET_KEY" in data["requires_env"]
+        # Required env vars are the user-facing GENGAR_ prefixed keys.
+        assert "GENGAR_LANGFUSE_PUBLIC_KEY" in data["requires_env"]
+        assert "GENGAR_LANGFUSE_SECRET_KEY" in data["requires_env"]
 
 
 # ---------------------------------------------------------------------------
@@ -50,10 +50,10 @@ class TestDiscovery:
         """Scanner should find the plugin but NOT load it by default."""
         from hermes_cli import plugins as plugins_mod
 
-        # Isolated HERMES_HOME so we don't read the developer's config.yaml.
-        home = tmp_path / ".hermes"
+        # Isolated GENGAR_HOME so we don't read the developer's config.yaml.
+        home = tmp_path / ".gengar"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("GENGAR_HOME", str(home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         manager = plugins_mod.PluginManager()
@@ -82,7 +82,7 @@ class TestRuntimeGate:
 
     def test_get_langfuse_returns_none_without_credentials(self, monkeypatch):
         for k in (
-            "HERMES_LANGFUSE_PUBLIC_KEY", "HERMES_LANGFUSE_SECRET_KEY",
+            "GENGAR_LANGFUSE_PUBLIC_KEY", "GENGAR_LANGFUSE_SECRET_KEY",
             "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY",
         ):
             monkeypatch.delenv(k, raising=False)
@@ -93,7 +93,7 @@ class TestRuntimeGate:
     def test_get_langfuse_caches_failure_no_config_load(self, monkeypatch):
         """A miss must be cached — no per-hook config.yaml reads, no env re-reads."""
         for k in (
-            "HERMES_LANGFUSE_PUBLIC_KEY", "HERMES_LANGFUSE_SECRET_KEY",
+            "GENGAR_LANGFUSE_PUBLIC_KEY", "GENGAR_LANGFUSE_SECRET_KEY",
             "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY",
         ):
             monkeypatch.delenv(k, raising=False)
@@ -110,7 +110,7 @@ class TestRuntimeGate:
         real_get = os.environ.get
 
         def tracking_get(key, default=None):
-            if key.startswith(("HERMES_LANGFUSE_", "LANGFUSE_")):
+            if key.startswith(("GENGAR_LANGFUSE_", "LANGFUSE_")):
                 called["n"] += 1
             return real_get(key, default)
 
@@ -127,7 +127,7 @@ class TestRuntimeGate:
     def test_get_langfuse_does_not_import_hermes_config(self, monkeypatch):
         """The plugin must not re-read config.yaml per hook."""
         for k in (
-            "HERMES_LANGFUSE_PUBLIC_KEY", "HERMES_LANGFUSE_SECRET_KEY",
+            "GENGAR_LANGFUSE_PUBLIC_KEY", "GENGAR_LANGFUSE_SECRET_KEY",
             "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY",
         ):
             monkeypatch.delenv(k, raising=False)
@@ -153,7 +153,7 @@ class TestHooksInert:
     def test_hooks_noop_without_client(self, monkeypatch):
         """All 6 hooks must return without raising when _get_langfuse() is None."""
         for k in (
-            "HERMES_LANGFUSE_PUBLIC_KEY", "HERMES_LANGFUSE_SECRET_KEY",
+            "GENGAR_LANGFUSE_PUBLIC_KEY", "GENGAR_LANGFUSE_SECRET_KEY",
             "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY",
         ):
             monkeypatch.delenv(k, raising=False)

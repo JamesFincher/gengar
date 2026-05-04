@@ -308,7 +308,7 @@ def resolve_requested_provider(requested: Optional[str] = None) -> str:
 
     # Prefer the persisted config selection over any stale shell/.env
     # provider override so chat uses the endpoint the user last saved.
-    env_provider = os.getenv("HERMES_INFERENCE_PROVIDER", "").strip().lower()
+    env_provider = os.getenv("GENGAR_INFERENCE_PROVIDER", "").strip().lower()
     if env_provider:
         return env_provider
 
@@ -436,7 +436,7 @@ def _get_named_custom_provider(requested_provider: str) -> Optional[Dict[str, An
         logger.warning(
             "custom_providers in config.yaml is a dict, not a list. "
             "Each entry must be prefixed with '-' in YAML. "
-            "Run 'hermes doctor' for details."
+            "Run 'gengar doctor' for details."
         )
         return None
 
@@ -707,7 +707,7 @@ def _resolve_azure_foundry_runtime(
     base_url = explicit_base_url_clean or cfg_base_url or env_base_url
     if not base_url:
         raise AuthError(
-            "Azure Foundry requires a base URL. Set it via 'hermes model' or "
+            "Azure Foundry requires a base URL. Set it via 'gengar model' or "
             "the AZURE_FOUNDRY_BASE_URL environment variable."
         )
 
@@ -723,7 +723,7 @@ def _resolve_azure_foundry_runtime(
     if not api_key:
         raise AuthError(
             "Azure Foundry requires an API key. Set AZURE_FOUNDRY_API_KEY in "
-            "~/.hermes/.env or run 'hermes model' to configure."
+            "~/.gengar/.env or run 'gengar model' to configure."
         )
 
     # Anthropic SDK appends /v1/messages itself, so strip any trailing /v1
@@ -814,8 +814,8 @@ def _resolve_explicit_runtime(
         expires_at = state.get("agent_key_expires_at") or state.get("expires_at")
         if not api_key:
             creds = resolve_nous_runtime_credentials(
-                min_key_ttl_seconds=max(60, int(os.getenv("HERMES_NOUS_MIN_KEY_TTL_SECONDS", "1800"))),
-                timeout_seconds=float(os.getenv("HERMES_NOUS_TIMEOUT_SECONDS", "15")),
+                min_key_ttl_seconds=max(60, int(os.getenv("GENGAR_NOUS_MIN_KEY_TTL_SECONDS", "1800"))),
+                timeout_seconds=float(os.getenv("GENGAR_NOUS_TIMEOUT_SECONDS", "15")),
             )
             api_key = creds.get("api_key", "")
             expires_at = creds.get("expires_at")
@@ -1003,11 +1003,11 @@ def resolve_runtime_provider(
         # For Nous, the pool entry's runtime_api_key is the agent_key — a
         # short-lived inference credential (~30 min TTL).  The pool doesn't
         # refresh it during selection (that would trigger network calls in
-        # non-runtime contexts like `hermes auth list`).  If the key is
+        # non-runtime contexts like `gengar auth list`).  If the key is
         # expired, clear pool_api_key so we fall through to
         # resolve_nous_runtime_credentials() which handles refresh + mint.
         if provider == "nous" and entry is not None and pool_api_key:
-            min_ttl = max(60, int(os.getenv("HERMES_NOUS_MIN_KEY_TTL_SECONDS", "1800")))
+            min_ttl = max(60, int(os.getenv("GENGAR_NOUS_MIN_KEY_TTL_SECONDS", "1800")))
             nous_state = {
                 "agent_key": getattr(entry, "agent_key", None),
                 "agent_key_expires_at": getattr(entry, "agent_key_expires_at", None),
@@ -1028,8 +1028,8 @@ def resolve_runtime_provider(
     if provider == "nous":
         try:
             creds = resolve_nous_runtime_credentials(
-                min_key_ttl_seconds=max(60, int(os.getenv("HERMES_NOUS_MIN_KEY_TTL_SECONDS", "1800"))),
-                timeout_seconds=float(os.getenv("HERMES_NOUS_TIMEOUT_SECONDS", "15")),
+                min_key_ttl_seconds=max(60, int(os.getenv("GENGAR_NOUS_MIN_KEY_TTL_SECONDS", "1800"))),
+                timeout_seconds=float(os.getenv("GENGAR_NOUS_TIMEOUT_SECONDS", "15")),
             )
             return {
                 "provider": "nous",
@@ -1056,7 +1056,7 @@ def resolve_runtime_provider(
                 "api_mode": "codex_responses",
                 "base_url": creds.get("base_url", "").rstrip("/"),
                 "api_key": creds.get("api_key", ""),
-                "source": creds.get("source", "hermes-auth-store"),
+                "source": creds.get("source", "gengar-auth-store"),
                 "last_refresh": creds.get("last_refresh"),
                 "requested_provider": requested_provider,
             }
@@ -1156,9 +1156,9 @@ def resolve_runtime_provider(
         if _is_azure_endpoint:
             # Honor user-specified env var hints on the model config before
             # falling back to the built-in AZURE_ANTHROPIC_KEY / ANTHROPIC_API_KEY
-            # chain.  Accept both `key_env` (Hermes canonical — matches the
+            # chain.  Accept both `key_env` (Gengar canonical — matches the
             # custom_providers field name) and `api_key_env` (documented in the
-            # Azure Foundry guide and read by most Hermes-compatible importers).
+            # Azure Foundry guide and read by most Gengar-compatible importers).
             # Matches the config.yaml examples in website/docs/guides/azure-foundry.md.
             token = ""
             for hint_key in ("key_env", "api_key_env"):

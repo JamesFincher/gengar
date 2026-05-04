@@ -33,7 +33,7 @@ def test_chat_provider_argparse_acceptance(monkeypatch):
         recorded["provider"] = args.provider
 
     monkeypatch.setattr("hermes_cli.main.cmd_chat", mock_cmd_chat)
-    monkeypatch.setattr(sys, "argv", ["hermes", "chat", "--provider", "my-custom-key"])
+    monkeypatch.setattr(sys, "argv", ["gengar", "chat", "--provider", "my-custom-key"])
 
     from hermes_cli.main import main
     main()

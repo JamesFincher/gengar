@@ -1,5 +1,5 @@
 """
-Tests for mcp_serve — Hermes MCP server.
+Tests for mcp_serve — Gengar MCP server.
 
 Three layers of tests:
 1. Unit tests — helpers, content extraction, attachment parsing
@@ -26,8 +26,8 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _isolate_hermes_home(tmp_path, monkeypatch):
-    """Redirect HERMES_HOME to a temp directory."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    """Redirect GENGAR_HOME to a temp directory."""
+    monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
     try:
         import hermes_constants
         monkeypatch.setattr(hermes_constants, "get_hermes_home", lambda: tmp_path)
@@ -877,7 +877,7 @@ class TestCliIntegration:
         assert args.verbose is True
 
     def test_dispatcher_routes_serve(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
         mock_run = MagicMock()
         monkeypatch.setattr("mcp_serve.run_mcp_server", mock_run)
 

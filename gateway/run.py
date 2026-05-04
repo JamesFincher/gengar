@@ -94,7 +94,7 @@ _AUTO_CONTINUE_FRESHNESS_SECS_DEFAULT = 60 * 60
 
 
 # --- Stale-code self-check ------------------------------------------------
-# Long-running gateway processes that survive an ``hermes update`` keep the
+# Long-running gateway processes that survive an ``gengar update`` keep the
 # old ``hermes_cli.config`` (and friends) cached in ``sys.modules``.  When
 # the updated tool files on disk then try to ``from hermes_cli.config
 # import cfg_get`` (added in PR #17304), the import resolves against the
@@ -149,7 +149,7 @@ def _coerce_gateway_timestamp(value: Any) -> Optional[float]:
     if isinstance(value, bool):  # bool is a subclass of int — skip it
         return None
     if isinstance(value, (int, float)):
-        # Some platform events use milliseconds; Hermes state rows use seconds.
+        # Some platform events use milliseconds; Gengar state rows use seconds.
         return float(value) / 1000.0 if float(value) > 10_000_000_000 else float(value)
     if isinstance(value, str):
         text = value.strip()
@@ -170,14 +170,14 @@ def _coerce_gateway_timestamp(value: Any) -> Optional[float]:
 def _auto_continue_freshness_window() -> float:
     """Return the configured auto-continue freshness window in seconds.
 
-    Reads ``HERMES_AUTO_CONTINUE_FRESHNESS`` (bridged from
+    Reads ``GENGAR_AUTO_CONTINUE_FRESHNESS`` (bridged from
     ``config.yaml`` ``agent.gateway_auto_continue_freshness`` at gateway
-    startup, same pattern as ``HERMES_AGENT_TIMEOUT``).  Falls back to the
+    startup, same pattern as ``GENGAR_AGENT_TIMEOUT``).  Falls back to the
     module default when unset or malformed.  Non-positive values disable
     the freshness gate (restores the pre-fix "always fresh" behaviour for
     users who want to opt out).
     """
-    raw = os.environ.get("HERMES_AUTO_CONTINUE_FRESHNESS")
+    raw = os.environ.get("GENGAR_AUTO_CONTINUE_FRESHNESS")
     if raw is None or raw == "":
         return float(_AUTO_CONTINUE_FRESHNESS_SECS_DEFAULT)
     try:
@@ -189,7 +189,7 @@ def _auto_continue_freshness_window() -> float:
 def _float_env(name: str, default: float) -> float:
     """Read an env var as float, falling back to ``default`` on typos/empty.
 
-    A misconfigured env var (e.g. ``HERMES_AGENT_TIMEOUT=abc``) must not
+    A misconfigured env var (e.g. ``GENGAR_AGENT_TIMEOUT=abc``) must not
     crash the gateway or an agent turn.  Unset/empty also falls back.
     """
     raw = os.environ.get(name)
@@ -321,12 +321,12 @@ _ensure_ssl_certs()
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Resolve Hermes home directory (respects HERMES_HOME override)
+# Resolve Gengar home directory (respects GENGAR_HOME override)
 from hermes_constants import get_hermes_home
 from utils import atomic_json_write, atomic_yaml_write, base_url_host_matches, is_truthy_value
 _hermes_home = get_hermes_home()
 
-# Load environment variables from ~/.hermes/.env first.
+# Load environment variables from ~/.gengar/.env first.
 # User-managed env files should override stale shell exports on restart.
 from dotenv import load_dotenv  # backward-compat for tests that monkeypatch this symbol
 from hermes_cli.env_loader import load_hermes_dotenv
@@ -443,41 +443,41 @@ if _config_path.exists():
         # config.yaml is the documented, authoritative source for these
         # settings — it unconditionally wins over .env values. Previously
         # the guards below read `if X not in os.environ` and let stale
-        # .env entries (e.g. HERMES_MAX_ITERATIONS=60 written by an old
-        # `hermes setup` run) silently shadow the user's current config.
+        # .env entries (e.g. GENGAR_MAX_ITERATIONS=60 written by an old
+        # `gengar setup` run) silently shadow the user's current config.
         # See PR #18413 / the 60-vs-500 max_turns incident.
         _agent_cfg = _cfg.get("agent", {})
         if _agent_cfg and isinstance(_agent_cfg, dict):
             if "max_turns" in _agent_cfg:
-                os.environ["HERMES_MAX_ITERATIONS"] = str(_agent_cfg["max_turns"])
+                os.environ["GENGAR_MAX_ITERATIONS"] = str(_agent_cfg["max_turns"])
             if "gateway_timeout" in _agent_cfg:
-                os.environ["HERMES_AGENT_TIMEOUT"] = str(_agent_cfg["gateway_timeout"])
+                os.environ["GENGAR_AGENT_TIMEOUT"] = str(_agent_cfg["gateway_timeout"])
             if "gateway_timeout_warning" in _agent_cfg:
-                os.environ["HERMES_AGENT_TIMEOUT_WARNING"] = str(_agent_cfg["gateway_timeout_warning"])
+                os.environ["GENGAR_AGENT_TIMEOUT_WARNING"] = str(_agent_cfg["gateway_timeout_warning"])
             if "gateway_notify_interval" in _agent_cfg:
-                os.environ["HERMES_AGENT_NOTIFY_INTERVAL"] = str(_agent_cfg["gateway_notify_interval"])
+                os.environ["GENGAR_AGENT_NOTIFY_INTERVAL"] = str(_agent_cfg["gateway_notify_interval"])
             if "restart_drain_timeout" in _agent_cfg:
-                os.environ["HERMES_RESTART_DRAIN_TIMEOUT"] = str(_agent_cfg["restart_drain_timeout"])
+                os.environ["GENGAR_RESTART_DRAIN_TIMEOUT"] = str(_agent_cfg["restart_drain_timeout"])
             if "gateway_auto_continue_freshness" in _agent_cfg:
-                os.environ["HERMES_AUTO_CONTINUE_FRESHNESS"] = str(
+                os.environ["GENGAR_AUTO_CONTINUE_FRESHNESS"] = str(
                     _agent_cfg["gateway_auto_continue_freshness"]
                 )
         _display_cfg = _cfg.get("display", {})
         if _display_cfg and isinstance(_display_cfg, dict):
             if "busy_input_mode" in _display_cfg:
-                os.environ["HERMES_GATEWAY_BUSY_INPUT_MODE"] = str(_display_cfg["busy_input_mode"])
+                os.environ["GENGAR_GATEWAY_BUSY_INPUT_MODE"] = str(_display_cfg["busy_input_mode"])
             if "busy_ack_enabled" in _display_cfg:
-                os.environ["HERMES_GATEWAY_BUSY_ACK_ENABLED"] = str(_display_cfg["busy_ack_enabled"])
-        # Timezone: bridge config.yaml → HERMES_TIMEZONE env var.
+                os.environ["GENGAR_GATEWAY_BUSY_ACK_ENABLED"] = str(_display_cfg["busy_ack_enabled"])
+        # Timezone: bridge config.yaml → GENGAR_TIMEZONE env var.
         _tz_cfg = _cfg.get("timezone", "")
         if _tz_cfg and isinstance(_tz_cfg, str):
-            os.environ["HERMES_TIMEZONE"] = _tz_cfg.strip()
+            os.environ["GENGAR_TIMEZONE"] = _tz_cfg.strip()
         # Security settings
         _security_cfg = _cfg.get("security", {})
         if isinstance(_security_cfg, dict):
             _redact = _security_cfg.get("redact_secrets")
             if _redact is not None:
-                os.environ["HERMES_REDACT_SECRETS"] = str(_redact).lower()
+                os.environ["GENGAR_REDACT_SECRETS"] = str(_redact).lower()
     except Exception as _bridge_err:
         # Previously this was silent (`except Exception: pass`), which
         # hid partial bridge failures and let .env defaults shadow
@@ -493,7 +493,7 @@ if _config_path.exists():
         )
         print(
             "  Gateway will fall back to .env values, which may not match "
-            "your current config.yaml. Run `hermes doctor` to investigate.",
+            "your current config.yaml. Run `gengar doctor` to investigate.",
             file=sys.stderr,
         )
 
@@ -521,10 +521,10 @@ except Exception:
     pass
 
 # Gateway runs in quiet mode - suppress debug output and use cwd directly (no temp dirs)
-os.environ["HERMES_QUIET"] = "1"
+os.environ["GENGAR_QUIET"] = "1"
 
 # Enable interactive exec approval for dangerous commands on messaging platforms
-os.environ["HERMES_EXEC_ASK"] = "1"
+os.environ["GENGAR_EXEC_ASK"] = "1"
 
 # Set terminal working directory for messaging platforms.
 # config.yaml terminal.cwd is the canonical source (bridged to TERMINAL_CWD
@@ -600,7 +600,7 @@ def _resolve_runtime_agent_kwargs() -> dict:
 
     try:
         runtime = resolve_runtime_provider(
-            requested=os.getenv("HERMES_INFERENCE_PROVIDER"),
+            requested=os.getenv("GENGAR_INFERENCE_PROVIDER"),
         )
     except AuthError as auth_exc:
         # Primary provider auth failed (expired token, revoked key, etc.).
@@ -811,7 +811,7 @@ def _check_unavailable_skill(command_name: str) -> str | None:
                 if slug == normalized and declared_name in disabled:
                     return (
                         f"The **{command_name}** skill is installed but disabled.\n"
-                        f"Enable it with: `hermes skills config`"
+                        f"Enable it with: `gengar skills config`"
                     )
 
         # Check optional skills (shipped with repo but not installed)
@@ -830,7 +830,7 @@ def _check_unavailable_skill(command_name: str) -> str | None:
                     install_path = f"official/{'/'.join(parts)}"
                     return (
                         f"The **{command_name}** skill is available but not installed.\n"
-                        f"Install it with: `hermes skills install {install_path}`"
+                        f"Install it with: `gengar skills install {install_path}`"
                     )
     except Exception:
         pass
@@ -843,7 +843,7 @@ def _platform_config_key(platform: "Platform") -> str:
 
 
 def _load_gateway_config() -> dict:
-    """Load and parse ~/.hermes/config.yaml, returning {} on any error.
+    """Load and parse ~/.gengar/config.yaml, returning {} on any error.
 
     Uses the module-level ``_hermes_home`` (so tests that monkeypatch it
     still see their fixture) and shares the mtime-keyed raw-yaml cache
@@ -888,18 +888,18 @@ def _resolve_gateway_model(config: dict | None = None) -> str:
 
 
 def _resolve_hermes_bin() -> Optional[list[str]]:
-    """Resolve the Hermes update command as argv parts.
+    """Resolve the Gengar update command as argv parts.
 
     Tries in order:
-    1. ``shutil.which("hermes")`` — standard PATH lookup
-    2. ``sys.executable -m hermes_cli.main`` — fallback when Hermes is running
-       from a venv/module invocation and the ``hermes`` shim is not on PATH
+    1. ``shutil.which("gengar")`` — standard PATH lookup
+    2. ``sys.executable -m hermes_cli.main`` — fallback when Gengar is running
+       from a venv/module invocation and the ``gengar`` shim is not on PATH
 
     Returns argv parts ready for quoting/joining, or ``None`` if neither works.
     """
     import shutil
 
-    hermes_bin = shutil.which("hermes")
+    hermes_bin = shutil.which("gengar")
     if hermes_bin:
         return [hermes_bin]
 
@@ -1159,7 +1159,7 @@ class GatewayRunner:
                 logger.debug("state.db auto-maintenance skipped: %s", exc)
 
         # Opportunistic shadow-repo cleanup — deletes orphan/stale
-        # checkpoint repos under ~/.hermes/checkpoints/.  Opt-in via
+        # checkpoint repos under ~/.gengar/checkpoints/.  Opt-in via
         # checkpoints.auto_prune, idempotent via .last_prune marker.
         try:
             from hermes_cli.config import load_config as _load_full_config
@@ -1235,7 +1235,7 @@ class GatewayRunner:
 
         logger.warning(
             "Docker backend is enabled for the messaging gateway but no explicit host-visible "
-            "output mount (for example '/home/user/.hermes/cache/documents:/output') is configured. "
+            "output mount (for example '/home/user/.gengar/cache/documents:/output') is configured. "
             "This is fine if the model already emits host-visible paths, but MEDIA file delivery can fail "
             "for container-local paths like '/workspace/...' or '/output/...'."
         )
@@ -1245,10 +1245,10 @@ class GatewayRunner:
     # -- Setup skill availability ----------------------------------------
 
     def _has_setup_skill(self) -> bool:
-        """Check if the hermes-agent-setup skill is installed."""
+        """Check if the gengar-setup skill is installed."""
         try:
             from tools.skill_manager_tool import _find_skill
-            return _find_skill("hermes-agent-setup") is not None
+            return _find_skill("gengar-setup") is not None
         except Exception:
             return False
 
@@ -1393,13 +1393,13 @@ class GatewayRunner:
 
     def _platform_connect_timeout_secs(self) -> float:
         """Return the per-platform connect timeout used during startup/retry."""
-        raw = os.getenv("HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT", "").strip()
+        raw = os.getenv("GENGAR_GATEWAY_PLATFORM_CONNECT_TIMEOUT", "").strip()
         if raw:
             try:
                 timeout = float(raw)
             except ValueError:
                 logger.warning(
-                    "Ignoring invalid HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT=%r",
+                    "Ignoring invalid GENGAR_GATEWAY_PLATFORM_CONNECT_TIMEOUT=%r",
                     raw,
                 )
             else:
@@ -1507,7 +1507,7 @@ class GatewayRunner:
             )
 
         # When the config has no model.default but a provider was resolved
-        # (e.g. user ran `hermes auth add openai-codex` without `hermes model`),
+        # (e.g. user ran `gengar auth add openai-codex` without `gengar model`),
         # fall back to the provider's first catalog model so the API call
         # doesn't fail with "model must be a non-empty string".
         if not model and runtime_kwargs.get("provider"):
@@ -1760,11 +1760,11 @@ class GatewayRunner:
     def _load_prefill_messages() -> List[Dict[str, Any]]:
         """Load ephemeral prefill messages from config or env var.
         
-        Checks HERMES_PREFILL_MESSAGES_FILE env var first, then falls back to
-        the prefill_messages_file key in ~/.hermes/config.yaml.
-        Relative paths are resolved from ~/.hermes/.
+        Checks GENGAR_PREFILL_MESSAGES_FILE env var first, then falls back to
+        the prefill_messages_file key in ~/.gengar/config.yaml.
+        Relative paths are resolved from ~/.gengar/.
         """
-        file_path = os.getenv("HERMES_PREFILL_MESSAGES_FILE", "")
+        file_path = os.getenv("GENGAR_PREFILL_MESSAGES_FILE", "")
         if not file_path:
             try:
                 import yaml as _y
@@ -1798,10 +1798,10 @@ class GatewayRunner:
     def _load_ephemeral_system_prompt() -> str:
         """Load ephemeral system prompt from config or env var.
         
-        Checks HERMES_EPHEMERAL_SYSTEM_PROMPT env var first, then falls back to
-        agent.system_prompt in ~/.hermes/config.yaml.
+        Checks GENGAR_EPHEMERAL_SYSTEM_PROMPT env var first, then falls back to
+        agent.system_prompt in ~/.gengar/config.yaml.
         """
-        prompt = os.getenv("HERMES_EPHEMERAL_SYSTEM_PROMPT", "")
+        prompt = os.getenv("GENGAR_EPHEMERAL_SYSTEM_PROMPT", "")
         if prompt:
             return prompt
         try:
@@ -1946,7 +1946,7 @@ class GatewayRunner:
     @staticmethod
     def _load_busy_input_mode() -> str:
         """Load gateway drain-time busy-input behavior from config/env."""
-        mode = os.getenv("HERMES_GATEWAY_BUSY_INPUT_MODE", "").strip().lower()
+        mode = os.getenv("GENGAR_GATEWAY_BUSY_INPUT_MODE", "").strip().lower()
         if not mode:
             try:
                 import yaml as _y
@@ -1966,7 +1966,7 @@ class GatewayRunner:
     @staticmethod
     def _load_restart_drain_timeout() -> float:
         """Load graceful gateway restart/stop drain timeout in seconds."""
-        raw = os.getenv("HERMES_RESTART_DRAIN_TIMEOUT", "").strip()
+        raw = os.getenv("GENGAR_RESTART_DRAIN_TIMEOUT", "").strip()
         if not raw:
             try:
                 import yaml as _y
@@ -1999,7 +1999,7 @@ class GatewayRunner:
           - ``error``  — only the final message when exit code is non-zero
           - ``off``    — no watcher messages at all
         """
-        mode = os.getenv("HERMES_BACKGROUND_NOTIFICATIONS", "")
+        mode = os.getenv("GENGAR_BACKGROUND_NOTIFICATIONS", "")
         if not mode:
             try:
                 import yaml as _y
@@ -2163,7 +2163,7 @@ class GatewayRunner:
         # Check if busy ack is disabled — skip sending but still process the input.
         # Placed before debounce so we don't stamp a "last ack" timestamp that was
         # never actually delivered.
-        busy_ack_enabled = os.environ.get("HERMES_GATEWAY_BUSY_ACK_ENABLED", "true").lower() == "true"
+        busy_ack_enabled = os.environ.get("GENGAR_GATEWAY_BUSY_ACK_ENABLED", "true").lower() == "true"
         if not busy_ack_enabled:
             logger.debug("Busy ack suppressed for session %s", session_key)
             return True  # input still processed, just no ack sent
@@ -2578,7 +2578,7 @@ class GatewayRunner:
 
         hermes_cmd = _resolve_hermes_bin()
         if not hermes_cmd:
-            logger.error("Could not locate hermes binary for detached /restart")
+            logger.error("Could not locate gengar binary for detached /restart")
             return
 
         current_pid = os.getpid()
@@ -2623,7 +2623,7 @@ class GatewayRunner:
     def _detect_stale_code(self) -> bool:
         """Return True if source files on disk are newer than the running process.
 
-        A gateway that survives ``hermes update`` (manual SIGTERM never
+        A gateway that survives ``gengar update`` (manual SIGTERM never
         escalated, systemd restart race, detached-process respawn failed,
         etc.) keeps pre-update modules cached in ``sys.modules``.  Later
         imports of names added post-update — e.g. ``cfg_get`` from PR
@@ -2631,7 +2631,7 @@ class GatewayRunner:
         Issue #17648).  Detecting this at the source — "the code on disk
         is newer than me" — lets us auto-restart instead of serving
         broken responses until the user notices and runs
-        ``hermes gateway restart`` manually.
+        ``gengar gateway restart`` manually.
 
         Returns False when the boot-time snapshot is unavailable or no
         sentinel file is readable, to avoid false-positive restart loops
@@ -2658,7 +2658,7 @@ class GatewayRunner:
         the normal drain path so in-flight agent turns finish before the
         process exits; the service manager (systemd / launchd / detached
         profile watcher) then respawns with fresh code.  On manual
-        ``hermes gateway run`` installs without a supervisor, the
+        ``gengar gateway run`` installs without a supervisor, the
         process exits and the user must restart by hand — but they get a
         user-visible message telling them so.
         """
@@ -2683,16 +2683,16 @@ class GatewayRunner:
         
         Returns True if at least one adapter connected successfully.
         """
-        logger.info("Starting Hermes Gateway...")
+        logger.info("Starting Gengar Gateway...")
         logger.info("Session storage: %s", self.config.sessions_dir)
         # Log the resolved max_iterations budget so operators can verify the
         # config.yaml → env bridge did the right thing at a glance (instead
         # of silently running at a stale .env value for weeks).
         try:
-            _effective_max_iter = int(os.getenv("HERMES_MAX_ITERATIONS", "90"))
+            _effective_max_iter = int(os.getenv("GENGAR_MAX_ITERATIONS", "90"))
             logger.info(
                 "Agent budget: max_iterations=%d (agent.max_turns from config.yaml, "
-                "or HERMES_MAX_ITERATIONS from .env, or default 90)",
+                "or GENGAR_MAX_ITERATIONS from .env, or default 90)",
                 _effective_max_iter,
             )
         except Exception:
@@ -2770,7 +2770,7 @@ class GatewayRunner:
         if not _any_allowlist and not _allow_all:
             logger.warning(
                 "No user allowlists configured. All unauthorized users will be denied. "
-                "Set GATEWAY_ALLOW_ALL_USERS=true in ~/.hermes/.env to allow open access, "
+                "Set GATEWAY_ALLOW_ALL_USERS=true in ~/.gengar/.env to allow open access, "
                 "or configure platform allowlists (e.g., TELEGRAM_ALLOWED_USERS=your_id)."
             )
         
@@ -2790,7 +2790,7 @@ class GatewayRunner:
 
         # Register declarative shell hooks from cli-config.yaml.  Gateway
         # has no TTY, so consent has to come from one of the three opt-in
-        # channels (--accept-hooks on launch, HERMES_ACCEPT_HOOKS env var,
+        # channels (--accept-hooks on launch, GENGAR_ACCEPT_HOOKS env var,
         # or hooks_auto_accept: true in config.yaml).  We pass
         # accept_hooks=False here and let register_from_config resolve
         # the effective value from env + config itself — the CLI-side
@@ -2827,8 +2827,8 @@ class GatewayRunner:
         #
         # SKIP suspension after a clean (graceful) shutdown — the previous
         # process already drained active agents, so sessions aren't stuck.
-        # This prevents unwanted auto-resets after `hermes update`,
-        # `hermes gateway restart`, or `/restart`.
+        # This prevents unwanted auto-resets after `gengar update`,
+        # `gengar gateway restart`, or `/restart`.
         _clean_marker = _hermes_home / ".clean_shutdown"
         if _clean_marker.exists():
             logger.info("Previous gateway exited cleanly — skipping session suspension")
@@ -3081,7 +3081,7 @@ class GatewayRunner:
 
         # Start background kanban dispatcher — spawns workers for ready
         # tasks. Gated by `kanban.dispatch_in_gateway` (default True).
-        # When false, users run `hermes kanban daemon` externally or
+        # When false, users run `gengar kanban daemon` externally or
         # simply don't use kanban; this loop becomes a no-op.
         asyncio.create_task(self._kanban_dispatcher_watcher())
 
@@ -3500,7 +3500,7 @@ class GatewayRunner:
 
         Gated by `kanban.dispatch_in_gateway` in config.yaml (default True).
         When true, the gateway hosts the single dispatcher for this profile:
-        no separate `hermes kanban daemon` process needed. When false, the
+        no separate `gengar kanban daemon` process needed. When false, the
         loop exits immediately and an external daemon is expected.
 
         Each tick calls :func:`kanban_db.dispatch_once` inside
@@ -3515,16 +3515,16 @@ class GatewayRunner:
         """
         # Read config once at boot. If the user flips the flag later, they
         # restart the gateway; same pattern as every other background
-        # watcher here. Honours HERMES_KANBAN_DISPATCH_IN_GATEWAY env var
+        # watcher here. Honours GENGAR_KANBAN_DISPATCH_IN_GATEWAY env var
         # as an escape hatch (false-y value disables without editing YAML).
         try:
             from hermes_cli.config import load_config as _load_config
         except Exception:
             logger.warning("kanban dispatcher: config loader unavailable; disabled")
             return
-        env_override = os.environ.get("HERMES_KANBAN_DISPATCH_IN_GATEWAY", "").strip().lower()
+        env_override = os.environ.get("GENGAR_KANBAN_DISPATCH_IN_GATEWAY", "").strip().lower()
         if env_override in ("0", "false", "no", "off"):
-            logger.info("kanban dispatcher: disabled via HERMES_KANBAN_DISPATCH_IN_GATEWAY env")
+            logger.info("kanban dispatcher: disabled via GENGAR_KANBAN_DISPATCH_IN_GATEWAY env")
             return
 
         try:
@@ -3636,7 +3636,7 @@ class GatewayRunner:
                             "kanban dispatcher stuck: ready queue non-empty for "
                             "%d consecutive ticks but 0 workers spawned. Check "
                             "profile health (venv, PATH, credentials) and "
-                            "`hermes kanban list --status ready`.",
+                            "`gengar kanban list --status ready`.",
                             bad_ticks,
                         )
                         last_warn_at = now
@@ -4101,7 +4101,7 @@ class GatewayRunner:
         elif platform == Platform.SLACK:
             from gateway.platforms.slack import SlackAdapter, check_slack_requirements
             if not check_slack_requirements():
-                logger.warning("Slack: slack-bolt not installed. Run: pip install 'hermes-agent[slack]'")
+                logger.warning("Slack: slack-bolt not installed. Run: pip install 'gengar[slack]'")
                 return None
             return SlackAdapter(config)
 
@@ -4541,7 +4541,7 @@ class GatewayRunner:
         source = event.source
 
         # Stale-code self-check (Issue #17648).  A gateway that survives
-        # ``hermes update`` keeps old modules cached in sys.modules; the
+        # ``gengar update`` keeps old modules cached in sys.modules; the
         # first inbound message is our earliest safe chance to detect
         # this and restart gracefully before we dispatch to the agent
         # and hit ImportError on freshly-added names (e.g. cfg_get).
@@ -4636,7 +4636,7 @@ class GatewayRunner:
                             f"Hi~ I don't recognize you yet!\n\n"
                             f"Here's your pairing code: `{code}`\n\n"
                             f"Ask the bot owner to run:\n"
-                            f"`hermes pairing approve {platform_name} {code}`"
+                            f"`gengar pairing approve {platform_name} {code}`"
                         )
                 else:
                     adapter = self.adapters.get(source.platform)
@@ -4779,7 +4779,7 @@ class GatewayRunner:
         # wall-clock age alone isn't sufficient.  Evict only when the agent
         # has been *idle* beyond the inactivity threshold (or when the agent
         # object has no activity tracker and wall-clock age is extreme).
-        _raw_stale_timeout = _float_env("HERMES_AGENT_TIMEOUT", 1800)
+        _raw_stale_timeout = _float_env("GENGAR_AGENT_TIMEOUT", 1800)
         _stale_ts = self._running_agents_ts.get(_quick_key, 0)
         if _quick_key in self._running_agents and _stale_ts:
             _stale_age = time.time() - _stale_ts
@@ -5038,7 +5038,7 @@ class GatewayRunner:
                 return None
 
             _telegram_followup_grace = float(
-                os.getenv("HERMES_TELEGRAM_FOLLOWUP_GRACE_SECONDS", "3.0")
+                os.getenv("GENGAR_TELEGRAM_FOLLOWUP_GRACE_SECONDS", "3.0")
             )
             _started_at = self._running_agents_ts.get(_quick_key, 0)
             if (
@@ -5396,7 +5396,7 @@ class GatewayRunner:
                         if _skill_name in _get_plat_disabled(platform=_plat):
                             return (
                                 f"The **{_skill_name}** skill is disabled for {_plat}.\n"
-                                f"Enable it with: `hermes skills config`"
+                                f"Enable it with: `gengar skills config`"
                             )
                     user_instruction = event.get_command_args().strip()
                     msg = build_skill_invocation_message(
@@ -5590,12 +5590,12 @@ class GatewayRunner:
                                 "🎤 I received your voice message but can't transcribe it — "
                                 "no speech-to-text provider is configured.\n\n"
                                 "To enable voice: install faster-whisper "
-                                "(`pip install faster-whisper` in the Hermes venv) "
+                                "(`pip install faster-whisper` in the Gengar venv) "
                                 "and set `stt.enabled: true` in config.yaml, "
                                 "then /restart the gateway."
                             )
                             if self._has_setup_skill():
-                                _stt_msg += "\n\nFor full setup instructions, type: `/skill hermes-agent-setup`"
+                                _stt_msg += "\n\nFor full setup instructions, type: `/skill gengar-setup`"
                             await _stt_adapter.send(
                                 source.chat_id,
                                 _stt_msg,
@@ -6184,17 +6184,17 @@ class GatewayRunner:
             platform_name = source.platform.value
             env_key = _home_target_env_var(platform_name)
             if not os.getenv(env_key):
-                # Slack dispatches all Hermes commands through a single
-                # parent slash command `/hermes`; bare `/sethome` is not
+                # Slack dispatches all Gengar commands through a single
+                # parent slash command `/gengar`; bare `/sethome` is not
                 # registered and would fail with "app did not respond".
                 sethome_cmd = (
-                    "/hermes sethome"
+                    "/gengar sethome"
                     if source.platform == Platform.SLACK
                     else "/sethome"
                 )
                 notice = (
                     f"📬 No home channel is set for {platform_name.title()}. "
-                    f"A home channel is where Hermes delivers cron job results "
+                    f"A home channel is where Gengar delivers cron job results "
                     f"and cross-platform messages.\n\n"
                     f"Type {sethome_cmd} to make this chat your home channel, "
                     f"or ignore to skip."
@@ -6980,7 +6980,7 @@ class GatewayRunner:
         # Gateway messages have practical length caps; truncate long
         # listings to keep the UX reasonable.
         if len(output) > 3800:
-            output = output[:3800] + "\n… (truncated; use `hermes kanban …` in your terminal for full output)"
+            output = output[:3800] + "\n… (truncated; use `gengar kanban …` in your terminal for full output)"
         return output or "(no output)"
 
     async def _handle_status_command(self, event: MessageEvent) -> str:
@@ -7025,7 +7025,7 @@ class GatewayRunner:
                 db_total_tokens = 0
 
         lines = [
-            "📊 **Hermes Gateway Status**",
+            "📊 **Gengar Gateway Status**",
             "",
             f"**Session ID:** `{session_entry.session_id}`",
         ]
@@ -7253,7 +7253,7 @@ class GatewayRunner:
             self.request_restart(detached=True, via_service=False)
         if active_agents:
             return f"⏳ Draining {active_agents} active agent(s) before restart..."
-        return EphemeralReply("♻ Restarting gateway. If you aren't notified within 60 seconds, restart from the console with `hermes gateway restart`.")
+        return EphemeralReply("♻ Restarting gateway. If you aren't notified within 60 seconds, restart from the console with `gengar gateway restart`.")
 
     def _is_stale_restart_redelivery(self, event: MessageEvent) -> bool:
         """Return True if this /restart is a Telegram re-delivery we already handled.
@@ -7309,7 +7309,7 @@ class GatewayRunner:
         """Handle /help command - list available commands."""
         from hermes_cli.commands import gateway_help_lines
         lines = [
-            "📖 **Hermes Commands**\n",
+            "📖 **Gengar Commands**\n",
             *gateway_help_lines(),
         ]
         try:
@@ -8739,7 +8739,7 @@ class GatewayRunner:
             disabled_toolsets = agent_cfg.get("disabled_toolsets") or None
 
             pr = self._provider_routing
-            max_iterations = int(os.getenv("HERMES_MAX_ITERATIONS", "90"))
+            max_iterations = int(os.getenv("GENGAR_MAX_ITERATIONS", "90"))
             reasoning_config = self._resolve_session_reasoning_config(source=source)
             self._reasoning_config = reasoning_config
             self._service_tier = self._load_service_tier()
@@ -10195,7 +10195,7 @@ class GatewayRunner:
 
         Gateway uploads ONLY the summary report (system info + log tails),
         NOT full log files, to protect conversation privacy.  Users who need
-        full log uploads should use ``hermes debug share`` from the CLI.
+        full log uploads should use ``gengar debug share`` from the CLI.
         """
         import asyncio
         from hermes_cli.debug import (
@@ -10228,17 +10228,17 @@ class GatewayRunner:
 
             lines.append("")
             lines.append("⏱ Pastes will auto-delete in 6 hours.")
-            lines.append("For full log uploads, use `hermes debug share` from the CLI.")
-            lines.append("Share these links with the Hermes team for support.")
+            lines.append("For full log uploads, use `gengar debug share` from the CLI.")
+            lines.append("Share these links with the Gengar team for support.")
             return "\n".join(lines)
 
         return await loop.run_in_executor(None, _collect_and_upload)
 
     async def _handle_update_command(self, event: MessageEvent) -> str:
-        """Handle /update command — update Hermes Agent to the latest version.
+        """Handle /update command — update Gengar to the latest version.
 
-        Spawns ``hermes update`` in a detached session (via ``setsid``) so it
-        survives the gateway restart that ``hermes update`` may trigger. Marker
+        Spawns ``gengar update`` in a detached session (via ``setsid``) so it
+        survives the gateway restart that ``gengar update`` may trigger. Marker
         files are written so either the current gateway process or the next one
         can notify the user when the update finishes.
         """
@@ -10257,12 +10257,12 @@ class GatewayRunner:
                 from gateway.platform_registry import platform_registry
                 entry = platform_registry.get(platform.value)
                 if not entry or not entry.allow_update_command:
-                    return "✗ /update is only available from messaging platforms. Run `hermes update` from the terminal."
+                    return "✗ /update is only available from messaging platforms. Run `gengar update` from the terminal."
             except Exception:
-                return "✗ /update is only available from messaging platforms. Run `hermes update` from the terminal."
+                return "✗ /update is only available from messaging platforms. Run `gengar update` from the terminal."
 
         if is_managed():
-            return f"✗ {format_managed_message('update Hermes Agent')}"
+            return f"✗ {format_managed_message('update Gengar')}"
 
         project_root = Path(__file__).parent.parent.resolve()
         git_dir = project_root / '.git'
@@ -10273,10 +10273,10 @@ class GatewayRunner:
         hermes_cmd = _resolve_hermes_bin()
         if not hermes_cmd:
             return (
-                "✗ Could not locate the `hermes` command. "
-                "Hermes is running, but the update command could not find the "
+                "✗ Could not locate the `gengar` command. "
+                "Gengar is running, but the update command could not find the "
                 "executable on PATH or via the current Python interpreter. "
-                "Try running `hermes update` manually in your terminal."
+                "Try running `gengar update` manually in your terminal."
             )
 
         pending_path = _hermes_home / ".update_pending.json"
@@ -10297,7 +10297,7 @@ class GatewayRunner:
         _tmp_pending.replace(pending_path)
         exit_code_path.unlink(missing_ok=True)
 
-        # Spawn `hermes update --gateway` detached so it survives gateway restart.
+        # Spawn `gengar update --gateway` detached so it survives gateway restart.
         # --gateway enables file-based IPC for interactive prompts (stash
         # restore, config migration) so the gateway can forward them to the
         # user instead of silently skipping them.
@@ -10335,7 +10335,7 @@ class GatewayRunner:
             return f"✗ Failed to start update: {e}"
 
         self._schedule_update_notification_watch()
-        return "⚕ Starting Hermes update… I'll stream progress here."
+        return "⚕ Starting Gengar update… I'll stream progress here."
 
     def _schedule_update_notification_watch(self) -> None:
         """Ensure a background task is watching for update completion."""
@@ -10356,7 +10356,7 @@ class GatewayRunner:
         stream_interval: float = 4.0,
         timeout: float = 1800.0,
     ) -> None:
-        """Watch ``hermes update --gateway``, streaming output + forwarding prompts.
+        """Watch ``gengar update --gateway``, streaming output + forwarding prompts.
 
         Polls ``.update_output.txt`` for new content and sends chunks to the
         user periodically.  Detects ``.update_prompt.json`` (written by the
@@ -10457,11 +10457,11 @@ class GatewayRunner:
                     exit_code_raw = exit_code_path.read_text().strip() or "1"
                     exit_code = int(exit_code_raw)
                     if exit_code == 0:
-                        await adapter.send(chat_id, "✅ Hermes update finished.", metadata=metadata)
+                        await adapter.send(chat_id, "✅ Gengar update finished.", metadata=metadata)
                     else:
                         await adapter.send(
                             chat_id,
-                            "❌ Hermes update failed (exit code {}).".format(exit_code),
+                            "❌ Gengar update failed (exit code {}).".format(exit_code),
                             metadata=metadata,
                         )
                     logger.info("Update finished (exit=%s), notified %s", exit_code, session_key)
@@ -10548,7 +10548,7 @@ class GatewayRunner:
             try:
                 await adapter.send(
                     chat_id,
-                    "❌ Hermes update timed out after 30 minutes.",
+                    "❌ Gengar update timed out after 30 minutes.",
                     metadata=metadata,
                 )
             except Exception:
@@ -10621,14 +10621,14 @@ class GatewayRunner:
                     if len(output) > 3500:
                         output = "…" + output[-3500:]
                     if exit_code == 0:
-                        msg = f"✅ Hermes update finished.\n\n```\n{output}\n```"
+                        msg = f"✅ Gengar update finished.\n\n```\n{output}\n```"
                     else:
-                        msg = f"❌ Hermes update failed.\n\n```\n{output}\n```"
+                        msg = f"❌ Gengar update failed.\n\n```\n{output}\n```"
                 else:
                     if exit_code == 0:
-                        msg = "✅ Hermes update finished successfully."
+                        msg = "✅ Gengar update finished successfully."
                     else:
-                        msg = "❌ Hermes update failed. Check the gateway logs or run `hermes update` manually for details."
+                        msg = "❌ Gengar update failed. Check the gateway logs or run `gengar update` manually for details."
                 await adapter.send(chat_id, msg, metadata=metadata)
                 logger.info(
                     "Sent post-update notification to %s:%s (exit=%s)",
@@ -10715,7 +10715,7 @@ class GatewayRunner:
         """
         delivered: set[tuple[str, str, Optional[str]]] = set()
         skipped = skip_targets or set()
-        message = "♻️ Gateway online — Hermes is back and ready."
+        message = "♻️ Gateway online — Gengar is back and ready."
 
         for platform, adapter in self.adapters.items():
             home = self.config.get_home_channel(platform)
@@ -10900,8 +10900,8 @@ class GatewayRunner:
             disabled_note = "[The user sent voice message(s), but transcription is disabled in config."
             if self._has_setup_skill():
                 disabled_note += (
-                    " You have a skill called hermes-agent-setup that can help "
-                    "users configure Hermes features including voice, tools, and more."
+                    " You have a skill called gengar-setup that can help "
+                    "users configure Gengar features including voice, tools, and more."
                 )
             disabled_note += "]"
             if user_text:
@@ -10935,8 +10935,8 @@ class GatewayRunner:
                         )
                         if self._has_setup_skill():
                             _no_stt_note += (
-                                " You have a skill called hermes-agent-setup "
-                                "that can help users configure Hermes features "
+                                " You have a skill called gengar-setup "
+                                "that can help users configure Gengar features "
                                 "including voice, tools, and more."
                             )
                         _no_stt_note += "]"
@@ -11674,7 +11674,7 @@ class GatewayRunner:
         return len(to_evict)
 
     # ------------------------------------------------------------------
-    # Proxy mode: forward messages to a remote Hermes API server
+    # Proxy mode: forward messages to a remote Gengar API server
     # ------------------------------------------------------------------
 
     def _get_proxy_url(self) -> Optional[str]:
@@ -11703,7 +11703,7 @@ class GatewayRunner:
         run_generation: Optional[int] = None,
         event_message_id: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Forward the message to a remote Hermes API server instead of
+        """Forward the message to a remote Gengar API server instead of
         running a local AIAgent.
 
         When ``GATEWAY_PROXY_URL`` (or ``gateway.proxy_url`` in config.yaml)
@@ -11744,7 +11744,7 @@ class GatewayRunner:
         # Build messages in OpenAI chat format --------------------------
         #
         # The remote api_server can maintain session continuity via
-        # X-Hermes-Session-Id, so it loads its own history.  We only
+        # X-Gengar-Session-Id, so it loads its own history.  We only
         # need to send the current user message.  If the remote has
         # no history for this session yet, include what we have locally
         # so the first exchange has context.
@@ -11770,10 +11770,10 @@ class GatewayRunner:
         if proxy_key:
             headers["Authorization"] = f"Bearer {proxy_key}"
         if session_id:
-            headers["X-Hermes-Session-Id"] = session_id
+            headers["X-Gengar-Session-Id"] = session_id
 
         body = {
-            "model": "hermes-agent",
+            "model": "gengar",
             "messages": api_messages,
             "stream": True,
         }
@@ -12051,7 +12051,7 @@ class GatewayRunner:
 
         # Tool progress mode — resolved per-platform with env var fallback
         _resolved_tp = resolve_display_setting(user_config, platform_key, "tool_progress")
-        _env_tp = os.getenv("HERMES_TOOL_PROGRESS_MODE")
+        _env_tp = os.getenv("GENGAR_TOOL_PROGRESS_MODE")
         _display_cfg = display_config if isinstance(display_config, dict) else {}
         _platforms_cfg = _display_cfg.get("platforms") or {}
         _platform_cfg = _platforms_cfg.get(platform_key) or {}
@@ -12469,10 +12469,10 @@ class GatewayRunner:
 
             # session_key is now set via contextvars in _set_session_env()
             # (concurrency-safe). Keep os.environ as fallback for CLI/cron.
-            os.environ["HERMES_SESSION_KEY"] = session_key or ""
+            os.environ["GENGAR_SESSION_KEY"] = session_key or ""
 
             # Read from env var or use default (same as CLI)
-            max_iterations = int(os.getenv("HERMES_MAX_ITERATIONS", "90"))
+            max_iterations = int(os.getenv("GENGAR_MAX_ITERATIONS", "90"))
             
             # Map platform enum to the platform hint key the agent understands.
             # Platform.LOCAL ("local") maps to "cli"; others pass through as-is.
@@ -13276,9 +13276,9 @@ class GatewayRunner:
         # Periodic "still working" notifications for long-running tasks.
         # Fires every N seconds so the user knows the agent hasn't died.
         # Config: agent.gateway_notify_interval in config.yaml, or
-        # HERMES_AGENT_NOTIFY_INTERVAL env var.  Default 180s (3 min).
+        # GENGAR_AGENT_NOTIFY_INTERVAL env var.  Default 180s (3 min).
         # 0 = disable notifications.
-        _NOTIFY_INTERVAL_RAW = _float_env("HERMES_AGENT_NOTIFY_INTERVAL", 180)
+        _NOTIFY_INTERVAL_RAW = _float_env("GENGAR_AGENT_NOTIFY_INTERVAL", 180)
         _NOTIFY_INTERVAL = _NOTIFY_INTERVAL_RAW if _NOTIFY_INTERVAL_RAW > 0 else None
         _notify_start = time.time()
 
@@ -13324,11 +13324,11 @@ class GatewayRunner:
             # configured duration is caught and killed.  (#4815)
             #
             # Config: agent.gateway_timeout in config.yaml, or
-            # HERMES_AGENT_TIMEOUT env var (env var takes precedence).
+            # GENGAR_AGENT_TIMEOUT env var (env var takes precedence).
             # Default 1800s (30 min inactivity).  0 = unlimited.
-            _agent_timeout_raw = _float_env("HERMES_AGENT_TIMEOUT", 1800)
+            _agent_timeout_raw = _float_env("GENGAR_AGENT_TIMEOUT", 1800)
             _agent_timeout = _agent_timeout_raw if _agent_timeout_raw > 0 else None
-            _agent_warning_raw = _float_env("HERMES_AGENT_TIMEOUT_WARNING", 900)
+            _agent_warning_raw = _float_env("GENGAR_AGENT_TIMEOUT_WARNING", 900)
             _agent_warning = _agent_warning_raw if _agent_warning_raw > 0 else None
             _warning_fired = False
             _executor_task = asyncio.ensure_future(
@@ -13793,13 +13793,13 @@ def _start_cron_ticker(stop_event: threading.Event, adapters=None, loop=None, in
     Background thread that ticks the cron scheduler at a regular interval.
     
     Runs inside the gateway process so cronjobs fire automatically without
-    needing a separate `hermes cron daemon` or system cron entry.
+    needing a separate `gengar cron daemon` or system cron entry.
 
     When ``adapters`` and ``loop`` are provided, passes them through to the
     cron delivery path so live adapters can be used for E2EE rooms.
 
     Also refreshes the channel directory every 5 minutes and prunes the
-    image/audio/document cache + expired ``hermes debug share`` pastes
+    image/audio/document cache + expired ``gengar debug share`` pastes
     once per hour.
     """
     from cron.scheduler import tick as cron_tick
@@ -13895,9 +13895,9 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
                  when the previous process hasn't fully exited yet.
     """
     # ── Duplicate-instance guard ──────────────────────────────────────
-    # Prevent two gateways from running under the same HERMES_HOME.
-    # The PID file is scoped to HERMES_HOME, so future multi-profile
-    # setups (each profile using a distinct HERMES_HOME) will naturally
+    # Prevent two gateways from running under the same GENGAR_HOME.
+    # The PID file is scoped to GENGAR_HOME, so future multi-profile
+    # setups (each profile using a distinct GENGAR_HOME) will naturally
     # allow concurrent instances without tripping this guard.
     from gateway.status import (
         acquire_gateway_runtime_lock,
@@ -13990,15 +13990,15 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
         else:
             hermes_home = str(get_hermes_home())
             logger.error(
-                "Another gateway instance is already running (PID %d, HERMES_HOME=%s). "
-                "Use 'hermes gateway restart' to replace it, or 'hermes gateway stop' first.",
+                "Another gateway instance is already running (PID %d, GENGAR_HOME=%s). "
+                "Use 'gengar gateway restart' to replace it, or 'gengar gateway stop' first.",
                 existing_pid, hermes_home,
             )
             print(
                 f"\n❌ Gateway already running (PID {existing_pid}).\n"
-                f"   Use 'hermes gateway restart' to replace it,\n"
-                f"   or 'hermes gateway stop' to kill it first.\n"
-                f"   Or use 'hermes gateway run --replace' to auto-replace.\n"
+                f"   Use 'gengar gateway restart' to replace it,\n"
+                f"   or 'gengar gateway stop' to kill it first.\n"
+                f"   Or use 'gengar gateway run --replace' to auto-replace.\n"
             )
             return False
 
@@ -14049,7 +14049,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
         # before sending SIGTERM. If present, treat the signal as a
         # planned shutdown and exit 0 so systemd's Restart=on-failure
         # doesn't revive us (which would flap-fight the replacer when
-        # both services are enabled, e.g. hermes.service + hermes-
+        # both services are enabled, e.g. gengar.service + gengar-
         # gateway.service from pre-rename installs).
         planned_takeover = False
         try:
@@ -14065,8 +14065,8 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
         else:
             _signal_initiated_shutdown = True
             logger.info("Received SIGTERM/SIGINT — initiating shutdown")
-        # Diagnostic: log all hermes-related processes so we can identify
-        # what triggered the signal (hermes update, hermes gateway restart,
+        # Diagnostic: log all gengar-related processes so we can identify
+        # what triggered the signal (gengar update, gengar gateway restart,
         # a stale detached subprocess, etc.).
         try:
             import subprocess as _sp
@@ -14076,16 +14076,16 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
             )
             _hermes_procs = [
                 line for line in _ps.stdout.splitlines()
-                if ("hermes" in line.lower() or "gateway" in line.lower())
+                if ("gengar" in line.lower() or "gateway" in line.lower())
                 and str(os.getpid()) not in line.split()[1:2]  # exclude self
             ]
             if _hermes_procs:
                 logger.warning(
-                    "Shutdown diagnostic — other hermes processes running:\n  %s",
+                    "Shutdown diagnostic — other gengar processes running:\n  %s",
                     "\n  ".join(_hermes_procs),
                 )
             else:
-                logger.info("Shutdown diagnostic — no other hermes processes found")
+                logger.info("Shutdown diagnostic — no other gengar processes found")
         except Exception:
             pass
         asyncio.create_task(runner.stop())
@@ -14198,7 +14198,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
     # When a signal (SIGTERM/SIGINT) caused the shutdown and it wasn't a
     # planned restart (/restart, /update, SIGUSR1), exit non-zero so
     # systemd's Restart=on-failure revives the process.  This covers:
-    #   - hermes update killing the gateway mid-work
+    #   - gengar update killing the gateway mid-work
     #   - External kill commands
     #   - WSL2/container runtime sending unexpected signals
     # systemctl stop is safe: systemd tracks "stop requested" state
@@ -14217,7 +14217,7 @@ def main():
     """CLI entry point for the gateway."""
     import argparse
     
-    parser = argparse.ArgumentParser(description="Hermes Gateway - Multi-platform messaging")
+    parser = argparse.ArgumentParser(description="Gengar Gateway - Multi-platform messaging")
     parser.add_argument("--config", "-c", help="Path to gateway config file")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     

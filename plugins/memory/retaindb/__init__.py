@@ -12,7 +12,7 @@ Features:
 - Shared file store tools (upload, list, read, ingest, delete)
 - Explicit memory tools (profile, search, context, remember, forget)
 
-Config (env vars or hermes config.yaml under retaindb:):
+Config (env vars or gengar config.yaml under retaindb:):
   RETAINDB_API_KEY     — API key (required)
   RETAINDB_BASE_URL    — API endpoint (default: https://api.retaindb.com)
   RETAINDB_PROJECT     — Project identifier (optional — defaults to "default")
@@ -187,7 +187,7 @@ class _Client:
         h = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
-            "x-sdk-runtime": "hermes-plugin",
+            "x-sdk-runtime": "gengar-plugin",
         }
         if path.startswith(("/v1/memory", "/v1/context")):
             h["X-API-Key"] = token
@@ -286,7 +286,7 @@ class _Client:
         import requests
         url = f"{self.base_url}/v1/files"
         token = self.api_key.replace("Bearer ", "").strip()
-        headers = {"Authorization": f"Bearer {token}", "x-sdk-runtime": "hermes-plugin"}
+        headers = {"Authorization": f"Bearer {token}", "x-sdk-runtime": "gengar-plugin"}
         fields = {"path": remote_path, "scope": scope.upper()}
         if project_id:
             fields["project_id"] = project_id
@@ -307,7 +307,7 @@ class _Client:
         import requests
         token = self.api_key.replace("Bearer ", "").strip()
         url = f"{self.base_url}/v1/files/{quote(file_id, safe='')}/content"
-        resp = requests.get(url, headers={"Authorization": f"Bearer {token}", "x-sdk-runtime": "hermes-plugin"}, timeout=30, allow_redirects=True)
+        resp = requests.get(url, headers={"Authorization": f"Bearer {token}", "x-sdk-runtime": "gengar-plugin"}, timeout=30, allow_redirects=True)
         resp.raise_for_status()
         return resp.content
 
@@ -457,7 +457,7 @@ class RetainDBMemoryProvider(MemoryProvider):
         self._queue: _WriteQueue | None = None
         self._user_id = "default"
         self._session_id = ""
-        self._agent_id = "hermes"
+        self._agent_id = "gengar"
         self._lock = threading.Lock()
 
         # Prefetch caches
@@ -490,7 +490,7 @@ class RetainDBMemoryProvider(MemoryProvider):
         api_key = os.environ.get("RETAINDB_API_KEY", "")
         base_url = re.sub(r"/+$", "", os.environ.get("RETAINDB_BASE_URL", _DEFAULT_BASE_URL))
 
-        # Project resolution: RETAINDB_PROJECT > hermes-<profile> > "default"
+        # Project resolution: RETAINDB_PROJECT > gengar-<profile> > "default"
         # If unset, the API auto-creates and uses the "default" project — no config required.
         explicit = os.environ.get("RETAINDB_PROJECT")
         if explicit:
@@ -498,12 +498,12 @@ class RetainDBMemoryProvider(MemoryProvider):
         else:
             hermes_home = str(kwargs.get("hermes_home", ""))
             profile_name = os.path.basename(hermes_home) if hermes_home else ""
-            project = f"hermes-{profile_name}" if (profile_name and profile_name not in {"", ".hermes"}) else "default"
+            project = f"gengar-{profile_name}" if (profile_name and profile_name not in {"", ".gengar"}) else "default"
 
         self._client = _Client(api_key, base_url, project)
         self._session_id = session_id
         self._user_id = kwargs.get("user_id", "default") or "default"
-        self._agent_id = kwargs.get("agent_id", "hermes") or "hermes"
+        self._agent_id = kwargs.get("agent_id", "gengar") or "gengar"
 
         from hermes_constants import get_hermes_home
         hermes_home_path = get_hermes_home()

@@ -157,7 +157,7 @@ def test_gateway_start_in_container_with_operational_systemd_uses_systemd(monkey
 
 
 def test_systemd_status_warns_when_linger_disabled(monkeypatch, tmp_path, capsys):
-    unit_path = tmp_path / "hermes-gateway.service"
+    unit_path = tmp_path / "gengar-gateway.service"
     unit_path.write_text("[Unit]\n")
 
     monkeypatch.setattr(gateway, "get_systemd_unit_path", lambda system=False: unit_path)
@@ -187,7 +187,7 @@ def test_systemd_status_warns_when_linger_disabled(monkeypatch, tmp_path, capsys
 
 
 def test_systemd_install_checks_linger_status(monkeypatch, tmp_path, capsys):
-    unit_path = tmp_path / "systemd" / "user" / "hermes-gateway.service"
+    unit_path = tmp_path / "systemd" / "user" / "gengar-gateway.service"
 
     monkeypatch.setattr(gateway, "get_systemd_unit_path", lambda system=False: unit_path)
 
@@ -214,7 +214,7 @@ def test_systemd_install_checks_linger_status(monkeypatch, tmp_path, capsys):
 
 
 def test_systemd_install_system_scope_skips_linger_and_uses_systemctl(monkeypatch, tmp_path, capsys):
-    unit_path = tmp_path / "etc" / "systemd" / "system" / "hermes-gateway.service"
+    unit_path = tmp_path / "etc" / "systemd" / "system" / "gengar-gateway.service"
 
     monkeypatch.setattr(gateway, "get_systemd_unit_path", lambda system=False: unit_path)
     monkeypatch.setattr(
@@ -249,8 +249,8 @@ def test_systemd_install_system_scope_skips_linger_and_uses_systemctl(monkeypatc
 
 
 def test_conflicting_systemd_units_warning(monkeypatch, tmp_path, capsys):
-    user_unit = tmp_path / "user" / "hermes-gateway.service"
-    system_unit = tmp_path / "system" / "hermes-gateway.service"
+    user_unit = tmp_path / "user" / "gengar-gateway.service"
+    system_unit = tmp_path / "system" / "gengar-gateway.service"
     user_unit.parent.mkdir(parents=True)
     system_unit.parent.mkdir(parents=True)
     user_unit.write_text("[Unit]\n", encoding="utf-8")
@@ -266,7 +266,7 @@ def test_conflicting_systemd_units_warning(monkeypatch, tmp_path, capsys):
 
     out = capsys.readouterr().out
     assert "Both user and system gateway services are installed" in out
-    assert "hermes gateway uninstall" in out
+    assert "gengar gateway uninstall" in out
     assert "--system" in out
 
 
@@ -280,8 +280,8 @@ def test_install_linux_gateway_from_setup_system_choice_without_root_prints_foll
 
     out = capsys.readouterr().out
     assert (scope, did_install) == ("system", False)
-    assert "sudo hermes gateway install --system --run-as-user alice" in out
-    assert "sudo hermes gateway start --system" in out
+    assert "sudo gengar gateway install --system --run-as-user alice" in out
+    assert "sudo gengar gateway start --system" in out
 
 
 def test_install_linux_gateway_from_setup_system_choice_as_root_installs(monkeypatch):

@@ -52,9 +52,9 @@ logger = logging.getLogger(__name__)
 # Path Configuration
 # ============================================================================
 
-# Path to tinker-atropos submodule (relative to hermes-agent root)
-HERMES_ROOT = Path(__file__).parent.parent
-TINKER_ATROPOS_ROOT = HERMES_ROOT / "tinker-atropos"
+# Path to tinker-atropos checkout (relative to gengar root)
+GENGAR_ROOT = Path(__file__).parent.parent
+TINKER_ATROPOS_ROOT = GENGAR_ROOT / "tinker-atropos"
 ENVIRONMENTS_DIR = TINKER_ATROPOS_ROOT / "tinker_atropos" / "environments"
 CONFIGS_DIR = TINKER_ATROPOS_ROOT / "configs"
 LOGS_DIR = get_hermes_home() / "logs" / "rl_training"
@@ -733,7 +733,7 @@ async def rl_start_training() -> str:
     # Check API keys
     if not os.getenv("TINKER_API_KEY"):
         return json.dumps({
-            "error": "TINKER_API_KEY not set. Add it to ~/.hermes/.env",
+            "error": "TINKER_API_KEY not set. Add it to ~/.gengar/.env",
         }, indent=2)
     
     # Find environment file
@@ -883,7 +883,7 @@ async def rl_check_status(run_id: str) -> str:
         import wandb
         api = wandb.Api()
         runs = api.runs(
-            f"{os.getenv('WANDB_ENTITY', 'nousresearch')}/{run_state.wandb_project}",
+            f"{os.getenv('WANDB_ENTITY', 'jamesfincher')}/{run_state.wandb_project}",
             filters={"display_name": run_state.wandb_run_name}
         )
         if runs:
@@ -963,7 +963,7 @@ async def rl_get_results(run_id: str) -> str:
         import wandb
         api = wandb.Api()
         runs = api.runs(
-            f"{os.getenv('WANDB_ENTITY', 'nousresearch')}/{run_state.wandb_project}",
+            f"{os.getenv('WANDB_ENTITY', 'jamesfincher')}/{run_state.wandb_project}",
             filters={"display_name": run_state.wandb_run_name}
         )
         if runs:

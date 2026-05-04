@@ -148,7 +148,7 @@ class TestPersistence:
         env = make_env(get_side_effect=lambda name: existing, persistent=True,
                        task_id="mytask")
         existing.start.assert_called_once()
-        env._mock_client.get.assert_called_once_with("hermes-mytask")
+        env._mock_client.get.assert_called_once_with("gengar-mytask")
         env._mock_client.create.assert_not_called()
 
     def test_persistent_resumes_legacy_via_list(self, make_env, daytona_sdk):
@@ -174,7 +174,7 @@ class TestPersistence:
         env._mock_client.create.assert_called_once()
         # Verify the name and labels were passed to CreateSandboxFromImageParams
         # by checking get() was called with the right sandbox name
-        env._mock_client.get.assert_called_with("hermes-mytask")
+        env._mock_client.get.assert_called_with("gengar-mytask")
         env._mock_client.list.assert_called_with(
             labels={"hermes_task_id": "mytask"}, page=1, limit=1)
 
@@ -292,10 +292,10 @@ class TestExecute:
 
         env.execute("python3", stdin_data="print('hi')")
         # Check that the command passed to exec contains heredoc markers
-        # Base class uses HERMES_STDIN_ prefix for heredoc delimiters
+        # Base class uses GENGAR_STDIN_ prefix for heredoc delimiters
         call_args = sb.process.exec.call_args_list[-1]
         cmd = call_args[0][0]
-        assert "HERMES_STDIN_" in cmd
+        assert "GENGAR_STDIN_" in cmd
         assert "print" in cmd
         assert "hi" in cmd
 

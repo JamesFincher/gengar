@@ -6,7 +6,7 @@ description: "AI-native persistent memory via Honcho — dialectic reasoning, mu
 
 # Honcho Memory
 
-[Honcho](https://github.com/plastic-labs/honcho) is an AI-native memory backend that adds dialectic reasoning and deep user modeling on top of Hermes's built-in memory system. Instead of simple key-value storage, Honcho maintains a running model of who the user is — their preferences, communication style, goals, and patterns — by reasoning about conversations after they happen.
+[Honcho](https://github.com/plastic-labs/honcho) is an AI-native memory backend that adds dialectic reasoning and deep user modeling on top of Gengar's built-in memory system. Instead of simple key-value storage, Honcho maintains a running model of who the user is — their preferences, communication style, goals, and patterns — by reasoning about conversations after they happen.
 
 :::info Honcho is a Memory Provider Plugin
 Honcho is integrated into the [Memory Providers](./memory-providers.md) system. All features below are available through the unified memory provider interface.
@@ -28,24 +28,24 @@ Honcho is integrated into the [Memory Providers](./memory-providers.md) system. 
 
 **Session-scoped context**: Base context now includes the session summary alongside the user representation and peer card. This gives the agent awareness of what has already been discussed in the current session, reducing repetition and enabling continuity.
 
-**Multi-agent profiles**: When multiple Hermes instances talk to the same user (e.g., a coding assistant and a personal assistant), Honcho maintains separate "peer" profiles. Each peer sees only its own observations and conclusions, preventing cross-contamination of context.
+**Multi-agent profiles**: When multiple Gengar instances talk to the same user (e.g., a coding assistant and a personal assistant), Honcho maintains separate "peer" profiles. Each peer sees only its own observations and conclusions, preventing cross-contamination of context.
 
 ## Setup
 
 ```bash
-hermes memory setup    # select "honcho" from the provider list
+gengar memory setup    # select "honcho" from the provider list
 ```
 
 Or configure manually:
 
 ```yaml
-# ~/.hermes/config.yaml
+# ~/.gengar/config.yaml
 memory:
   provider: honcho
 ```
 
 ```bash
-echo "HONCHO_API_KEY=*** >> ~/.hermes/.env
+echo "HONCHO_API_KEY=*** >> ~/.gengar/.env
 ```
 
 Get an API key at [honcho.dev](https://honcho.dev).
@@ -104,7 +104,7 @@ The auto-injected dialectic scales `dialecticReasoningLevel` by query length: +1
 
 ## Configuration Options
 
-Honcho is configured in `~/.honcho/config.json` (global) or `$HERMES_HOME/honcho.json` (profile-local). The setup wizard handles this for you.
+Honcho is configured in `~/.honcho/config.json` (global) or `$GENGAR_HOME/honcho.json` (profile-local). The setup wizard handles this for you.
 
 ### Full Config Reference
 
@@ -127,7 +127,7 @@ Honcho is configured in `~/.honcho/config.json` (global) or `$HERMES_HOME/honcho
 | `sessionStrategy` | `'per-directory'` | `per-directory`, `per-repo`, `per-session`, or `global` |
 
 **Session strategy** controls how Honcho sessions map to your work:
-- `per-session` — each `hermes` run gets a fresh session. Clean starts, memory via tools. Recommended for new users.
+- `per-session` — each `gengar` run gets a fresh session. Clean starts, memory via tools. Recommended for new users.
 - `per-directory` — one Honcho session per working directory. Context accumulates across runs.
 - `per-repo` — one session per git repository.
 - `global` — single session across all directories.
@@ -183,7 +183,7 @@ Common patterns:
 | AI shouldn't re-model the user from its own replies | `"ai": {"observeMe": true, "observeOthers": false}` |
 | Strong persona the AI peer shouldn't update from self-observation | `"ai": {"observeMe": false, "observeOthers": true}` |
 
-Server-side toggles set via the [Honcho dashboard](https://app.honcho.dev) win over local defaults — Hermes syncs them back at session init.
+Server-side toggles set via the [Honcho dashboard](https://app.honcho.dev) win over local defaults — Gengar syncs them back at session init.
 
 ## Tools
 
@@ -200,27 +200,27 @@ When Honcho is active as the memory provider, five tools become available:
 ## CLI Commands
 
 ```bash
-hermes honcho status          # Connection status, config, and key settings
-hermes honcho setup           # Interactive setup wizard
-hermes honcho strategy        # Show or set session strategy
-hermes honcho peer            # Update peer names for multi-agent setups
-hermes honcho mode            # Show or set recall mode
-hermes honcho tokens          # Show or set context token budget
-hermes honcho identity        # Show Honcho peer identity
-hermes honcho sync            # Sync host blocks for all profiles
-hermes honcho enable          # Enable Honcho
-hermes honcho disable         # Disable Honcho
+gengar honcho status          # Connection status, config, and key settings
+gengar honcho setup           # Interactive setup wizard
+gengar honcho strategy        # Show or set session strategy
+gengar honcho peer            # Update peer names for multi-agent setups
+gengar honcho mode            # Show or set recall mode
+gengar honcho tokens          # Show or set context token budget
+gengar honcho identity        # Show Honcho peer identity
+gengar honcho sync            # Sync host blocks for all profiles
+gengar honcho enable          # Enable Honcho
+gengar honcho disable         # Disable Honcho
 ```
 
-## Migrating from `hermes honcho`
+## Migrating from `gengar honcho`
 
-If you previously used the standalone `hermes honcho setup`:
+If you previously used the standalone `gengar honcho setup`:
 
 1. Your existing configuration (`honcho.json` or `~/.honcho/config.json`) is preserved
 2. Your server-side data (memories, conclusions, user profiles) is intact
 3. Set `memory.provider: honcho` in config.yaml to reactivate
 
-No re-login or re-setup needed. Run `hermes memory setup` and select "honcho" — the wizard detects your existing config.
+No re-login or re-setup needed. Run `gengar memory setup` and select "honcho" — the wizard detects your existing config.
 
 ## Full Documentation
 

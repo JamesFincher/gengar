@@ -8,7 +8,7 @@ description: "Plan mode: write markdown plan to"
 
 # Plan
 
-Plan mode: write markdown plan to .hermes/plans/, no exec.
+Plan mode: write markdown plan to .gengar/plans/, no exec.
 
 ## Skill metadata
 
@@ -17,7 +17,7 @@ Plan mode: write markdown plan to .hermes/plans/, no exec.
 | Source | Bundled (installed by default) |
 | Path | `skills/software-development/plan` |
 | Version | `1.0.0` |
-| Author | Hermes Agent |
+| Author | Gengar |
 | License | MIT |
 | Tags | `planning`, `plan-mode`, `implementation`, `workflow` |
 | Related skills | [`writing-plans`](/docs/user-guide/skills/bundled/software-development/software-development-writing-plans), [`subagent-driven-development`](/docs/user-guide/skills/bundled/software-development/software-development-subagent-driven-development) |
@@ -25,7 +25,7 @@ Plan mode: write markdown plan to .hermes/plans/, no exec.
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Gengar loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # Plan Mode
@@ -40,7 +40,7 @@ For this turn, you are planning only.
 - Do not edit project files except the plan markdown file.
 - Do not run mutating terminal commands, commit, push, or perform external actions.
 - You may inspect the repo or other context with read-only commands/tools when needed.
-- Your deliverable is a markdown plan saved inside the active workspace under `.hermes/plans/`.
+- Your deliverable is a markdown plan saved inside the active workspace under `.gengar/plans/`.
 
 ## Output requirements
 
@@ -60,12 +60,12 @@ If the task is code-related, include exact file paths, likely test targets, and 
 ## Save location
 
 Save the plan with `write_file` under:
-- `.hermes/plans/YYYY-MM-DD_HHMMSS-<slug>.md`
+- `.gengar/plans/YYYY-MM-DD_HHMMSS-<slug>.md`
 
-Treat that as relative to the active working directory / backend workspace. Hermes file tools are backend-aware, so using this relative path keeps the plan with the workspace on local, docker, ssh, modal, and daytona backends.
+Treat that as relative to the active working directory / backend workspace. Gengar file tools are backend-aware, so using this relative path keeps the plan with the workspace on local, docker, ssh, modal, and daytona backends.
 
 If the runtime provides a specific target path, use that exact path.
-If not, create a sensible timestamped filename yourself under `.hermes/plans/`.
+If not, create a sensible timestamped filename yourself under `.gengar/plans/`.
 
 ## Interaction style
 

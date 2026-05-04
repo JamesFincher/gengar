@@ -643,8 +643,8 @@ class QQAdapter(BasePlatformAdapter):
                 "shard": [0, 1],
                 "properties": {
                     "$os": "macOS",
-                    "$browser": "hermes-agent",
-                    "$device": "hermes-agent",
+                    "$browser": "gengar",
+                    "$device": "gengar",
                 },
             },
         }
@@ -1656,7 +1656,7 @@ class QQAdapter(BasePlatformAdapter):
                                  or ("glm-asr" if provider in ("zai", "glm") else "whisper-1"),
                     }
 
-        # 2. QQ-specific env vars (set by `hermes setup gateway` / `hermes gateway`)
+        # 2. QQ-specific env vars (set by `gengar setup gateway` / `gengar gateway`)
         qq_stt_key = os.getenv("QQ_STT_API_KEY", "")
         if qq_stt_key:
             base_url = os.getenv(

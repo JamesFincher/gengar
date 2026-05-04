@@ -1,6 +1,6 @@
 """Remote model catalog fetcher.
 
-The Hermes docs site hosts a JSON manifest of curated models for providers
+The Gengar docs site hosts a JSON manifest of curated models for providers
 we want to update without shipping a release (currently OpenRouter and
 Nous Portal). This module fetches, validates, and caches that manifest,
 falling back to the in-repo hardcoded lists when the network is unavailable.
@@ -9,7 +9,7 @@ Pipeline
 --------
 1. ``get_catalog()`` — returns a parsed manifest dict.
    - Checks in-process cache (invalidated by TTL).
-   - Reads disk cache at ``~/.hermes/cache/model_catalog.json``.
+   - Reads disk cache at ``~/.gengar/cache/model_catalog.json``.
    - Fetches the master URL if disk cache is stale or missing.
    - On any fetch failure, keeps using the stale cache (or empty dict).
 
@@ -52,7 +52,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from hermes_cli import __version__ as _HERMES_VERSION
+from hermes_cli import __version__ as _GENGAR_VERSION
 from utils import atomic_replace
 
 logger = logging.getLogger(__name__)
@@ -62,13 +62,13 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 DEFAULT_CATALOG_URL = (
-    "https://hermes-agent.nousresearch.com/docs/api/model-catalog.json"
+    "https://github.com/jamesfincher/gengarapi/model-catalog.json"
 )
 DEFAULT_TTL_HOURS = 24
 DEFAULT_FETCH_TIMEOUT = 8.0
 SUPPORTED_SCHEMA_VERSION = 1
 
-_HERMES_USER_AGENT = f"hermes-cli/{_HERMES_VERSION}"
+_GENGAR_USER_AGENT = f"gengar-cli/{_GENGAR_VERSION}"
 
 # In-process cache to avoid repeated disk + parse work across multiple
 # calls within the same session. Invalidated by TTL against the disk file's
@@ -120,7 +120,7 @@ def _fetch_manifest(url: str, timeout: float) -> dict[str, Any] | None:
             url,
             headers={
                 "Accept": "application/json",
-                "User-Agent": _HERMES_USER_AGENT,
+                "User-Agent": _GENGAR_USER_AGENT,
             },
         )
         with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -323,7 +323,7 @@ def get_curated_nous_models() -> list[str] | None:
 
 
 def reset_cache() -> None:
-    """Clear the in-process cache. Used by tests and ``hermes model --refresh``."""
+    """Clear the in-process cache. Used by tests and ``gengar model --refresh``."""
     global _catalog_cache, _catalog_cache_source_mtime
     _catalog_cache = None
     _catalog_cache_source_mtime = 0.0

@@ -17,8 +17,8 @@ from hermes_cli.completion import _walk, generate_bash, generate_zsh, generate_f
 # ---------------------------------------------------------------------------
 
 def _make_parser() -> argparse.ArgumentParser:
-    """Build a minimal parser that mirrors the real hermes structure."""
-    p = argparse.ArgumentParser(prog="hermes")
+    """Build a minimal parser that mirrors the real gengar structure."""
+    p = argparse.ArgumentParser(prog="gengar")
     p.add_argument("--version", "-V", action="store_true")
     p.add_argument("-p", "--profile", help="Profile name")
     sub = p.add_subparsers(dest="command")
@@ -95,7 +95,7 @@ class TestGenerateBash:
     def test_contains_completion_function_and_register(self):
         out = generate_bash(_make_parser())
         assert "_hermes_completion()" in out
-        assert "complete -F _hermes_completion hermes" in out
+        assert "complete -F _hermes_completion gengar" in out
 
     def test_top_level_commands_present(self):
         out = generate_bash(_make_parser())
@@ -127,7 +127,7 @@ class TestGenerateBash:
 class TestGenerateZsh:
     def test_contains_compdef_header(self):
         out = generate_zsh(_make_parser())
-        assert "#compdef hermes" in out
+        assert "#compdef gengar" in out
 
     def test_top_level_commands_present(self):
         out = generate_zsh(_make_parser())
@@ -148,7 +148,7 @@ class TestGenerateZsh:
 class TestGenerateFish:
     def test_disables_file_completion(self):
         out = generate_fish(_make_parser())
-        assert "complete -c hermes -f" in out
+        assert "complete -c gengar -f" in out
 
     def test_top_level_commands_present(self):
         out = generate_fish(_make_parser())
@@ -211,7 +211,7 @@ class TestProfileCompletion:
     def test_bash_has_profiles_helper(self):
         out = generate_bash(_make_parser())
         assert "_hermes_profiles()" in out
-        assert 'profiles_dir="$HOME/.hermes/profiles"' in out
+        assert 'profiles_dir="$HOME/.gengar/profiles"' in out
 
     def test_bash_completes_profiles_after_p_flag(self):
         out = generate_bash(_make_parser())
@@ -224,7 +224,7 @@ class TestProfileCompletion:
         assert "use|delete|show|alias|rename|export)" in out
 
     def test_bash_profile_actions_complete_profile_names(self):
-        """After 'hermes profile use', complete with profile names."""
+        """After 'gengar profile use', complete with profile names."""
         out = generate_bash(_make_parser())
         # The profile case should have _hermes_profiles for name-taking actions
         lines = out.split("\n")
@@ -241,7 +241,7 @@ class TestProfileCompletion:
     def test_zsh_has_profiles_helper(self):
         out = generate_zsh(_make_parser())
         assert "_hermes_profiles()" in out
-        assert "$HOME/.hermes/profiles" in out
+        assert "$HOME/.gengar/profiles" in out
 
     def test_zsh_has_profile_flag_completion(self):
         out = generate_zsh(_make_parser())
@@ -255,7 +255,7 @@ class TestProfileCompletion:
     def test_fish_has_profiles_helper(self):
         out = generate_fish(_make_parser())
         assert "__hermes_profiles" in out
-        assert "$HOME/.hermes/profiles" in out
+        assert "$HOME/.gengar/profiles" in out
 
     def test_fish_has_profile_flag_completion(self):
         out = generate_fish(_make_parser())

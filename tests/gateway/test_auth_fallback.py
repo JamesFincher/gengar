@@ -40,7 +40,7 @@ class TestResolveRuntimeAgentKwargsAuthFallback:
                 "credential_pool": None,
             }
 
-        monkeypatch.setenv("HERMES_INFERENCE_PROVIDER", "openai-codex")
+        monkeypatch.setenv("GENGAR_INFERENCE_PROVIDER", "openai-codex")
 
         with patch(
             "hermes_cli.runtime_provider.resolve_runtime_provider",
@@ -62,7 +62,7 @@ class TestResolveRuntimeAgentKwargsAuthFallback:
         config_path.write_text("model:\n  provider: openai-codex\n")
 
         monkeypatch.setattr("gateway.run._hermes_home", tmp_path)
-        monkeypatch.setenv("HERMES_INFERENCE_PROVIDER", "openai-codex")
+        monkeypatch.setenv("GENGAR_INFERENCE_PROVIDER", "openai-codex")
 
         with patch(
             "hermes_cli.runtime_provider.resolve_runtime_provider",

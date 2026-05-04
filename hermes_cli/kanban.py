@@ -1,7 +1,7 @@
-"""CLI for the Hermes Kanban board — ``hermes kanban …`` subcommand.
+"""CLI for the Gengar Kanban board — ``gengar kanban …`` subcommand.
 
 Exposes the full 15-verb surface documented in the design spec
-(``docs/hermes-kanban-v1-spec.pdf``).  All DB work is delegated to
+(``docs/gengar-kanban-v1-spec.pdf``).  All DB work is delegated to
 ``kanban_db``.  This module adds:
 
   * Argparse subcommand construction (``build_parser``).
@@ -98,14 +98,14 @@ def _parse_workspace_flag(value: str) -> tuple[str, Optional[str]]:
 def _check_dispatcher_presence() -> tuple[bool, str]:
     """Return ``(running, message)``.
 
-    - ``running=True``: a gateway is alive for this HERMES_HOME and its
+    - ``running=True``: a gateway is alive for this GENGAR_HOME and its
       config has ``kanban.dispatch_in_gateway`` on (default). Message
       is a short status line.
     - ``running=False``: either no gateway is running, or the gateway
       is running but the config flag is off. Message is human guidance
       explaining the next step.
 
-    Used by ``hermes kanban create`` (and callers) to warn when a task
+    Used by ``gengar kanban create`` (and callers) to warn when a task
     will sit in ``ready`` because nothing is there to pick it up.
     Defensive against import failures and config-read errors — if the
     probe itself errors, we return ``(True, "")`` so we don't spam
@@ -136,13 +136,13 @@ def _check_dispatcher_presence() -> tuple[bool, str]:
             "Gateway is running but kanban.dispatch_in_gateway=false in "
             "config.yaml — the task will sit in 'ready' until you flip it "
             "back on and restart the gateway, OR run the legacy "
-            "standalone daemon (`hermes kanban daemon --force`)."
+            "standalone daemon (`gengar kanban daemon --force`)."
         )
     return (
         False,
         "No gateway is running — the task will sit in 'ready' until you "
         "start it. Run:\n"
-        "    hermes gateway start\n"
+        "    gengar gateway start\n"
         "The gateway hosts an embedded dispatcher (tick interval 60s by "
         "default); your task will be picked up on the next tick after "
         "the gateway comes up."
@@ -162,11 +162,11 @@ def build_parser(parent_subparsers: argparse._SubParsersAction) -> argparse.Argu
         "kanban",
         help="Multi-profile collaboration board (tasks, links, comments)",
         description=(
-            "Durable SQLite-backed task board shared across Hermes profiles. "
+            "Durable SQLite-backed task board shared across Gengar profiles. "
             "Tasks are claimed atomically, can depend on other tasks, and "
             "are executed by a named profile in an isolated workspace. "
-            "See https://hermes-agent.nousresearch.com/docs/user-guide/features/kanban "
-            "or docs/hermes-kanban-v1-spec.pdf for the full design."
+            "See https://github.com/jamesfincher/gengar/tree/main/website/docs/user-guide/features/kanban "
+            "or docs/gengar-kanban-v1-spec.pdf for the full design."
         ),
     )
     sub = kanban_parser.add_subparsers(dest="kanban_action")
@@ -207,7 +207,7 @@ def build_parser(parent_subparsers: argparse._SubParsersAction) -> argparse.Argu
     # --- list ---
     p_list = sub.add_parser("list", aliases=["ls"], help="List tasks")
     p_list.add_argument("--mine", action="store_true",
-                        help="Filter by $HERMES_PROFILE as assignee")
+                        help="Filter by $GENGAR_PROFILE as assignee")
     p_list.add_argument("--assignee", default=None)
     p_list.add_argument("--status", default=None,
                         choices=sorted(kb.VALID_STATUSES))
@@ -248,7 +248,7 @@ def build_parser(parent_subparsers: argparse._SubParsersAction) -> argparse.Argu
     p_comment.add_argument("task_id")
     p_comment.add_argument("text", nargs="+", help="Comment body")
     p_comment.add_argument("--author", default=None,
-                           help="Author name (default: $HERMES_PROFILE or 'user')")
+                           help="Author name (default: $GENGAR_PROFILE or 'user')")
 
     p_complete = sub.add_parser("complete", help="Mark one or more tasks done")
     p_complete.add_argument("task_ids", nargs="+",
@@ -296,7 +296,7 @@ def build_parser(parent_subparsers: argparse._SubParsersAction) -> argparse.Argu
     # --- daemon (deprecated) ---
     p_daemon = sub.add_parser(
         "daemon",
-        help="DEPRECATED — dispatcher now runs in the gateway. Use `hermes gateway start`.",
+        help="DEPRECATED — dispatcher now runs in the gateway. Use `gengar gateway start`.",
     )
     p_daemon.add_argument("--interval", type=float, default=60.0,
                           help="Seconds between dispatch ticks (default: 60)")
@@ -394,7 +394,7 @@ def build_parser(parent_subparsers: argparse._SubParsersAction) -> argparse.Argu
     p_asg = sub.add_parser(
         "assignees",
         help="List known profiles + per-profile task counts "
-             "(union of ~/.hermes/profiles/ and current assignees on the board)",
+             "(union of ~/.gengar/profiles/ and current assignees on the board)",
     )
     p_asg.add_argument("--json", action="store_true")
 
@@ -424,7 +424,7 @@ def build_parser(parent_subparsers: argparse._SubParsersAction) -> argparse.Argu
 # ---------------------------------------------------------------------------
 
 def kanban_command(args: argparse.Namespace) -> int:
-    """Entry point from ``hermes kanban …`` argparse dispatch.
+    """Entry point from ``gengar kanban …`` argparse dispatch.
 
     Returns a shell-style exit code (0 on success, non-zero on error).
     """
@@ -436,8 +436,8 @@ def kanban_command(args: argparse.Namespace) -> int:
             parser.print_help()
         else:
             print(
-                "usage: hermes kanban <action> [options]\n"
-                "Run 'hermes kanban --help' for the full list of actions.",
+                "usage: gengar kanban <action> [options]\n"
+                "Run 'gengar kanban --help' for the full list of actions.",
                 file=sys.stderr,
             )
         return 0
@@ -446,7 +446,7 @@ def kanban_command(args: argparse.Namespace) -> int:
     # is idempotent, so running it every invocation is cheap (one
     # SELECT against sqlite_master when tables already exist) and
     # prevents "no such table: tasks" on first use from a fresh
-    # HERMES_HOME. Previously only `init` and `daemon` triggered
+    # GENGAR_HOME. Previously only `init` and `daemon` triggered
     # schema creation; `create` / `list` / every other command would
     # error out on a fresh install.
     try:
@@ -502,7 +502,7 @@ def kanban_command(args: argparse.Namespace) -> int:
 
 def _profile_author() -> str:
     """Best-effort author name for an interactive CLI call."""
-    for env in ("HERMES_PROFILE_NAME", "HERMES_PROFILE"):
+    for env in ("GENGAR_PROFILE_NAME", "GENGAR_PROFILE"):
         v = os.environ.get(env)
         if v:
             return v
@@ -546,7 +546,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
     # already addressable. Multica does this auto-detection on its
     # daemon start; we do it here at init time instead because our
     # dispatcher doesn't need to enumerate — we just pass the name
-    # through to `hermes -p <name>`.
+    # through to `gengar -p <name>`.
     try:
         profiles = kb.list_profiles_on_disk()
     except Exception:
@@ -557,11 +557,11 @@ def _cmd_init(args: argparse.Namespace) -> int:
         for name in profiles:
             print(f"  {name}")
     else:
-        print("No profiles found under ~/.hermes/profiles/.")
-        print("Create one with `hermes -p <name> setup` before assigning tasks.")
+        print("No profiles found under ~/.gengar/profiles/.")
+        print("Create one with `gengar -p <name> setup` before assigning tasks.")
     print()
     print("Next step: start the gateway so ready tasks actually get picked up.")
-    print("  hermes gateway start")
+    print("  gengar gateway start")
     print()
     print(
         "The gateway hosts an embedded dispatcher that ticks every 60 seconds\n"
@@ -588,7 +588,7 @@ def _cmd_assignees(args: argparse.Namespace) -> int:
         print(json.dumps(data, indent=2, ensure_ascii=False))
         return 0
     if not data:
-        print("(no assignees — create a profile with `hermes -p <name> setup`)")
+        print("(no assignees — create a profile with `gengar -p <name> setup`)")
         return 0
     # Header
     print(f"{'NAME':20s}  {'ON DISK':8s}  COUNTS")
@@ -1005,10 +1005,10 @@ def _cmd_daemon(args: argparse.Namespace) -> int:
     # casually — intentional.
     if not getattr(args, "force", False):
         print(
-            "hermes kanban daemon: DEPRECATED — the dispatcher now runs\n"
+            "gengar kanban daemon: DEPRECATED — the dispatcher now runs\n"
             "inside the gateway. To use kanban:\n"
             "\n"
-            "    hermes gateway start       # starts the gateway + embedded dispatcher\n"
+            "    gengar gateway start       # starts the gateway + embedded dispatcher\n"
             "\n"
             "Ready tasks will be picked up on the next dispatcher tick\n"
             "(default: every 60 seconds). Configure via config.yaml:\n"
@@ -1073,8 +1073,8 @@ def _cmd_daemon(args: argparse.Namespace) -> int:
                     f"ready queue non-empty for {health_state['bad_ticks']} "
                     f"consecutive ticks but 0 workers spawned successfully. "
                     f"Check profile health (venv, PATH, credentials) and "
-                    f"`hermes kanban list --status ready` / "
-                    f"`hermes kanban list --status blocked` for recent "
+                    f"`gengar kanban list --status ready` / "
+                    f"`gengar kanban list --status blocked` for recent "
                     f"spawn_failed tasks.",
                     file=sys.stderr, flush=True,
                 )

@@ -443,7 +443,7 @@ wheels = [
 [[package]]
 name = "atroposlib"
 version = "0.4.0"
-source = { git = "https://github.com/NousResearch/atropos.git?rev=c20c85256e5a45ad31edf8b7276e9c5ee1995a30#c20c85256e5a45ad31edf8b7276e9c5ee1995a30" }
+source = { git = "https://github.com/jamesfincher/atropos.git?rev=c20c85256e5a45ad31edf8b7276e9c5ee1995a30#c20c85256e5a45ad31edf8b7276e9c5ee1995a30" }
 dependencies = [
     { name = "aiofiles" },
     { name = "aiohttp" },
@@ -1953,7 +1953,7 @@ wheels = [
 ]
 
 [[package]]
-name = "hermes-agent"
+name = "gengar"
 version = "0.12.0"
 source = { editable = "." }
 dependencies = [
@@ -2143,7 +2143,7 @@ requires-dist = [
     { name = "alibabacloud-dingtalk", marker = "extra == 'dingtalk'", specifier = ">=2.0.0" },
     { name = "anthropic", specifier = ">=0.39.0,<1" },
     { name = "asyncpg", marker = "extra == 'matrix'", specifier = ">=0.29" },
-    { name = "atroposlib", marker = "extra == 'rl'", git = "https://github.com/NousResearch/atropos.git?rev=c20c85256e5a45ad31edf8b7276e9c5ee1995a30" },
+    { name = "atroposlib", marker = "extra == 'rl'", git = "https://github.com/jamesfincher/atropos.git?rev=c20c85256e5a45ad31edf8b7276e9c5ee1995a30" },
     { name = "boto3", marker = "extra == 'bedrock'", specifier = ">=1.35.0,<2" },
     { name = "croniter", specifier = ">=6.0.0,<7" },
     { name = "daytona", marker = "extra == 'daytona'", specifier = ">=0.148.0,<1" },
@@ -2162,35 +2162,35 @@ requires-dist = [
     { name = "google-api-python-client", marker = "extra == 'google'", specifier = ">=2.100,<3" },
     { name = "google-auth-httplib2", marker = "extra == 'google'", specifier = ">=0.2,<1" },
     { name = "google-auth-oauthlib", marker = "extra == 'google'", specifier = ">=1.0,<2" },
-    { name = "hermes-agent", extras = ["acp"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["acp"], marker = "extra == 'termux'" },
-    { name = "hermes-agent", extras = ["bedrock"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["cli"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["cli"], marker = "extra == 'termux'" },
-    { name = "hermes-agent", extras = ["cron"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["cron"], marker = "extra == 'termux'" },
-    { name = "hermes-agent", extras = ["daytona"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["dev"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["dingtalk"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["feishu"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["google"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["homeassistant"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["honcho"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["honcho"], marker = "extra == 'termux'" },
-    { name = "hermes-agent", extras = ["matrix"], marker = "sys_platform == 'linux' and extra == 'all'" },
-    { name = "hermes-agent", extras = ["mcp"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["mcp"], marker = "extra == 'termux'" },
-    { name = "hermes-agent", extras = ["messaging"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["mistral"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["modal"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["pty"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["pty"], marker = "extra == 'termux'" },
-    { name = "hermes-agent", extras = ["slack"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["sms"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["tts-premium"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["vercel"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["voice"], marker = "extra == 'all'" },
-    { name = "hermes-agent", extras = ["web"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["acp"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["acp"], marker = "extra == 'termux'" },
+    { name = "gengar", extras = ["bedrock"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["cli"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["cli"], marker = "extra == 'termux'" },
+    { name = "gengar", extras = ["cron"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["cron"], marker = "extra == 'termux'" },
+    { name = "gengar", extras = ["daytona"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["dev"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["dingtalk"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["feishu"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["google"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["homeassistant"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["honcho"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["honcho"], marker = "extra == 'termux'" },
+    { name = "gengar", extras = ["matrix"], marker = "sys_platform == 'linux' and extra == 'all'" },
+    { name = "gengar", extras = ["mcp"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["mcp"], marker = "extra == 'termux'" },
+    { name = "gengar", extras = ["messaging"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["mistral"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["modal"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["pty"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["pty"], marker = "extra == 'termux'" },
+    { name = "gengar", extras = ["slack"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["sms"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["tts-premium"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["vercel"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["voice"], marker = "extra == 'all'" },
+    { name = "gengar", extras = ["web"], marker = "extra == 'all'" },
     { name = "honcho-ai", marker = "extra == 'honcho'", specifier = ">=2.0.1,<3" },
     { name = "httpx", extras = ["socks"], specifier = ">=0.28.1,<1" },
     { name = "jinja2", specifier = ">=3.1.5,<4" },

@@ -14,13 +14,13 @@ Passive domain reconnaissance using Python stdlib. Subdomain discovery, SSL cert
 
 | | |
 |---|---|
-| Source | Optional — install with `hermes skills install official/research/domain-intel` |
+| Source | Optional — install with `gengar skills install official/research/domain-intel` |
 | Path | `optional-skills/research/domain-intel` |
 
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Gengar loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # Domain Intelligence — Passive OSINT

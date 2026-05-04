@@ -22,7 +22,7 @@ from tools.registry import tool_error
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_CONTAINER_TAG = "hermes"
+_DEFAULT_CONTAINER_TAG = "gengar"
 _DEFAULT_MAX_RECALL_RESULTS = 10
 _DEFAULT_PROFILE_FREQUENCY = 50
 _DEFAULT_CAPTURE_MODE = "all"
@@ -462,8 +462,8 @@ class SupermemoryMemoryProvider(MemoryProvider):
             return False
 
     def get_config_schema(self):
-        # Only prompt for the API key during `hermes memory setup`.
-        # All other options are documented for $HERMES_HOME/supermemory.json
+        # Only prompt for the API key during `gengar memory setup`.
+        # All other options are documented for $GENGAR_HOME/supermemory.json
         # or the SUPERMEMORY_CONTAINER_TAG env var.
         return [
             {"key": "api_key", "description": "Supermemory API key", "secret": True, "required": True, "env_var": "SUPERMEMORY_API_KEY", "url": "https://supermemory.ai"},
@@ -578,7 +578,7 @@ class SupermemoryMemoryProvider(MemoryProvider):
             f"[role: user]\n{clean_user}\n[user:end]\n\n"
             f"[role: assistant]\n{clean_assistant}\n[assistant:end]"
         )
-        metadata = {"source": "hermes", "type": "conversation_turn"}
+        metadata = {"source": "gengar", "type": "conversation_turn"}
 
         def _run():
             try:

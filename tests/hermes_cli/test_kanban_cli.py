@@ -15,9 +15,9 @@ from hermes_cli import kanban_db as kb
 
 @pytest.fixture
 def kanban_home(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     kb.init_db()
     return home

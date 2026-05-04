@@ -74,7 +74,7 @@ from gateway.platforms.yuanbao_proto import (
     _parse_fields,
     WS_HEARTBEAT_RUNNING,
     WS_HEARTBEAT_FINISH,
-    HERMES_INSTANCE_ID,
+    GENGAR_INSTANCE_ID,
     decode_conn_msg,
     decode_inbound_push,
     decode_query_group_info_rsp,
@@ -98,13 +98,13 @@ logger = logging.getLogger(__name__)
 # Version / platform constants (used in AUTH_BIND and sign-token headers)
 # ---------------------------------------------------------------------------
 try:
-    from hermes_cli import __version__ as _HERMES_VERSION
+    from hermes_cli import __version__ as _GENGAR_VERSION
 except ImportError:
-    _HERMES_VERSION = "0.0.0"
+    _GENGAR_VERSION = "0.0.0"
 
-_APP_VERSION = _HERMES_VERSION
-_BOT_VERSION = _HERMES_VERSION
-_YUANBAO_INSTANCE_ID = str(HERMES_INSTANCE_ID)  # single source: yuanbao_proto.HERMES_INSTANCE_ID
+_APP_VERSION = _GENGAR_VERSION
+_BOT_VERSION = _GENGAR_VERSION
+_YUANBAO_INSTANCE_ID = str(GENGAR_INSTANCE_ID)  # single source: yuanbao_proto.GENGAR_INSTANCE_ID
 _OPERATION_SYSTEM = sys.platform
 
 # ---------------------------------------------------------------------------

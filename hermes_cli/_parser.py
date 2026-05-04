@@ -1,5 +1,5 @@
 """
-Top-level argparse construction for the hermes CLI.
+Top-level argparse construction for the gengar CLI.
 
 Lives in its own module so other modules (e.g. ``relaunch.py``) can
 introspect the parser to discover which flags exist without running the
@@ -14,7 +14,7 @@ import argparse
 
 
 # `--profile` / `-p` is consumed by ``main._apply_profile_override`` before
-# argparse runs (it sets ``HERMES_HOME`` and strips itself from ``sys.argv``),
+# argparse runs (it sets ``GENGAR_HOME`` and strips itself from ``sys.argv``),
 # so it isn't on the parser. Listed here so all "carry over on relaunch"
 # metadata lives in one file.
 PRE_ARGPARSE_INHERITED_FLAGS: list[tuple[str, bool]] = [
@@ -39,40 +39,40 @@ def _inherited_flag(parser, *args, **kwargs):
 
 _EPILOGUE = """
 Examples:
-    hermes                        Start interactive chat
-    hermes chat -q "Hello"        Single query mode
-    hermes -c                     Resume the most recent session
-    hermes -c "my project"        Resume a session by name (latest in lineage)
-    hermes --resume <session_id>  Resume a specific session by ID
-    hermes setup                  Run setup wizard
-    hermes logout                 Clear stored authentication
-    hermes auth add <provider>    Add a pooled credential
-    hermes auth list              List pooled credentials
-    hermes auth remove <p> <t>    Remove pooled credential by index, id, or label
-    hermes auth reset <provider>  Clear exhaustion status for a provider
-    hermes model                  Select default model
-    hermes fallback [list]        Show fallback provider chain
-    hermes fallback add           Add a fallback provider (same picker as `hermes model`)
-    hermes fallback remove        Remove a fallback provider from the chain
-    hermes config                 View configuration
-    hermes config edit            Edit config in $EDITOR
-    hermes config set model gpt-4 Set a config value
-    hermes gateway                Run messaging gateway
-    hermes -s hermes-agent-dev,github-auth
-    hermes -w                     Start in isolated git worktree
-    hermes gateway install        Install gateway background service
-    hermes sessions list          List past sessions
-    hermes sessions browse        Interactive session picker
-    hermes sessions rename ID T   Rename/title a session
-    hermes logs                   View agent.log (last 50 lines)
-    hermes logs -f                Follow agent.log in real time
-    hermes logs errors            View errors.log
-    hermes logs --since 1h        Lines from the last hour
-    hermes debug share             Upload debug report for support
-    hermes update                 Update to latest version
+    gengar                        Start interactive chat
+    gengar chat -q "Hello"        Single query mode
+    gengar -c                     Resume the most recent session
+    gengar -c "my project"        Resume a session by name (latest in lineage)
+    gengar --resume <session_id>  Resume a specific session by ID
+    gengar setup                  Run setup wizard
+    gengar logout                 Clear stored authentication
+    gengar auth add <provider>    Add a pooled credential
+    gengar auth list              List pooled credentials
+    gengar auth remove <p> <t>    Remove pooled credential by index, id, or label
+    gengar auth reset <provider>  Clear exhaustion status for a provider
+    gengar model                  Select default model
+    gengar fallback [list]        Show fallback provider chain
+    gengar fallback add           Add a fallback provider (same picker as `gengar model`)
+    gengar fallback remove        Remove a fallback provider from the chain
+    gengar config                 View configuration
+    gengar config edit            Edit config in $EDITOR
+    gengar config set model gpt-4 Set a config value
+    gengar gateway                Run messaging gateway
+    gengar -s gengar-dev,github-auth
+    gengar -w                     Start in isolated git worktree
+    gengar gateway install        Install gateway background service
+    gengar sessions list          List past sessions
+    gengar sessions browse        Interactive session picker
+    gengar sessions rename ID T   Rename/title a session
+    gengar logs                   View agent.log (last 50 lines)
+    gengar logs -f                Follow agent.log in real time
+    gengar logs errors            View errors.log
+    gengar logs --since 1h        Lines from the last hour
+    gengar debug share             Upload debug report for support
+    gengar update                 Update to latest version
 
 For more help on a command:
-    hermes <command> --help
+    gengar <command> --help
 """
 
 
@@ -84,8 +84,8 @@ def build_top_level_parser():
     other subparsers via ``subparsers.add_parser(...)``.
     """
     parser = argparse.ArgumentParser(
-        prog="hermes",
-        description="Hermes Agent - AI assistant with tool-calling capabilities",
+        prog="gengar",
+        description="Gengar - AI assistant with tool-calling capabilities",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=_EPILOGUE,
     )
@@ -109,7 +109,7 @@ def build_top_level_parser():
     # --model / --provider are accepted at the top level so they can pair
     # with -z without needing the `chat` subcommand.  If neither -z nor a
     # subcommand consumes them, they fall through harmlessly as None.
-    # Mirrors `hermes chat --model ... --provider ...` semantics.
+    # Mirrors `gengar chat --model ... --provider ...` semantics.
     _inherited_flag(
         parser,
         "-m",
@@ -117,7 +117,7 @@ def build_top_level_parser():
         default=None,
         help=(
             "Model override for this invocation (e.g. anthropic/claude-sonnet-4.6). "
-            "Applies to -z/--oneshot and --tui. Also settable via HERMES_INFERENCE_MODEL env var."
+            "Applies to -z/--oneshot and --tui. Also settable via GENGAR_INFERENCE_MODEL env var."
         ),
     )
     _inherited_flag(
@@ -126,7 +126,7 @@ def build_top_level_parser():
         default=None,
         help=(
             "Provider override for this invocation (e.g. openrouter, anthropic). "
-            "Applies to -z/--oneshot and --tui. Also settable via HERMES_INFERENCE_PROVIDER env var."
+            "Applies to -z/--oneshot and --tui. Also settable via GENGAR_INFERENCE_PROVIDER env var."
         ),
     )
     parser.add_argument(
@@ -166,7 +166,7 @@ def build_top_level_parser():
         default=False,
         help=(
             "Auto-approve any unseen shell hooks declared in config.yaml "
-            "without a TTY prompt.  Equivalent to HERMES_ACCEPT_HOOKS=1 or "
+            "without a TTY prompt.  Equivalent to GENGAR_ACCEPT_HOOKS=1 or "
             "hooks_auto_accept: true in config.yaml.  Use on CI / headless "
             "runs that can't prompt."
         ),
@@ -198,7 +198,7 @@ def build_top_level_parser():
         "--ignore-user-config",
         action="store_true",
         default=False,
-        help="Ignore ~/.hermes/config.yaml and fall back to built-in defaults (credentials in .env are still loaded)",
+        help="Ignore ~/.gengar/config.yaml and fall back to built-in defaults (credentials in .env are still loaded)",
     )
     _inherited_flag(
         parser,
@@ -231,7 +231,7 @@ def build_top_level_parser():
     chat_parser = subparsers.add_parser(
         "chat",
         help="Interactive chat with the agent",
-        description="Start an interactive chat session with Hermes Agent",
+        description="Start an interactive chat session with Gengar",
     )
     chat_parser.add_argument(
         "-q", "--query", help="Single query (non-interactive mode)"
@@ -304,7 +304,7 @@ def build_top_level_parser():
         default=argparse.SUPPRESS,
         help=(
             "Auto-approve any unseen shell hooks declared in config.yaml "
-            "without a TTY prompt (see also HERMES_ACCEPT_HOOKS env var and "
+            "without a TTY prompt (see also GENGAR_ACCEPT_HOOKS env var and "
             "hooks_auto_accept: in config.yaml)."
         ),
     )
@@ -340,7 +340,7 @@ def build_top_level_parser():
         "--ignore-user-config",
         action="store_true",
         default=argparse.SUPPRESS,
-        help="Ignore ~/.hermes/config.yaml and fall back to built-in defaults (credentials in .env are still loaded). Useful for isolated CI runs, reproduction, and third-party integrations.",
+        help="Ignore ~/.gengar/config.yaml and fall back to built-in defaults (credentials in .env are still loaded). Useful for isolated CI runs, reproduction, and third-party integrations.",
     )
     _inherited_flag(
         chat_parser,

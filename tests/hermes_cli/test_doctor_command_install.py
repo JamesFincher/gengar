@@ -1,4 +1,4 @@
-"""Tests for the Command Installation check in hermes doctor."""
+"""Tests for the Command Installation check in gengar doctor."""
 
 import os
 import sys
@@ -12,8 +12,8 @@ import hermes_cli.doctor as doctor_mod
 
 
 def _setup_doctor_env(monkeypatch, tmp_path, venv_name="venv"):
-    """Create a minimal HERMES_HOME + PROJECT_ROOT for doctor tests."""
-    home = tmp_path / ".hermes"
+    """Create a minimal GENGAR_HOME + PROJECT_ROOT for doctor tests."""
+    home = tmp_path / ".gengar"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text("memory: {}\n", encoding="utf-8")
 
@@ -23,11 +23,11 @@ def _setup_doctor_env(monkeypatch, tmp_path, venv_name="venv"):
     # Create a fake venv entry point
     venv_bin_dir = project / venv_name / "bin"
     venv_bin_dir.mkdir(parents=True, exist_ok=True)
-    hermes_bin = venv_bin_dir / "hermes"
+    hermes_bin = venv_bin_dir / "gengar"
     hermes_bin.write_text("#!/usr/bin/env python\n# entry point\n")
     hermes_bin.chmod(0o755)
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "GENGAR_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
 
@@ -77,7 +77,7 @@ class TestDoctorCommandInstallation:
         # Create the command link dir with correct symlink
         cmd_link_dir = tmp_path / ".local" / "bin"
         cmd_link_dir.mkdir(parents=True)
-        cmd_link = cmd_link_dir / "hermes"
+        cmd_link = cmd_link_dir / "gengar"
         cmd_link.symlink_to(hermes_bin)
 
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -98,7 +98,7 @@ class TestDoctorCommandInstallation:
         assert "Command Installation" in out
         assert "Venv entry point exists" in out
         assert "not found" in out
-        assert "hermes doctor --fix" in out
+        assert "gengar doctor --fix" in out
 
     @pytest.mark.skipif(sys.platform == "win32", reason="Symlink check is Unix-only")
     def test_fix_creates_missing_symlink(self, monkeypatch, tmp_path):
@@ -111,7 +111,7 @@ class TestDoctorCommandInstallation:
         assert "Created symlink" in out
 
         # Verify the symlink was actually created
-        cmd_link = tmp_path / ".local" / "bin" / "hermes"
+        cmd_link = tmp_path / ".local" / "bin" / "gengar"
         assert cmd_link.is_symlink()
         assert cmd_link.resolve() == hermes_bin.resolve()
 
@@ -122,7 +122,7 @@ class TestDoctorCommandInstallation:
         # Create a symlink pointing to the wrong target
         cmd_link_dir = tmp_path / ".local" / "bin"
         cmd_link_dir.mkdir(parents=True)
-        cmd_link = cmd_link_dir / "hermes"
+        cmd_link = cmd_link_dir / "gengar"
         wrong_target = tmp_path / "wrong_hermes"
         wrong_target.write_text("#!/usr/bin/env python\n")
         cmd_link.symlink_to(wrong_target)
@@ -140,7 +140,7 @@ class TestDoctorCommandInstallation:
         # Create a symlink pointing to wrong target
         cmd_link_dir = tmp_path / ".local" / "bin"
         cmd_link_dir.mkdir(parents=True)
-        cmd_link = cmd_link_dir / "hermes"
+        cmd_link = cmd_link_dir / "gengar"
         wrong_target = tmp_path / "wrong_hermes"
         wrong_target.write_text("#!/usr/bin/env python\n")
         cmd_link.symlink_to(wrong_target)
@@ -156,7 +156,7 @@ class TestDoctorCommandInstallation:
 
     @pytest.mark.skipif(sys.platform == "win32", reason="Symlink check is Unix-only")
     def test_missing_venv_entry_point_shows_warn(self, monkeypatch, tmp_path):
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".gengar"
         home.mkdir(parents=True, exist_ok=True)
         (home / "config.yaml").write_text("memory: {}\n", encoding="utf-8")
 
@@ -164,7 +164,7 @@ class TestDoctorCommandInstallation:
         project.mkdir(exist_ok=True)
         # Do NOT create any venv entry point
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+        monkeypatch.setattr(doctor_mod, "GENGAR_HOME", home)
         monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
         monkeypatch.setattr(doctor_mod, "_DHH", str(home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -196,26 +196,26 @@ class TestDoctorCommandInstallation:
         home, project, _ = _setup_doctor_env(monkeypatch, tmp_path, venv_name=".venv")
 
         # Create the command link with correct symlink
-        hermes_bin = project / ".venv" / "bin" / "hermes"
+        hermes_bin = project / ".venv" / "bin" / "gengar"
         cmd_link_dir = tmp_path / ".local" / "bin"
         cmd_link_dir.mkdir(parents=True)
-        cmd_link = cmd_link_dir / "hermes"
+        cmd_link = cmd_link_dir / "gengar"
         cmd_link.symlink_to(hermes_bin)
 
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         out = _run_doctor(fix=False)
         assert "Venv entry point exists" in out
-        assert ".venv/bin/hermes" in out
+        assert ".venv/bin/gengar" in out
 
     @pytest.mark.skipif(sys.platform == "win32", reason="Symlink check is Unix-only")
     def test_non_symlink_regular_file_shows_ok(self, monkeypatch, tmp_path):
-        """If ~/.local/bin/hermes is a regular file (not symlink), accept it."""
+        """If ~/.local/bin/gengar is a regular file (not symlink), accept it."""
         home, project, hermes_bin = _setup_doctor_env(monkeypatch, tmp_path)
 
         cmd_link_dir = tmp_path / ".local" / "bin"
         cmd_link_dir.mkdir(parents=True)
-        cmd_link = cmd_link_dir / "hermes"
+        cmd_link = cmd_link_dir / "gengar"
         cmd_link.write_text("#!/bin/sh\nexec python -m hermes_cli.main \"$@\"\n")
 
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -242,14 +242,14 @@ class TestDoctorCommandInstallation:
 
     def test_windows_skips_check(self, monkeypatch, tmp_path):
         """On Windows, the Command Installation section is skipped."""
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".gengar"
         home.mkdir(parents=True, exist_ok=True)
         (home / "config.yaml").write_text("memory: {}\n", encoding="utf-8")
 
         project = tmp_path / "project"
         project.mkdir(exist_ok=True)
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+        monkeypatch.setattr(doctor_mod, "GENGAR_HOME", home)
         monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
         monkeypatch.setattr(doctor_mod, "_DHH", str(home))
         monkeypatch.setattr(sys, "platform", "win32")

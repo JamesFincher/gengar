@@ -263,15 +263,15 @@ class TelegramAdapter(BasePlatformAdapter):
         self._disable_link_previews: bool = self._coerce_bool_extra("disable_link_previews", False)
         # Buffer rapid/album photo updates so Telegram image bursts are handled
         # as a single MessageEvent instead of self-interrupting multiple turns.
-        self._media_batch_delay_seconds = float(os.getenv("HERMES_TELEGRAM_MEDIA_BATCH_DELAY_SECONDS", "0.8"))
+        self._media_batch_delay_seconds = float(os.getenv("GENGAR_TELEGRAM_MEDIA_BATCH_DELAY_SECONDS", "0.8"))
         self._pending_photo_batches: Dict[str, MessageEvent] = {}
         self._pending_photo_batch_tasks: Dict[str, asyncio.Task] = {}
         self._media_group_events: Dict[str, MessageEvent] = {}
         self._media_group_tasks: Dict[str, asyncio.Task] = {}
         # Buffer rapid text messages so Telegram client-side splits of long
         # messages are aggregated into a single MessageEvent.
-        self._text_batch_delay_seconds = float(os.getenv("HERMES_TELEGRAM_TEXT_BATCH_DELAY_SECONDS", "0.6"))
-        self._text_batch_split_delay_seconds = float(os.getenv("HERMES_TELEGRAM_TEXT_BATCH_SPLIT_DELAY_SECONDS", "2.0"))
+        self._text_batch_delay_seconds = float(os.getenv("GENGAR_TELEGRAM_TEXT_BATCH_DELAY_SECONDS", "0.6"))
+        self._text_batch_split_delay_seconds = float(os.getenv("GENGAR_TELEGRAM_TEXT_BATCH_SPLIT_DELAY_SECONDS", "2.0"))
         self._pending_text_batches: Dict[str, MessageEvent] = {}
         self._pending_text_batch_tasks: Dict[str, asyncio.Task] = {}
         self._polling_error_task: Optional[asyncio.Task] = None
@@ -622,10 +622,10 @@ class TelegramAdapter(BasePlatformAdapter):
         # Exhausted retries — fatal
         message = (
             "Another process is already polling this Telegram bot token "
-            "(possibly OpenClaw or another Hermes instance). "
-            "Hermes stopped Telegram polling after %d retries. "
+            "(possibly OpenClaw or another Gengar instance). "
+            "Gengar stopped Telegram polling after %d retries. "
             "Only one poller can run per token — stop the other process "
-            "and restart with 'hermes start'."
+            "and restart with 'gengar start'."
             % MAX_CONFLICT_RETRIES
         )
         logger.error("[%s] %s Original error: %s", self.name, message, error)
@@ -888,14 +888,14 @@ class TelegramAdapter(BasePlatformAdapter):
                     return default
 
             request_kwargs = {
-                "connection_pool_size": _env_int("HERMES_TELEGRAM_HTTP_POOL_SIZE", 512),
-                "pool_timeout": _env_float("HERMES_TELEGRAM_HTTP_POOL_TIMEOUT", 8.0),
-                "connect_timeout": _env_float("HERMES_TELEGRAM_HTTP_CONNECT_TIMEOUT", 10.0),
-                "read_timeout": _env_float("HERMES_TELEGRAM_HTTP_READ_TIMEOUT", 20.0),
-                "write_timeout": _env_float("HERMES_TELEGRAM_HTTP_WRITE_TIMEOUT", 20.0),
+                "connection_pool_size": _env_int("GENGAR_TELEGRAM_HTTP_POOL_SIZE", 512),
+                "pool_timeout": _env_float("GENGAR_TELEGRAM_HTTP_POOL_TIMEOUT", 8.0),
+                "connect_timeout": _env_float("GENGAR_TELEGRAM_HTTP_CONNECT_TIMEOUT", 10.0),
+                "read_timeout": _env_float("GENGAR_TELEGRAM_HTTP_READ_TIMEOUT", 20.0),
+                "write_timeout": _env_float("GENGAR_TELEGRAM_HTTP_WRITE_TIMEOUT", 20.0),
             }
 
-            disable_fallback = (os.getenv("HERMES_TELEGRAM_DISABLE_FALLBACK_IPS", "").strip().lower() in ("1", "true", "yes", "on"))
+            disable_fallback = (os.getenv("GENGAR_TELEGRAM_DISABLE_FALLBACK_IPS", "").strip().lower() in ("1", "true", "yes", "on"))
             fallback_ips = self._fallback_ips()
             if not fallback_ips:
                 fallback_ips = await discover_fallback_ips()
@@ -1002,7 +1002,7 @@ class TelegramAdapter(BasePlatformAdapter):
                         "TELEGRAM_WEBHOOK_URL is set. Without it, the "
                         "webhook endpoint accepts forged updates from "
                         "anyone who can reach it — see "
-                        "https://github.com/NousResearch/hermes-agent/"
+                        "https://github.com/jamesfincher/gengar/"
                         "security/advisories/GHSA-3vpc-7q5r-276h.\n\n"
                         "Generate a secret and set it in your .env:\n"
                         "  export TELEGRAM_WEBHOOK_SECRET=\"$(openssl rand -hex 32)\"\n\n"
@@ -1433,7 +1433,7 @@ class TelegramAdapter(BasePlatformAdapter):
     ) -> SendResult:
         """Send an inline-keyboard update prompt (Yes / No buttons).
 
-        Used by the gateway ``/update`` watcher when ``hermes update --gateway``
+        Used by the gateway ``/update`` watcher when ``gengar update --gateway``
         needs user input (stash restore, config migration).
         """
         if not self._bot:

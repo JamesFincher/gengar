@@ -89,7 +89,7 @@ class _OpenAIProxy:
 
 OpenAI = _OpenAIProxy()
 
-# Load .env from ~/.hermes/.env first, then project root as dev fallback.
+# Load .env from ~/.gengar/.env first, then project root as dev fallback.
 # User-managed env files should override stale shell exports on restart.
 from hermes_cli.env_loader import load_hermes_dotenv
 from hermes_cli.timeouts import (
@@ -133,7 +133,7 @@ from agent.error_classifier import classify_api_error, FailoverReason
 from agent.prompt_builder import (
     DEFAULT_AGENT_IDENTITY, PLATFORM_HINTS,
     MEMORY_GUIDANCE, SESSION_SEARCH_GUIDANCE, SKILLS_GUIDANCE,
-    HERMES_AGENT_HELP_GUIDANCE,
+    GENGAR_AGENT_HELP_GUIDANCE,
     KANBAN_GUIDANCE,
     build_nous_subscription_prompt,
 )
@@ -181,7 +181,7 @@ from hermes_cli.config import cfg_get
 class _SafeWriter:
     """Transparent stdio wrapper that catches OSError/ValueError from broken pipes.
 
-    When hermes-agent runs as a systemd service, Docker container, or headless
+    When gengar runs as a systemd service, Docker container, or headless
     daemon, the stdout/stderr pipe can become unavailable (idle timeout, buffer
     exhaustion, socket reset). Any print() call then raises
     ``OSError: [Errno 5] Input/output error``, which can crash agent setup or
@@ -825,10 +825,10 @@ _QWEN_CODE_VERSION = "0.14.1"
 
 def _routermint_headers() -> dict:
     """Return the User-Agent RouterMint needs to avoid Cloudflare 1010 blocks."""
-    from hermes_cli import __version__ as _HERMES_VERSION
+    from hermes_cli import __version__ as _GENGAR_VERSION
 
     return {
-        "User-Agent": f"HermesAgent/{_HERMES_VERSION}",
+        "User-Agent": f"Gengar/{_GENGAR_VERSION}",
     }
 
 
@@ -879,7 +879,7 @@ class AIAgent:
     """
 
     _TOOL_CALL_ARGUMENTS_CORRUPTION_MARKER = (
-        "[hermes-agent: tool call arguments were corrupted in this session and "
+        "[gengar: tool call arguments were corrupted in this session and "
         "have been dropped to keep the conversation alive. See issue #15236.]"
     )
 
@@ -998,7 +998,7 @@ class AIAgent:
             skip_context_files (bool): If True, skip auto-injection of SOUL.md, AGENTS.md, and .cursorrules
                 into the system prompt. Use this for batch processing and data generation to avoid
                 polluting trajectories with user-specific persona or project instructions.
-            load_soul_identity (bool): If True, still use ~/.hermes/SOUL.md as the primary
+            load_soul_identity (bool): If True, still use ~/.gengar/SOUL.md as the primary
                 identity even when skip_context_files=True. Project context files from the cwd
                 remain skipped.
         """
@@ -1263,7 +1263,7 @@ class AIAgent:
         self._or_cache_hits: int = 0
 
         # Centralized logging — agent.log (INFO+) and errors.log (WARNING+)
-        # both live under ~/.hermes/logs/.  Idempotent, so gateway mode
+        # both live under ~/.gengar/logs/.  Idempotent, so gateway mode
         # (which creates a new AIAgent per message) won't duplicate handlers.
         from hermes_logging import setup_logging, setup_verbose_logging
         setup_logging(hermes_home=_hermes_home)
@@ -1508,13 +1508,13 @@ class AIAgent:
                             raise RuntimeError(
                                 f"Provider '{_explicit}' is set in config.yaml but no API key "
                                 f"was found. Set the {_env_hint} environment "
-                                f"variable, or switch to a different provider with `hermes model`."
+                                f"variable, or switch to a different provider with `gengar model`."
                             )
                     if not getattr(self, "_fallback_activated", False):
                         # No provider configured — reject with a clear message.
                         raise RuntimeError(
-                            "No LLM provider configured. Run `hermes model` to "
-                            "select a provider, or run `hermes setup` for first-time "
+                            "No LLM provider configured. Run `gengar model` to "
+                            "select a provider, or run `gengar setup` for first-time "
                             "configuration."
                         )
             
@@ -1640,7 +1640,7 @@ class AIAgent:
             short_uuid = uuid.uuid4().hex[:6]
             self.session_id = f"{timestamp_str}_{short_uuid}"
         
-        # Session logs go into ~/.hermes/sessions/ alongside gateway sessions
+        # Session logs go into ~/.gengar/sessions/ alongside gateway sessions
         hermes_home = get_hermes_home()
         self.logs_dir = hermes_home / "sessions"
         self.logs_dir.mkdir(parents=True, exist_ok=True)
@@ -1771,7 +1771,7 @@ class AIAgent:
                             from hermes_cli.profiles import get_active_profile_name
                             _profile = get_active_profile_name()
                             _init_kwargs["agent_identity"] = _profile
-                            _init_kwargs["agent_workspace"] = "hermes"
+                            _init_kwargs["agent_workspace"] = "gengar"
                         except Exception:
                             pass
                         self._memory_manager.initialize_all(**_init_kwargs)
@@ -2035,7 +2035,7 @@ class AIAgent:
             raise ValueError(
                 f"Model {self.model} has a context window of {_ctx:,} tokens, "
                 f"which is below the minimum {MINIMUM_CONTEXT_LENGTH:,} required "
-                f"by Hermes Agent.  Choose a model with at least "
+                f"by Gengar.  Choose a model with at least "
                 f"{MINIMUM_CONTEXT_LENGTH // 1000}K context, or set "
                 f"model.context_length in config.yaml to override."
             )
@@ -2192,7 +2192,7 @@ class AIAgent:
         try:
             self._session_db.create_session(
                 session_id=self.session_id,
-                source=self.platform or os.environ.get("HERMES_SESSION_SOURCE", "cli"),
+                source=self.platform or os.environ.get("GENGAR_SESSION_SOURCE", "cli"),
                 model=self.model,
                 model_config=self._session_init_model_config,
                 system_prompt=self._cached_system_prompt,
@@ -2248,7 +2248,7 @@ class AIAgent:
 
     def _ensure_lmstudio_runtime_loaded(self, config_context_length: Optional[int] = None) -> None:
         """
-        Preload the LM Studio model with at least Hermes' minimum context.
+        Preload the LM Studio model with at least Gengar' minimum context.
         """
         if (self.provider or "").strip().lower() != "lmstudio":
             return
@@ -2495,7 +2495,7 @@ class AIAgent:
         all non-forced output is suppressed.
 
         ``suppress_status_output`` is a stricter CLI automation mode used by
-        parseable single-query flows such as ``hermes chat -q``. In that mode,
+        parseable single-query flows such as ``gengar chat -q``. In that mode,
         all status/diagnostic prints routed through ``_vprint`` are suppressed
         so stdout stays machine-readable.
         """
@@ -2640,7 +2640,7 @@ class AIAgent:
                 msg = (
                     "⚠ No auxiliary LLM provider configured — context "
                     "compression will drop middle turns without a summary. "
-                    "Run `hermes setup` or set OPENROUTER_API_KEY."
+                    "Run `gengar setup` or set OPENROUTER_API_KEY."
                 )
                 self._compression_warning = msg
                 self._emit_status(msg)
@@ -2671,7 +2671,7 @@ class AIAgent:
                 raise ValueError(
                     f"Auxiliary compression model {aux_model} has a context "
                     f"window of {aux_context:,} tokens, which is below the "
-                    f"minimum {MINIMUM_CONTEXT_LENGTH:,} required by Hermes "
+                    f"minimum {MINIMUM_CONTEXT_LENGTH:,} required by Gengar "
                     f"Agent.  Choose a compression model with at least "
                     f"{MINIMUM_CONTEXT_LENGTH // 1000}K context (set "
                     f"auxiliary.compression.model in config.yaml), or set "
@@ -2814,19 +2814,19 @@ class AIAgent:
         Priority:
           1. ``providers.<id>.models.<model>.timeout_seconds`` (per-model override)
           2. ``providers.<id>.request_timeout_seconds`` (provider-wide)
-          3. ``HERMES_API_TIMEOUT`` env var (legacy escape hatch)
+          3. ``GENGAR_API_TIMEOUT`` env var (legacy escape hatch)
           4. 1800.0s default
 
         Used by OpenAI-wire chat completions (streaming and non-streaming) so
         the per-provider config knob wins over the 1800s default.  Without this
-        helper, the hardcoded ``HERMES_API_TIMEOUT`` fallback would always be
+        helper, the hardcoded ``GENGAR_API_TIMEOUT`` fallback would always be
         passed as a per-call ``timeout=`` kwarg, overriding the client-level
         timeout the AIAgent.__init__ path configured.
         """
         cfg = get_provider_request_timeout(self.provider, self.model)
         if cfg is not None:
             return cfg
-        return float(os.getenv("HERMES_API_TIMEOUT", 1800.0))
+        return float(os.getenv("GENGAR_API_TIMEOUT", 1800.0))
 
     def _resolved_api_call_stale_timeout_base(self) -> tuple[float, bool]:
         """Resolve the base non-stream stale timeout and whether it is implicit.
@@ -2834,7 +2834,7 @@ class AIAgent:
         Priority:
           1. ``providers.<id>.models.<model>.stale_timeout_seconds``
           2. ``providers.<id>.stale_timeout_seconds``
-          3. ``HERMES_API_CALL_STALE_TIMEOUT`` env var
+          3. ``GENGAR_API_CALL_STALE_TIMEOUT`` env var
           4. 300.0s default
 
         Returns ``(timeout_seconds, uses_implicit_default)`` so the caller can
@@ -2846,7 +2846,7 @@ class AIAgent:
         if cfg is not None:
             return cfg, False
 
-        env_timeout = os.getenv("HERMES_API_CALL_STALE_TIMEOUT")
+        env_timeout = os.getenv("GENGAR_API_CALL_STALE_TIMEOUT")
         if env_timeout is not None:
             return float(env_timeout), False
 
@@ -3708,7 +3708,7 @@ class AIAgent:
             ),
             "session_id": self.session_id or "",
             "parent_session_id": self._parent_session_id or "",
-            "platform": self.platform or os.environ.get("HERMES_SESSION_SOURCE", "cli"),
+            "platform": self.platform or os.environ.get("GENGAR_SESSION_SOURCE", "cli"),
             "tool_name": "memory",
         }
         if task_id:
@@ -4252,7 +4252,7 @@ class AIAgent:
 
             self._vprint(f"{self.log_prefix}🧾 Request debug dump written to: {dump_file}")
 
-            if env_var_enabled("HERMES_DUMP_REQUEST_STDOUT"):
+            if env_var_enabled("GENGAR_DUMP_REQUEST_STDOUT"):
                 print(json.dumps(dump_payload, ensure_ascii=False, indent=2, default=str))
 
             return dump_file
@@ -4876,7 +4876,7 @@ class AIAgent:
         #   7. Platform-specific formatting hint
 
         # Try SOUL.md as primary identity unless the caller explicitly skipped it.
-        # Some execution modes (cron) still want HERMES_HOME persona while keeping
+        # Some execution modes (cron) still want GENGAR_HOME persona while keeping
         # cwd project instructions disabled.
         _soul_loaded = False
         if self.load_soul_identity or not self.skip_context_files:
@@ -4889,8 +4889,8 @@ class AIAgent:
             # Fallback to hardcoded identity
             prompt_parts = [DEFAULT_AGENT_IDENTITY]
 
-        # Pointer to the hermes-agent skill + docs for user questions about Hermes itself.
-        prompt_parts.append(HERMES_AGENT_HELP_GUIDANCE)
+        # Pointer to the gengar skill + docs for user questions about Gengar itself.
+        prompt_parts.append(GENGAR_AGENT_HELP_GUIDANCE)
 
         # Tool-aware behavioral guidance: only inject when the tools are loaded
         tool_guidance = []
@@ -4902,7 +4902,7 @@ class AIAgent:
             tool_guidance.append(SKILLS_GUIDANCE)
         # Kanban worker/orchestrator lifecycle — only present when the
         # dispatcher spawned this process (kanban_show check_fn gates on
-        # HERMES_KANBAN_TASK env var). Normal chat sessions never see
+        # GENGAR_KANBAN_TASK env var). Normal chat sessions never see
         # this block.
         if "kanban_show" in self.valid_tool_names:
             tool_guidance.append(KANBAN_GUIDANCE)
@@ -4992,7 +4992,7 @@ class AIAgent:
 
         if not self.skip_context_files:
             # Use TERMINAL_CWD for context file discovery when set (gateway
-            # mode).  The gateway process runs from the hermes-agent install
+            # mode).  The gateway process runs from the gengar install
             # dir, so os.getcwd() would pick up the repo's AGENTS.md and
             # other dev files — inflating token usage by ~10k for no benefit.
             _context_cwd = os.getenv("TERMINAL_CWD") or None
@@ -6066,8 +6066,8 @@ class AIAgent:
             from hermes_cli.auth import resolve_nous_runtime_credentials
 
             creds = resolve_nous_runtime_credentials(
-                min_key_ttl_seconds=max(60, int(os.getenv("HERMES_NOUS_MIN_KEY_TTL_SECONDS", "1800"))),
-                timeout_seconds=float(os.getenv("HERMES_NOUS_TIMEOUT_SECONDS", "15")),
+                min_key_ttl_seconds=max(60, int(os.getenv("GENGAR_NOUS_MIN_KEY_TTL_SECONDS", "1800"))),
+                timeout_seconds=float(os.getenv("GENGAR_NOUS_TIMEOUT_SECONDS", "15")),
                 force_mint=force,
             )
         except Exception as exc:
@@ -6754,23 +6754,23 @@ class AIAgent:
             """Stream a chat completions response."""
             import httpx as _httpx
             # Per-provider / per-model request_timeout_seconds (from config.yaml)
-            # wins over the HERMES_API_TIMEOUT env default if the user set it.
+            # wins over the GENGAR_API_TIMEOUT env default if the user set it.
             _provider_timeout_cfg = get_provider_request_timeout(self.provider, self.model)
             _base_timeout = (
                 _provider_timeout_cfg
                 if _provider_timeout_cfg is not None
-                else float(os.getenv("HERMES_API_TIMEOUT", 1800.0))
+                else float(os.getenv("GENGAR_API_TIMEOUT", 1800.0))
             )
             # Read timeout: config wins here too.  Otherwise use
-            # HERMES_STREAM_READ_TIMEOUT (default 120s) for cloud providers.
+            # GENGAR_STREAM_READ_TIMEOUT (default 120s) for cloud providers.
             if _provider_timeout_cfg is not None:
                 _stream_read_timeout = _provider_timeout_cfg
             else:
-                _stream_read_timeout = float(os.getenv("HERMES_STREAM_READ_TIMEOUT", 120.0))
+                _stream_read_timeout = float(os.getenv("GENGAR_STREAM_READ_TIMEOUT", 120.0))
                 # Local providers (Ollama, llama.cpp, vLLM) can take minutes for
                 # prefill on large contexts before producing the first token.
                 # Auto-increase the httpx read timeout unless the user explicitly
-                # overrode HERMES_STREAM_READ_TIMEOUT.
+                # overrode GENGAR_STREAM_READ_TIMEOUT.
                 if _stream_read_timeout == 120.0 and self.base_url and is_local_endpoint(self.base_url):
                     _stream_read_timeout = _base_timeout
                     logger.debug(
@@ -7066,7 +7066,7 @@ class AIAgent:
         def _call():
             import httpx as _httpx
 
-            _max_stream_retries = int(os.getenv("HERMES_STREAM_RETRIES", 2))
+            _max_stream_retries = int(os.getenv("GENGAR_STREAM_RETRIES", 2))
 
             try:
                 for _stream_attempt in range(_max_stream_retries + 1):
@@ -7326,10 +7326,10 @@ class AIAgent:
                 if request_client is not None:
                     self._close_request_openai_client(request_client, reason="stream_request_complete")
 
-        _stream_stale_timeout_base = float(os.getenv("HERMES_STREAM_STALE_TIMEOUT", 180.0))
+        _stream_stale_timeout_base = float(os.getenv("GENGAR_STREAM_STALE_TIMEOUT", 180.0))
         # Local providers (Ollama, oMLX, llama-cpp) can take 300+ seconds
         # for prefill on large contexts.  Disable the stale detector unless
-        # the user explicitly set HERMES_STREAM_STALE_TIMEOUT.
+        # the user explicitly set GENGAR_STREAM_STALE_TIMEOUT.
         if _stream_stale_timeout_base == 180.0 and self.base_url and is_local_endpoint(self.base_url):
             _stream_stale_timeout = float("inf")
             logger.debug("Local provider detected (%s) — stale stream timeout disabled", self.base_url)
@@ -8411,7 +8411,7 @@ class AIAgent:
         _qwen_meta = None
         if _is_qwen:
             _qwen_meta = {
-                "sessionId": self.session_id or "hermes",
+                "sessionId": self.session_id or "gengar",
                 "promptId": str(uuid.uuid4()),
             }
 
@@ -8467,7 +8467,7 @@ class AIAgent:
         Some providers/routes reject `reasoning` with 400s, so gate it to
         known reasoning-capable model families and direct Nous Portal.
         """
-        if base_url_host_matches(self._base_url_lower, "nousresearch.com"):
+        if base_url_host_matches(self._base_url_lower, "jamesfincher.com"):
             return True
         if base_url_host_matches(self._base_url_lower, "ai-gateway.vercel.sh"):
             return True
@@ -9116,7 +9116,7 @@ class AIAgent:
                 self._session_db_created = False
                 self._session_db.create_session(
                     session_id=self.session_id,
-                    source=self.platform or os.environ.get("HERMES_SESSION_SOURCE", "cli"),
+                    source=self.platform or os.environ.get("GENGAR_SESSION_SOURCE", "cli"),
                     model=self.model,
                     model_config=self._session_init_model_config,
                     parent_session_id=old_session_id,
@@ -9136,10 +9136,10 @@ class AIAgent:
                 logger.warning("Session DB compression split failed — new session will NOT be indexed: %s", e)
 
         # Notify the context engine that the session_id rotated because of
-        # compression (not a fresh /new). Plugin engines (e.g. hermes-lcm) use
+        # compression (not a fresh /new). Plugin engines (e.g. gengar-lcm) use
         # boundary_reason="compression" to preserve DAG lineage across the
         # rollover instead of re-initializing fresh per-session state.
-        # See hermes-lcm#68. Built-in ContextCompressor ignores kwargs.
+        # See gengar-lcm#68. Built-in ContextCompressor ignores kwargs.
         try:
             _old_sid = locals().get("old_session_id")
             if _old_sid and hasattr(self.context_compressor, "on_session_start"):
@@ -10269,7 +10269,7 @@ class AIAgent:
                         "effort": "medium"
                     }
             if _is_nous:
-                summary_extra_body["tags"] = ["product=hermes-agent"]
+                summary_extra_body["tags"] = ["product=gengar"]
 
             if self.api_mode == "codex_responses":
                 codex_kwargs = self._build_api_kwargs(api_messages)
@@ -10414,7 +10414,7 @@ class AIAgent:
         self._ensure_db_session()
 
         # Tag all log records on this thread with the session ID so
-        # ``hermes logs --session <id>`` can filter a single conversation.
+        # ``gengar logs --session <id>`` can filter a single conversation.
         from hermes_logging import set_session_context
         set_session_context(self.session_id)
 
@@ -10671,7 +10671,7 @@ class AIAgent:
         # Context is ALWAYS injected into the user message, never the
         # system prompt.  This preserves the prompt cache prefix — the
         # system prompt stays identical across turns so cached tokens
-        # are reused.  The system prompt is Hermes's territory; plugins
+        # are reused.  The system prompt is Gengar's territory; plugins
         # contribute context alongside the user's input.
         #
         # All injected context is ephemeral (not persisted to session DB).
@@ -10933,7 +10933,7 @@ class AIAgent:
             # NOTE: Plugin context from pre_llm_call hooks is injected into the
             # user message (see injection block above), NOT the system prompt.
             # This is intentional — system prompt modifications break the prompt
-            # cache prefix.  The system prompt is reserved for Hermes internals.
+            # cache prefix.  The system prompt is reserved for Gengar internals.
             if effective_system:
                 api_messages = [{"role": "system", "content": effective_system}] + api_messages
 
@@ -11142,7 +11142,7 @@ class AIAgent:
                     except Exception:
                         pass
 
-                    if env_var_enabled("HERMES_DUMP_REQUESTS"):
+                    if env_var_enabled("GENGAR_DUMP_REQUESTS"):
                         self._dump_api_request_debug(api_kwargs, reason="preflight")
 
                     # Always prefer the streaming path — even without stream
@@ -12080,7 +12080,7 @@ class AIAgent:
                             print(f"{self.log_prefix}   Response: {_body_text}")
                         print(f"{self.log_prefix}   Most likely: Portal OAuth expired, account out of credits, or agent key revoked.")
                         print(f"{self.log_prefix}   Troubleshooting:")
-                        print(f"{self.log_prefix}     • Re-authenticate: hermes login --provider nous")
+                        print(f"{self.log_prefix}     • Re-authenticate: gengar login --provider nous")
                         print(f"{self.log_prefix}     • Check credits / billing: https://portal.nousresearch.com")
                         print(f"{self.log_prefix}     • Verify stored credentials: {_dhh}/auth.json")
                         print(f"{self.log_prefix}     • Switch providers temporarily: /model <model> --provider openrouter")
@@ -12113,12 +12113,12 @@ class AIAgent:
                         print(f"{self.log_prefix}   Troubleshooting:")
                         from hermes_constants import display_hermes_home as _dhh_fn
                         _dhh = _dhh_fn()
-                        print(f"{self.log_prefix}     • Check ANTHROPIC_TOKEN in {_dhh}/.env for Hermes-managed OAuth/setup tokens")
+                        print(f"{self.log_prefix}     • Check ANTHROPIC_TOKEN in {_dhh}/.env for Gengar-managed OAuth/setup tokens")
                         print(f"{self.log_prefix}     • Check ANTHROPIC_API_KEY in {_dhh}/.env for API keys or legacy token values")
                         print(f"{self.log_prefix}     • For API keys: verify at https://platform.claude.com/settings/keys")
                         print(f"{self.log_prefix}     • For Claude Code: run 'claude /login' to refresh, then retry")
-                        print(f"{self.log_prefix}     • Legacy cleanup: hermes config set ANTHROPIC_TOKEN \"\"")
-                        print(f"{self.log_prefix}     • Clear stale keys: hermes config set ANTHROPIC_API_KEY \"\"")
+                        print(f"{self.log_prefix}     • Legacy cleanup: gengar config set ANTHROPIC_TOKEN \"\"")
+                        print(f"{self.log_prefix}     • Clear stale keys: gengar config set ANTHROPIC_API_KEY \"\"")
 
                     # ── Thinking block signature recovery ─────────────────
                     # Anthropic signs thinking blocks against the full turn
@@ -12315,7 +12315,7 @@ class AIAgent:
                     # this on the next pass and try fallback or bail.
                     #
                     # IMPORTANT: Nous Portal multiplexes multiple upstream
-                    # providers (DeepSeek, Kimi, MiMo, Hermes).  A 429 can
+                    # providers (DeepSeek, Kimi, MiMo, Gengar).  A 429 can
                     # also mean an UPSTREAM provider is out of capacity
                     # for one specific model -- transient, clears in
                     # seconds, nothing to do with the caller's quota.
@@ -12649,10 +12649,10 @@ class AIAgent:
                                 self._vprint(f"{self.log_prefix}   💡 Codex OAuth token was rejected (HTTP 401). Your token may have been", force=True)
                                 self._vprint(f"{self.log_prefix}      refreshed by another client (Codex CLI, VS Code). To fix:", force=True)
                                 self._vprint(f"{self.log_prefix}      1. Run `codex` in your terminal to generate fresh tokens.", force=True)
-                                self._vprint(f"{self.log_prefix}      2. Then run `hermes auth` to re-authenticate.", force=True)
+                                self._vprint(f"{self.log_prefix}      2. Then run `gengar auth` to re-authenticate.", force=True)
                             else:
                                 self._vprint(f"{self.log_prefix}   💡 Your API key was rejected by the provider. Check:", force=True)
-                                self._vprint(f"{self.log_prefix}      • Is the key valid? Run: hermes setup", force=True)
+                                self._vprint(f"{self.log_prefix}      • Is the key valid? Run: gengar setup", force=True)
                                 self._vprint(f"{self.log_prefix}      • Does your account have access to {_model}?", force=True)
                                 if base_url_host_matches(str(_base), "openrouter.ai"):
                                     self._vprint(f"{self.log_prefix}      • Check credits: https://openrouter.ai/settings/credits", force=True)

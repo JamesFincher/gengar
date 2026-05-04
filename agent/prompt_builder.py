@@ -86,11 +86,11 @@ def _find_git_root(start: Path) -> Optional[Path]:
     return None
 
 
-_HERMES_MD_NAMES = (".hermes.md", "HERMES.md")
+_GENGAR_MD_NAMES = (".gengar.md", "GENGAR.md")
 
 
 def _find_hermes_md(cwd: Path) -> Optional[Path]:
-    """Discover the nearest ``.hermes.md`` or ``HERMES.md``.
+    """Discover the nearest ``.gengar.md`` or ``GENGAR.md``.
 
     Search order: *cwd* first, then each parent directory up to (and
     including) the git repository root.  Returns the first match, or
@@ -100,7 +100,7 @@ def _find_hermes_md(cwd: Path) -> Optional[Path]:
     current = cwd.resolve()
 
     for directory in [current, *current.parents]:
-        for name in _HERMES_MD_NAMES:
+        for name in _GENGAR_MD_NAMES:
             candidate = directory / name
             if candidate.is_file():
                 return candidate
@@ -132,7 +132,7 @@ def _strip_yaml_frontmatter(content: str) -> str:
 # =========================================================================
 
 DEFAULT_AGENT_IDENTITY = (
-    "You are Hermes Agent, an intelligent AI assistant created by Nous Research. "
+    "You are Gengar, an intelligent AI assistant created by James Fincher. "
     "You are helpful, knowledgeable, and direct. You assist users with a wide "
     "range of tasks including answering questions, writing and editing code, "
     "analyzing information, creative work, and executing actions via your tools. "
@@ -141,10 +141,10 @@ DEFAULT_AGENT_IDENTITY = (
     "Be targeted and efficient in your exploration and investigations."
 )
 
-HERMES_AGENT_HELP_GUIDANCE = (
-    "If the user asks about configuring, setting up, or using Hermes Agent "
-    "itself, load the `hermes-agent` skill with skill_view(name='hermes-agent') "
-    "before answering. Docs: https://hermes-agent.nousresearch.com/docs"
+GENGAR_AGENT_HELP_GUIDANCE = (
+    "If the user asks about configuring, setting up, or using Gengar "
+    "itself, load the `gengar` skill with skill_view(name='gengar') "
+    "before answering. Docs: https://github.com/jamesfincher/gengar"
 )
 
 MEMORY_GUIDANCE = (
@@ -185,8 +185,8 @@ SKILLS_GUIDANCE = (
 KANBAN_GUIDANCE = (
     "# Kanban task execution protocol\n"
     "You have been assigned ONE task from "
-    "the shared board at `~/.hermes/kanban.db`. Your task id is in "
-    "`$HERMES_KANBAN_TASK`; your workspace is `$HERMES_KANBAN_WORKSPACE`. "
+    "the shared board at `~/.gengar/kanban.db`. Your task id is in "
+    "`$GENGAR_KANBAN_TASK`; your workspace is `$GENGAR_KANBAN_WORKSPACE`. "
     "The `kanban_*` tools in your schema are your primary coordination surface — "
     "they write directly to the shared SQLite DB and work regardless of terminal "
     "backend (local/docker/modal/ssh).\n"
@@ -198,7 +198,7 @@ KANBAN_GUIDANCE = (
     "metadata), any prior attempts on this task if you're a retry, the full "
     "comment thread, and a pre-formatted `worker_context` you can treat as "
     "ground truth.\n"
-    "2. **Work inside the workspace.** `cd $HERMES_KANBAN_WORKSPACE` before "
+    "2. **Work inside the workspace.** `cd $GENGAR_KANBAN_WORKSPACE` before "
     "any file operations. The workspace is yours for this run. Don't modify "
     "files outside it unless the task explicitly asks.\n"
     "3. **Heartbeat on long operations.** Call `kanban_heartbeat(note=...)` "
@@ -230,7 +230,7 @@ KANBAN_GUIDANCE = (
     "\n"
     "## Do NOT\n"
     "\n"
-    "- Do not shell out to `hermes kanban <verb>` for board operations. Use "
+    "- Do not shell out to `gengar kanban <verb>` for board operations. Use "
     "the `kanban_*` tools — they work across all terminal backends.\n"
     "- Do not complete a task you didn't actually finish. Block it.\n"
     "- Do not assign follow-up work to yourself. Assign it to the right "
@@ -723,7 +723,7 @@ def build_skills_system_prompt(
     Falls back to a full filesystem scan when both layers miss.
 
     External skill directories (``skills.external_dirs`` in config.yaml) are
-    scanned alongside the local ``~/.hermes/skills/`` directory.  External dirs
+    scanned alongside the local ``~/.gengar/skills/`` directory.  External dirs
     are read-only — they appear in the index but new skills are always created
     in the local dir.  Local skills take precedence when names collide.
     """
@@ -738,8 +738,8 @@ def build_skills_system_prompt(
     # produce distinct cache entries (gateway serves multiple platforms).
     from gateway.session_context import get_session_env
     _platform_hint = (
-        os.environ.get("HERMES_PLATFORM")
-        or get_session_env("HERMES_SESSION_PLATFORM")
+        os.environ.get("GENGAR_PLATFORM")
+        or get_session_env("GENGAR_SESSION_PLATFORM")
         or ""
     )
     disabled = get_disabled_skill_names()
@@ -917,10 +917,10 @@ def build_skills_system_prompt(
             "for tasks like code review, planning, and testing — load them even for tasks you "
             "already know how to do, because the skill defines how it should be done here.\n"
             "Whenever the user asks you to configure, set up, install, enable, disable, modify, "
-            "or troubleshoot Hermes Agent itself — its CLI, config, models, providers, tools, "
-            "skills, voice, gateway, plugins, or any feature — load the `hermes-agent` skill "
-            "first. It has the actual commands (e.g. `hermes config set …`, `hermes tools`, "
-            "`hermes setup`) so you don't have to guess or invent workarounds.\n"
+            "or troubleshoot Gengar itself — its CLI, config, models, providers, tools, "
+            "skills, voice, gateway, plugins, or any feature — load the `gengar` skill "
+            "first. It has the actual commands (e.g. `gengar config set …`, `gengar tools`, "
+            "`gengar setup`) so you don't have to guess or invent workarounds.\n"
             "If a skill has issues, fix it with skill_manage(action='patch').\n"
             "After difficult/iterative tasks, offer to save as a skill. "
             "If a skill you loaded was missing steps, had wrong commands, or needed "
@@ -1003,7 +1003,7 @@ def build_nous_subscription_prompt(valid_tool_names: "set[str] | None" = None) -
             "When a Nous-managed feature is active, do not ask the user for Firecrawl, FAL, OpenAI TTS, or Browser-Use API keys.",
             "If the user is not subscribed and asks for a capability that Nous subscription would unlock or simplify, suggest Nous subscription as one option alongside direct setup or local alternatives.",
             "Do not mention subscription unless the user asks about it or it directly solves the current missing capability.",
-            "Useful commands: hermes setup, hermes setup tools, hermes setup terminal, hermes status.",
+            "Useful commands: gengar setup, gengar setup tools, gengar setup terminal, gengar status.",
         ]
     )
     return "\n".join(lines)
@@ -1026,7 +1026,7 @@ def _truncate_content(content: str, filename: str, max_chars: int = CONTEXT_FILE
 
 
 def load_soul_md() -> Optional[str]:
-    """Load SOUL.md from HERMES_HOME and return its content, or None.
+    """Load SOUL.md from GENGAR_HOME and return its content, or None.
 
     Used as the agent identity (slot #1 in the system prompt).  When this
     returns content, ``build_context_files_prompt`` should be called with
@@ -1036,7 +1036,7 @@ def load_soul_md() -> Optional[str]:
         from hermes_cli.config import ensure_hermes_home
         ensure_hermes_home()
     except Exception as e:
-        logger.debug("Could not ensure HERMES_HOME before loading SOUL.md: %s", e)
+        logger.debug("Could not ensure GENGAR_HOME before loading SOUL.md: %s", e)
 
     soul_path = get_hermes_home() / "SOUL.md"
     if not soul_path.exists():
@@ -1054,7 +1054,7 @@ def load_soul_md() -> Optional[str]:
 
 
 def _load_hermes_md(cwd_path: Path) -> str:
-    """.hermes.md / HERMES.md — walk to git root."""
+    """.gengar.md / GENGAR.md — walk to git root."""
     hermes_md_path = _find_hermes_md(cwd_path)
     if not hermes_md_path:
         return ""
@@ -1070,7 +1070,7 @@ def _load_hermes_md(cwd_path: Path) -> str:
             pass
         content = _scan_context_content(content, rel)
         result = f"## {rel}\n\n{content}"
-        return _truncate_content(result, ".hermes.md")
+        return _truncate_content(result, ".gengar.md")
     except Exception as e:
         logger.debug("Could not read %s: %s", hermes_md_path, e)
         return ""
@@ -1142,12 +1142,12 @@ def build_context_files_prompt(cwd: Optional[str] = None, skip_soul: bool = Fals
     """Discover and load context files for the system prompt.
 
     Priority (first found wins — only ONE project context type is loaded):
-      1. .hermes.md / HERMES.md  (walk to git root)
+      1. .gengar.md / GENGAR.md  (walk to git root)
       2. AGENTS.md / agents.md   (cwd only)
       3. CLAUDE.md / claude.md   (cwd only)
       4. .cursorrules / .cursor/rules/*.mdc  (cwd only)
 
-    SOUL.md from HERMES_HOME is independent and always included when present.
+    SOUL.md from GENGAR_HOME is independent and always included when present.
     Each context source is capped at 20,000 chars.
 
     When *skip_soul* is True, SOUL.md is not included here (it was already
@@ -1169,7 +1169,7 @@ def build_context_files_prompt(cwd: Optional[str] = None, skip_soul: bool = Fals
     if project_context:
         sections.append(project_context)
 
-    # SOUL.md from HERMES_HOME only — skip when already loaded as identity
+    # SOUL.md from GENGAR_HOME only — skip when already loaded as identity
     if not skip_soul:
         soul_content = load_soul_md()
         if soul_content:

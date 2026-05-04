@@ -52,7 +52,7 @@ class TestProviderEnvDetection:
 
 
 class TestDoctorEnvFileEncoding:
-    """Regression for #18637 (bug 3): `hermes doctor` crashed on Windows
+    """Regression for #18637 (bug 3): `gengar doctor` crashed on Windows
     Chinese locale (GBK) because `.env` was read with Path.read_text() which
     defaults to the system locale encoding, not UTF-8."""
 
@@ -61,7 +61,7 @@ class TestDoctorEnvFileEncoding:
     ):
         import pathlib
 
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         # Write a UTF-8 .env containing an em dash (U+2014 = e2 80 94). The
         # 0x94 byte is exactly the one the issue reporter hit: it's invalid
@@ -73,7 +73,7 @@ class TestDoctorEnvFileEncoding:
             encoding="utf-8",
         )
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", hermes_home)
+        monkeypatch.setattr(doctor_mod, "GENGAR_HOME", hermes_home)
 
         orig_read_text = pathlib.Path.read_text
 
@@ -152,18 +152,18 @@ class TestHonchoDoctorConfigDetection:
 def test_run_doctor_sets_interactive_env_for_tool_checks(monkeypatch, tmp_path):
     """Doctor should present CLI-gated tools as available in CLI context."""
     project_root = tmp_path / "project"
-    hermes_home = tmp_path / ".hermes"
+    hermes_home = tmp_path / ".gengar"
     project_root.mkdir()
     hermes_home.mkdir()
 
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project_root)
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", hermes_home)
-    monkeypatch.delenv("HERMES_INTERACTIVE", raising=False)
+    monkeypatch.setattr(doctor_mod, "GENGAR_HOME", hermes_home)
+    monkeypatch.delenv("GENGAR_INTERACTIVE", raising=False)
 
     seen = {}
 
     def fake_check_tool_availability(*args, **kwargs):
-        seen["interactive"] = os.getenv("HERMES_INTERACTIVE")
+        seen["interactive"] = os.getenv("GENGAR_INTERACTIVE")
         raise SystemExit(0)
 
     fake_model_tools = types.SimpleNamespace(
@@ -179,7 +179,7 @@ def test_run_doctor_sets_interactive_env_for_tool_checks(monkeypatch, tmp_path):
 
 
 def test_check_gateway_service_linger_warns_when_disabled(monkeypatch, tmp_path, capsys):
-    unit_path = tmp_path / "hermes-gateway.service"
+    unit_path = tmp_path / "gengar-gateway.service"
     unit_path.write_text("[Unit]\n")
 
     monkeypatch.setattr(gateway_cli, "is_linux", lambda: True)
@@ -251,8 +251,8 @@ class TestDoctorMemoryProviderSection:
     """The ◆ Memory Provider section should respect memory.provider config."""
 
     def _make_hermes_home(self, tmp_path, provider=""):
-        """Create a minimal HERMES_HOME with config.yaml."""
-        home = tmp_path / ".hermes"
+        """Create a minimal GENGAR_HOME with config.yaml."""
+        home = tmp_path / ".gengar"
         home.mkdir(parents=True, exist_ok=True)
         import yaml
         config = {"memory": {"provider": provider}} if provider else {"memory": {}}
@@ -262,7 +262,7 @@ class TestDoctorMemoryProviderSection:
     def _run_doctor_and_capture(self, monkeypatch, tmp_path, provider=""):
         """Run doctor and capture stdout."""
         home = self._make_hermes_home(tmp_path, provider)
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+        monkeypatch.setattr(doctor_mod, "GENGAR_HOME", home)
         monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
         monkeypatch.setattr(doctor_mod, "_DHH", str(home))
         (tmp_path / "project").mkdir(exist_ok=True)
@@ -341,7 +341,7 @@ def test_run_doctor_termux_treats_docker_and_browser_warnings_as_expected(monkey
 
 
 def test_run_doctor_accepts_named_provider_from_providers_section(monkeypatch, tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir(parents=True, exist_ok=True)
 
     import yaml
@@ -365,7 +365,7 @@ def test_run_doctor_accepts_named_provider_from_providers_section(monkeypatch, t
         )
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "GENGAR_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -392,7 +392,7 @@ def test_run_doctor_accepts_named_provider_from_providers_section(monkeypatch, t
 
 
 def test_run_doctor_accepts_bare_custom_provider(monkeypatch, tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text(
         "model:\n"
@@ -402,7 +402,7 @@ def test_run_doctor_accepts_bare_custom_provider(monkeypatch, tmp_path):
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "GENGAR_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -440,7 +440,7 @@ def test_run_doctor_accepts_bare_custom_provider(monkeypatch, tmp_path):
 def test_run_doctor_accepts_hermes_provider_ids_that_catalog_aliases(
     monkeypatch, tmp_path, provider, default_model
 ):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text(
         "model:\n"
@@ -449,7 +449,7 @@ def test_run_doctor_accepts_hermes_provider_ids_that_catalog_aliases(
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "GENGAR_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -482,7 +482,7 @@ def test_run_doctor_accepts_hermes_provider_ids_that_catalog_aliases(
 
 
 def test_run_doctor_termux_does_not_mark_browser_available_without_agent_browser(monkeypatch, tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text("memory: {}\n", encoding="utf-8")
     project = tmp_path / "project"
@@ -490,7 +490,7 @@ def test_run_doctor_termux_does_not_mark_browser_available_without_agent_browser
 
     monkeypatch.setenv("TERMUX_VERSION", "0.118.3")
     monkeypatch.setenv("PREFIX", "/data/data/com.termux/files/usr")
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "GENGAR_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     monkeypatch.setattr(doctor_mod.shutil, "which", lambda cmd: "/data/data/com.termux/files/usr/bin/node" if cmd in {"node", "npm"} else None)
@@ -525,14 +525,14 @@ def test_run_doctor_termux_does_not_mark_browser_available_without_agent_browser
 
 
 def test_run_doctor_kimi_cn_env_is_detected_and_probe_is_null_safe(monkeypatch, tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text("memory: {}\n", encoding="utf-8")
     (home / ".env").write_text("KIMI_CN_API_KEY=sk-test\n", encoding="utf-8")
     project = tmp_path / "project"
     project.mkdir(exist_ok=True)
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "GENGAR_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     monkeypatch.setenv("KIMI_CN_API_KEY", "sk-test")
@@ -573,14 +573,14 @@ def test_run_doctor_kimi_cn_env_is_detected_and_probe_is_null_safe(monkeypatch, 
 
 @pytest.mark.parametrize("base_url", [None, "https://opencode.ai/zen/go/v1"])
 def test_run_doctor_opencode_go_skips_invalid_models_probe(monkeypatch, tmp_path, base_url):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text("memory: {}\n", encoding="utf-8")
     (home / ".env").write_text("OPENCODE_GO_API_KEY=***\n", encoding="utf-8")
     project = tmp_path / "project"
     project.mkdir(exist_ok=True)
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "GENGAR_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     monkeypatch.setenv("OPENCODE_GO_API_KEY", "sk-test")

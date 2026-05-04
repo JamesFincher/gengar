@@ -7,30 +7,30 @@ import pytest
 from hermes_cli import relaunch as relaunch_mod
 
 
-class TestResolveHermesBin:
+class TestResolveGengarBin:
     def test_prefers_absolute_argv0_when_executable(self, monkeypatch):
-        fake = "/nix/store/abc/bin/hermes"
+        fake = "/nix/store/abc/bin/gengar"
         monkeypatch.setattr(sys, "argv", [fake])
         monkeypatch.setattr(relaunch_mod.os.path, "isfile", lambda p: p == fake)
         monkeypatch.setattr(relaunch_mod.os, "access", lambda p, mode: p == fake)
         assert relaunch_mod.resolve_hermes_bin() == fake
 
     def test_resolves_relative_argv0(self, monkeypatch, tmp_path):
-        fake = tmp_path / "hermes"
+        fake = tmp_path / "gengar"
         fake.write_text("#!/bin/sh\n")
         fake.chmod(0o755)
         monkeypatch.setattr(sys, "argv", [str(fake.name)])
         monkeypatch.chdir(tmp_path)
-        # Ensure we don't accidentally match a real 'hermes' on PATH
+        # Ensure we don't accidentally match a real 'gengar' on PATH
         monkeypatch.setattr(relaunch_mod.shutil, "which", lambda _name: None)
         assert relaunch_mod.resolve_hermes_bin() == str(fake)
 
     def test_falls_back_to_path_which(self, monkeypatch):
         monkeypatch.setattr(sys, "argv", ["-c"])  # not a real path
         monkeypatch.setattr(
-            relaunch_mod.shutil, "which", lambda name: "/usr/bin/hermes" if name == "hermes" else None
+            relaunch_mod.shutil, "which", lambda name: "/usr/bin/gengar" if name == "gengar" else None
         )
-        assert relaunch_mod.resolve_hermes_bin() == "/usr/bin/hermes"
+        assert relaunch_mod.resolve_hermes_bin() == "/usr/bin/gengar"
 
     def test_returns_none_when_unresolvable(self, monkeypatch):
         monkeypatch.setattr(sys, "argv", ["-c"])
@@ -105,9 +105,9 @@ class TestInheritedFlagTable:
 
 class TestBuildRelaunchArgv:
     def test_uses_bin_when_available(self, monkeypatch):
-        monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: "/usr/bin/hermes")
+        monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: "/usr/bin/gengar")
         argv = relaunch_mod.build_relaunch_argv(["--resume", "abc"])
-        assert argv[0] == "/usr/bin/hermes"
+        assert argv[0] == "/usr/bin/gengar"
 
     def test_falls_back_to_python_module(self, monkeypatch):
         monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: None)
@@ -115,7 +115,7 @@ class TestBuildRelaunchArgv:
         assert argv == [sys.executable, "-m", "hermes_cli.main", "--resume", "abc"]
 
     def test_preserves_inherited_flags(self, monkeypatch):
-        monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: "/usr/bin/hermes")
+        monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: "/usr/bin/gengar")
         original = ["--tui", "--dev", "--profile", "work", "sessions", "browse"]
         argv = relaunch_mod.build_relaunch_argv(["--resume", "abc"], original_argv=original)
         assert "--tui" in argv
@@ -129,13 +129,13 @@ class TestBuildRelaunchArgv:
         assert "browse" not in argv
 
     def test_can_disable_preserve(self, monkeypatch):
-        monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: "/usr/bin/hermes")
+        monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: "/usr/bin/gengar")
         original = ["--tui", "chat"]
         argv = relaunch_mod.build_relaunch_argv(
             ["--resume", "abc"], preserve_inherited=False, original_argv=original
         )
         assert "--tui" not in argv
-        assert argv == ["/usr/bin/hermes", "--resume", "abc"]
+        assert argv == ["/usr/bin/gengar", "--resume", "abc"]
 
 
 class TestRelaunch:
@@ -147,9 +147,9 @@ class TestRelaunch:
             raise SystemExit(0)
 
         monkeypatch.setattr(relaunch_mod.os, "execvp", fake_execvp)
-        monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: "/usr/bin/hermes")
+        monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: "/usr/bin/gengar")
 
         with pytest.raises(SystemExit):
             relaunch_mod.relaunch(["--resume", "abc"])
 
-        assert calls == [("/usr/bin/hermes", ["/usr/bin/hermes", "--resume", "abc"])]
+        assert calls == [("/usr/bin/gengar", ["/usr/bin/gengar", "--resume", "abc"])]

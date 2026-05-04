@@ -446,7 +446,7 @@ def _emit_inline_diff(diff_text: str, print_fn) -> bool:
 
 
 def _render_inline_unified_diff(diff: str) -> list[str]:
-    """Render unified diff lines in Hermes' inline transcript style."""
+    """Render unified diff lines in Gengar' inline transcript style."""
     rendered: list[str] = []
     from_file = None
     to_file = None
@@ -725,7 +725,7 @@ class KawaiiSpinner:
         wings = skin.get_spinner_wings() if skin else []
 
         while self.running:
-            if os.getenv("HERMES_SPINNER_PAUSE"):
+            if os.getenv("GENGAR_SPINNER_PAUSE"):
                 time.sleep(0.1)
                 continue
             frame = self.spinner_frames[self.frame_idx % len(self.spinner_frames)]

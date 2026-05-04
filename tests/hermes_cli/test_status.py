@@ -4,7 +4,7 @@ from hermes_cli.status import show_status
 
 
 def test_show_status_includes_tavily_key(monkeypatch, capsys, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
     monkeypatch.setenv("TAVILY_API_KEY", "tvly-1234567890abcdef")
 
     show_status(SimpleNamespace(all=False, deep=False))
@@ -40,7 +40,7 @@ def test_show_status_termux_gateway_section_skips_systemctl(monkeypatch, capsys,
 
     output = capsys.readouterr().out
     assert "Manager:      Termux / manual process" in output
-    assert "Start with:   hermes gateway" in output
+    assert "Start with:   gengar gateway" in output
     assert "systemd (user)" not in output
 
 
@@ -75,7 +75,7 @@ def test_show_status_reports_nous_auth_error(monkeypatch, capsys, tmp_path):
     status_mod.show_status(SimpleNamespace(all=False, deep=False))
 
     output = capsys.readouterr().out
-    assert "Nous Portal   ✗ not logged in (run: hermes auth add nous --type oauth)" in output
+    assert "Nous Portal   ✗ not logged in (run: gengar auth add nous --type oauth)" in output
     assert "Error:      Refresh session has been revoked" in output
     assert "Access exp:" in output
     assert "Key exp:" in output
@@ -86,7 +86,7 @@ def test_show_status_reports_vercel_backend_contract(monkeypatch, capsys, tmp_pa
     import hermes_cli.auth as auth_mod
     import hermes_cli.gateway as gateway_mod
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
     monkeypatch.setenv("TERMINAL_ENV", "vercel_sandbox")
     monkeypatch.setenv("TERMINAL_VERCEL_RUNTIME", "python3.13")
     monkeypatch.setenv("TERMINAL_CONTAINER_PERSISTENT", "true")

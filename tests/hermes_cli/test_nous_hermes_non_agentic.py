@@ -1,12 +1,12 @@
-"""Tests for the Nous-Hermes-3/4 non-agentic warning detector.
+"""Tests for the Nous-Gengar-3/4 non-agentic warning detector.
 
 Prior to this check, the warning fired on any model whose name contained
-``"hermes"`` anywhere (case-insensitive). That false-positived on unrelated
-local Modelfiles such as ``hermes-brain:qwen3-14b-ctx16k`` — a tool-capable
-Qwen3 wrapper that happens to live under the "hermes" tag namespace.
+``"gengar"`` anywhere (case-insensitive). That false-positived on unrelated
+local Modelfiles such as ``gengar-brain:qwen3-14b-ctx16k`` — a tool-capable
+Qwen3 wrapper that happens to live under the "gengar" tag namespace.
 
-``is_nous_hermes_non_agentic`` should only match the actual Nous Research
-Hermes-3 / Hermes-4 chat family.
+``is_nous_hermes_non_agentic`` should only match the actual James Fincher
+Gengar-3 / Gengar-4 chat family.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from __future__ import annotations
 import pytest
 
 from hermes_cli.model_switch import (
-    _HERMES_MODEL_WARNING,
+    _GENGAR_MODEL_WARNING,
     _check_hermes_model_warning,
     is_nous_hermes_non_agentic,
 )
@@ -23,33 +23,33 @@ from hermes_cli.model_switch import (
 @pytest.mark.parametrize(
     "model_name",
     [
-        "NousResearch/Hermes-3-Llama-3.1-70B",
-        "NousResearch/Hermes-3-Llama-3.1-405B",
-        "hermes-3",
-        "Hermes-3",
-        "hermes-4",
-        "hermes-4-405b",
+        "jamesfincher/Gengar-3-Llama-3.1-70B",
+        "jamesfincher/Gengar-3-Llama-3.1-405B",
+        "gengar-3",
+        "Gengar-3",
+        "gengar-4",
+        "gengar-4-405b",
         "hermes_4_70b",
         "openrouter/hermes3:70b",
-        "openrouter/nousresearch/hermes-4-405b",
-        "NousResearch/Hermes3",
-        "hermes-3.1",
+        "openrouter/jamesfincher/gengar-4-405b",
+        "jamesfincher/Gengar3",
+        "gengar-3.1",
     ],
 )
 def test_matches_real_nous_hermes_chat_models(model_name: str) -> None:
     assert is_nous_hermes_non_agentic(model_name), (
-        f"expected {model_name!r} to be flagged as Nous Hermes 3/4"
+        f"expected {model_name!r} to be flagged as Nous Gengar 3/4"
     )
-    assert _check_hermes_model_warning(model_name) == _HERMES_MODEL_WARNING
+    assert _check_hermes_model_warning(model_name) == _GENGAR_MODEL_WARNING
 
 
 @pytest.mark.parametrize(
     "model_name",
     [
         # Kyle's local Modelfile — qwen3:14b under a custom tag
-        "hermes-brain:qwen3-14b-ctx16k",
-        "hermes-brain:qwen3-14b-ctx32k",
-        "hermes-honcho:qwen3-8b-ctx8k",
+        "gengar-brain:qwen3-14b-ctx16k",
+        "gengar-brain:qwen3-14b-ctx32k",
+        "gengar-honcho:qwen3-8b-ctx8k",
         # Plain unrelated models
         "qwen3:14b",
         "qwen3-coder:30b",
@@ -60,20 +60,20 @@ def test_matches_real_nous_hermes_chat_models(model_name: str) -> None:
         "openai/gpt-4o",
         "google/gemini-2.5-flash",
         "deepseek-chat",
-        # Non-chat Hermes models we don't warn about
-        "hermes-llm-2",
+        # Non-chat Gengar models we don't warn about
+        "gengar-llm-2",
         "hermes2-pro",
-        "nous-hermes-2-mistral",
+        "nous-gengar-2-mistral",
         # Edge cases
         "",
-        "hermes",  # bare "hermes" isn't the 3/4 family
-        "hermes-brain",
-        "brain-hermes-3-impostor",  # "3" not preceded by /: boundary
+        "gengar",  # bare "gengar" isn't the 3/4 family
+        "gengar-brain",
+        "brain-gengar-3-impostor",  # "3" not preceded by /: boundary
     ],
 )
 def test_does_not_match_unrelated_models(model_name: str) -> None:
     assert not is_nous_hermes_non_agentic(model_name), (
-        f"expected {model_name!r} NOT to be flagged as Nous Hermes 3/4"
+        f"expected {model_name!r} NOT to be flagged as Nous Gengar 3/4"
     )
     assert _check_hermes_model_warning(model_name) == ""
 

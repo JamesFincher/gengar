@@ -17,20 +17,20 @@ Delegate coding to OpenCode CLI (features, PR review).
 | Source | Bundled (installed by default) |
 | Path | `skills/autonomous-ai-agents/opencode` |
 | Version | `1.2.0` |
-| Author | Hermes Agent |
+| Author | Gengar |
 | License | MIT |
 | Tags | `Coding-Agent`, `OpenCode`, `Autonomous`, `Refactoring`, `Code-Review` |
-| Related skills | [`claude-code`](/docs/user-guide/skills/bundled/autonomous-ai-agents/autonomous-ai-agents-claude-code), [`codex`](/docs/user-guide/skills/bundled/autonomous-ai-agents/autonomous-ai-agents-codex), [`hermes-agent`](/docs/user-guide/skills/bundled/autonomous-ai-agents/autonomous-ai-agents-hermes-agent) |
+| Related skills | [`claude-code`](/docs/user-guide/skills/bundled/autonomous-ai-agents/autonomous-ai-agents-claude-code), [`codex`](/docs/user-guide/skills/bundled/autonomous-ai-agents/autonomous-ai-agents-codex), [`gengar`](/docs/user-guide/skills/bundled/autonomous-ai-agents/autonomous-ai-agents-gengar) |
 
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Gengar loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # OpenCode CLI
 
-Use [OpenCode](https://opencode.ai) as an autonomous coding worker orchestrated by Hermes terminal/process tools. OpenCode is a provider-agnostic, open-source AI coding agent with a TUI and CLI.
+Use [OpenCode](https://opencode.ai) as an autonomous coding worker orchestrated by Gengar terminal/process tools. OpenCode is a provider-agnostic, open-source AI coding agent with a TUI and CLI.
 
 ## When to Use
 
@@ -49,7 +49,7 @@ Use [OpenCode](https://opencode.ai) as an autonomous coding worker orchestrated 
 
 ## Binary Resolution (Important)
 
-Shell environments may resolve different OpenCode binaries. If behavior differs between your terminal and Hermes, check:
+Shell environments may resolve different OpenCode binaries. If behavior differs between your terminal and Gengar, check:
 
 ```
 terminal(command="which -a opencode")

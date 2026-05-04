@@ -15,15 +15,15 @@ import pytest
 
 @pytest.fixture
 def hermes_home(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME so SessionDB.state_meta writes don't clobber the real one."""
+    """Isolated GENGAR_HOME so SessionDB.state_meta writes don't clobber the real one."""
     from pathlib import Path
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
 
-    # Bust the goal-module's DB cache for each test so it re-resolves HERMES_HOME.
+    # Bust the goal-module's DB cache for each test so it re-resolves GENGAR_HOME.
     from hermes_cli import goals
 
     goals._DB_CACHE.clear()
@@ -329,10 +329,10 @@ class TestGoalManager:
         from hermes_cli.goals import GoalManager
 
         mgr = GoalManager(session_id="cont-sid")
-        mgr.set("port goal command to hermes")
+        mgr.set("port goal command to gengar")
         prompt = mgr.next_continuation_prompt()
         assert prompt is not None
-        assert "port goal command to hermes" in prompt
+        assert "port goal command to gengar" in prompt
         assert prompt.strip()  # non-empty
 
 

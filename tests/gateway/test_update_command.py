@@ -50,12 +50,12 @@ class TestHandleUpdateCommand:
     async def test_managed_install_returns_package_manager_guidance(self, monkeypatch):
         runner = _make_runner()
         event = _make_event()
-        monkeypatch.setenv("HERMES_MANAGED", "homebrew")
+        monkeypatch.setenv("GENGAR_MANAGED", "homebrew")
 
         result = await runner._handle_update_command(event)
 
         assert "managed by Homebrew" in result
-        assert "brew upgrade hermes-agent" in result
+        assert "brew upgrade gengar" in result
 
     @pytest.mark.asyncio
     async def test_no_git_directory(self, tmp_path):
@@ -81,7 +81,7 @@ class TestHandleUpdateCommand:
             # The handler does Path(__file__).parent.parent.resolve()
             # We need to make project_root / '.git' not exist.
             # Since Path(__file__) resolves to the real gateway/run.py,
-            # project_root will be the real hermes-agent dir (which HAS .git).
+            # project_root will be the real gengar dir (which HAS .git).
             # Patch Path to control this.
             original_path = Path
 
@@ -100,7 +100,7 @@ class TestHandleUpdateCommand:
 
     @pytest.mark.asyncio
     async def test_no_hermes_binary(self, tmp_path):
-        """Returns error when hermes is not on PATH and hermes_cli is not importable."""
+        """Returns error when gengar is not on PATH and hermes_cli is not importable."""
         runner = _make_runner()
         event = _make_event()
 
@@ -119,11 +119,11 @@ class TestHandleUpdateCommand:
             result = await runner._handle_update_command(event)
 
         assert "Could not locate" in result
-        assert "hermes update" in result
+        assert "gengar update" in result
 
     @pytest.mark.asyncio
     async def test_fallback_to_sys_executable(self, tmp_path):
-        """Falls back to sys.executable -m hermes_cli.main when hermes not on PATH."""
+        """Falls back to sys.executable -m hermes_cli.main when gengar not on PATH."""
         runner = _make_runner()
         event = _make_event()
 
@@ -133,7 +133,7 @@ class TestHandleUpdateCommand:
         (fake_root / "gateway").mkdir()
         (fake_root / "gateway" / "run.py").touch()
         fake_file = str(fake_root / "gateway" / "run.py")
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         mock_popen = MagicMock()
@@ -146,7 +146,7 @@ class TestHandleUpdateCommand:
              patch("subprocess.Popen", mock_popen):
             result = await runner._handle_update_command(event)
 
-        assert "Starting Hermes update" in result
+        assert "Starting Gengar update" in result
         call_args = mock_popen.call_args[0][0]
         # The update_cmd uses sys.executable -m hermes_cli.main
         joined = " ".join(call_args) if isinstance(call_args, list) else call_args
@@ -157,10 +157,10 @@ class TestHandleUpdateCommand:
         """_resolve_hermes_bin returns argv parts from shutil.which when available."""
         from gateway.run import _resolve_hermes_bin
 
-        with patch("shutil.which", return_value="/custom/path/hermes"):
+        with patch("shutil.which", return_value="/custom/path/gengar"):
             result = _resolve_hermes_bin()
 
-        assert result == ["/custom/path/hermes"]
+        assert result == ["/custom/path/gengar"]
 
     @pytest.mark.asyncio
     async def test_resolve_hermes_bin_fallback(self):
@@ -198,12 +198,12 @@ class TestHandleUpdateCommand:
         (fake_root / "gateway").mkdir()
         (fake_root / "gateway" / "run.py").touch()
         fake_file = str(fake_root / "gateway" / "run.py")
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         with patch("gateway.run._hermes_home", hermes_home), \
              patch("gateway.run.__file__", fake_file), \
-             patch("shutil.which", side_effect=lambda x: "/usr/bin/hermes" if x == "hermes" else "/usr/bin/setsid"), \
+             patch("shutil.which", side_effect=lambda x: "/usr/bin/gengar" if x == "gengar" else "/usr/bin/setsid"), \
              patch("subprocess.Popen"):
             result = await runner._handle_update_command(event)
 
@@ -231,12 +231,12 @@ class TestHandleUpdateCommand:
         (fake_root / "gateway").mkdir()
         (fake_root / "gateway" / "run.py").touch()
         fake_file = str(fake_root / "gateway" / "run.py")
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         with patch("gateway.run._hermes_home", hermes_home), \
              patch("gateway.run.__file__", fake_file), \
-             patch("shutil.which", side_effect=lambda x: "/usr/bin/hermes" if x == "hermes" else "/usr/bin/setsid"), \
+             patch("shutil.which", side_effect=lambda x: "/usr/bin/gengar" if x == "gengar" else "/usr/bin/setsid"), \
              patch("subprocess.Popen"):
             await runner._handle_update_command(event)
 
@@ -255,7 +255,7 @@ class TestHandleUpdateCommand:
         (fake_root / "gateway").mkdir()
         (fake_root / "gateway" / "run.py").touch()
         fake_file = str(fake_root / "gateway" / "run.py")
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         mock_popen = MagicMock()
@@ -270,7 +270,7 @@ class TestHandleUpdateCommand:
         assert call_args[0] == "/usr/bin/setsid"
         assert call_args[1] == "bash"
         assert ".update_exit_code" in call_args[-1]
-        assert "Starting Hermes update" in result
+        assert "Starting Gengar update" in result
 
     @pytest.mark.asyncio
     async def test_fallback_when_no_setsid(self, tmp_path):
@@ -284,14 +284,14 @@ class TestHandleUpdateCommand:
         (fake_root / "gateway").mkdir()
         (fake_root / "gateway" / "run.py").touch()
         fake_file = str(fake_root / "gateway" / "run.py")
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         mock_popen = MagicMock()
 
         def which_no_setsid(x):
-            if x == "hermes":
-                return "/usr/bin/hermes"
+            if x == "gengar":
+                return "/usr/bin/gengar"
             if x == "setsid":
                 return None
             return None
@@ -310,7 +310,7 @@ class TestHandleUpdateCommand:
         # start_new_session=True should be in kwargs
         call_kwargs = mock_popen.call_args[1]
         assert call_kwargs.get("start_new_session") is True
-        assert "Starting Hermes update" in result
+        assert "Starting Gengar update" in result
 
     @pytest.mark.asyncio
     async def test_popen_failure_cleans_up(self, tmp_path):
@@ -324,7 +324,7 @@ class TestHandleUpdateCommand:
         (fake_root / "gateway").mkdir()
         (fake_root / "gateway" / "run.py").touch()
         fake_file = str(fake_root / "gateway" / "run.py")
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         with patch("gateway.run._hermes_home", hermes_home), \
@@ -350,7 +350,7 @@ class TestHandleUpdateCommand:
         (fake_root / "gateway").mkdir()
         (fake_root / "gateway" / "run.py").touch()
         fake_file = str(fake_root / "gateway" / "run.py")
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         with patch("gateway.run._hermes_home", hermes_home), \
@@ -374,7 +374,7 @@ class TestSendUpdateNotification:
     async def test_no_pending_file_is_noop(self, tmp_path):
         """Does nothing when no pending file exists."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         with patch("gateway.run._hermes_home", hermes_home):
@@ -385,7 +385,7 @@ class TestSendUpdateNotification:
     async def test_defers_notification_while_update_still_running(self, tmp_path):
         """Returns False and keeps marker files when the update has not exited yet."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending_path = hermes_home / ".update_pending.json"
@@ -408,7 +408,7 @@ class TestSendUpdateNotification:
     async def test_recovers_from_claimed_pending_file(self, tmp_path):
         """A claimed pending file from a crashed notifier is still deliverable."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         claimed_path = hermes_home / ".update_pending.claimed.json"
@@ -432,7 +432,7 @@ class TestSendUpdateNotification:
     async def test_sends_notification_with_output(self, tmp_path):
         """Sends update output to the correct platform and chat."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         # Write pending marker
@@ -465,7 +465,7 @@ class TestSendUpdateNotification:
     async def test_sends_notification_with_thread_metadata(self, tmp_path):
         """Final update notification preserves thread metadata when present."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending = {
@@ -490,7 +490,7 @@ class TestSendUpdateNotification:
     async def test_strips_ansi_codes(self, tmp_path):
         """ANSI escape codes are removed from output."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending = {"platform": "telegram", "chat_id": "111", "user_id": "222"}
@@ -514,7 +514,7 @@ class TestSendUpdateNotification:
     async def test_truncates_long_output(self, tmp_path):
         """Output longer than 3500 chars is truncated."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending = {"platform": "telegram", "chat_id": "111", "user_id": "222"}
@@ -538,7 +538,7 @@ class TestSendUpdateNotification:
     async def test_sends_failure_message_when_update_fails(self, tmp_path):
         """Non-zero exit codes produce a failure notification with captured output."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending = {"platform": "telegram", "chat_id": "111", "user_id": "222"}
@@ -561,7 +561,7 @@ class TestSendUpdateNotification:
     async def test_sends_generic_message_when_no_output(self, tmp_path):
         """Sends a success message even if the output file is missing."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending = {"platform": "telegram", "chat_id": "111", "user_id": "222"}
@@ -582,7 +582,7 @@ class TestSendUpdateNotification:
     async def test_cleans_up_files_after_notification(self, tmp_path):
         """Both marker and output files are deleted after notification."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending_path = hermes_home / ".update_pending.json"
@@ -608,7 +608,7 @@ class TestSendUpdateNotification:
     async def test_cleans_up_on_error(self, tmp_path):
         """Files are cleaned up even if notification fails."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending_path = hermes_home / ".update_pending.json"
@@ -637,7 +637,7 @@ class TestSendUpdateNotification:
     async def test_handles_corrupt_pending_file(self, tmp_path):
         """Gracefully handles a malformed pending JSON file."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending_path = hermes_home / ".update_pending.json"
@@ -654,7 +654,7 @@ class TestSendUpdateNotification:
     async def test_no_adapter_for_platform(self, tmp_path):
         """Does not crash if the platform adapter is not connected."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending = {"platform": "discord", "chat_id": "111", "user_id": "222"}

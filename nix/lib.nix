@@ -18,14 +18,14 @@
   # trailing newline so both sides always match.
   #
   # Usage:
-  #   npm = hermesNpmLib.mkNpmPassthru { folder = "ui-tui"; attr = "tui"; pname = "hermes-tui"; };
+  #   npm = hermesNpmLib.mkNpmPassthru { folder = "ui-tui"; attr = "tui"; pname = "gengar-tui"; };
   #   pkgs.buildNpmPackage (npm // { ... } # or:
   #   pkgs.buildNpmPackage ({ ... } // npm)
   mkNpmPassthru =
     {
       folder, # repo-relative folder with package.json, e.g. "ui-tui"
       attr, # flake package attr, e.g. "tui"
-      pname, # e.g. "hermes-tui"
+      pname, # e.g. "gengar-tui"
       nixFile ? "nix/${attr}.nix", # defaults to nix/<attr>.nix
     }:
     {

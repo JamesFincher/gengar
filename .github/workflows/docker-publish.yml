@@ -23,7 +23,7 @@ concurrency:
 jobs:
   build-and-push:
     # Only run on the upstream repository, not on forks
-    if: github.repository == 'NousResearch/hermes-agent'
+    if: github.repository == 'jamesfincher/gengar'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -48,24 +48,24 @@ jobs:
           file: Dockerfile
           load: true
           platforms: linux/amd64
-          tags: nousresearch/hermes-agent:test
+          tags: jamesfincher/gengar:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Test image starts
         run: |
-          # The image runs as the hermes user (UID 10000).  GitHub Actions
-          # creates /tmp/hermes-test root-owned by default, which hermes
+          # The image runs as the gengar user (UID 10000).  GitHub Actions
+          # creates /tmp/gengar-test root-owned by default, which gengar
           # can't write to — chown it to match the in-container UID before
-          # bind-mounting.  Real users doing `docker run -v ~/.hermes:...`
+          # bind-mounting.  Real users doing `docker run -v ~/.gengar:...`
           # with their own UID hit the same issue and have their own
-          # remediations (HERMES_UID env var, or chown locally).
-          mkdir -p /tmp/hermes-test
-          sudo chown -R 10000:10000 /tmp/hermes-test
+          # remediations (GENGAR_UID env var, or chown locally).
+          mkdir -p /tmp/gengar-test
+          sudo chown -R 10000:10000 /tmp/gengar-test
           docker run --rm \
-            -v /tmp/hermes-test:/opt/data \
-            --entrypoint /opt/hermes/docker/entrypoint.sh \
-            nousresearch/hermes-agent:test --help
+            -v /tmp/gengar-test:/opt/data \
+            --entrypoint /opt/gengar/docker/entrypoint.sh \
+            jamesfincher/gengar:test --help
 
       - name: Log in to Docker Hub
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'release'
@@ -82,7 +82,7 @@ jobs:
           file: Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: nousresearch/hermes-agent:latest
+          tags: jamesfincher/gengar:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -94,6 +94,6 @@ jobs:
           file: Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: nousresearch/hermes-agent:${{ github.event.release.tag_name }}
+          tags: jamesfincher/gengar:${{ github.event.release.tag_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

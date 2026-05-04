@@ -1,14 +1,14 @@
 ---
 sidebar_position: 12
 title: "Kanban (Multi-Agent Board)"
-description: "Durable SQLite-backed task board for coordinating multiple Hermes profiles"
+description: "Durable SQLite-backed task board for coordinating multiple Gengar profiles"
 ---
 
 # Kanban — Multi-Agent Profile Collaboration
 
 > **Want a walkthrough?** Read the [Kanban tutorial](./kanban-tutorial) — four user stories (solo dev, fleet farming, role pipeline with retry, circuit breaker) with dashboard screenshots of each. This page is the reference; the tutorial is the narrative.
 
-Hermes Kanban is a durable task board, shared across all your Hermes profiles, that lets multiple named agents collaborate on work without fragile in-process subagent swarms. Every task is a row in `~/.hermes/kanban.db`; every handoff is a row anyone can read and write; every worker is a full OS process with its own identity.
+Gengar Kanban is a durable task board, shared across all your Gengar profiles, that lets multiple named agents collaborate on work without fragile in-process subagent swarms. Every task is a row in `~/.gengar/kanban.db`; every handoff is a row anyone can read and write; every worker is a full OS process with its own identity.
 
 This is the shape that covers the workloads `delegate_task` can't:
 
@@ -18,7 +18,7 @@ This is the shape that covers the workloads `delegate_task` can't:
 - **Engineering pipelines** — decompose → implement in parallel worktrees → review → iterate → PR.
 - **Fleet work** — one specialist managing N subjects (50 social accounts, 12 monitored services).
 
-For the full design rationale, comparative analysis against Cline Kanban / Paperclip / NanoClaw / Google Gemini Enterprise, and the eight canonical collaboration patterns, see `docs/hermes-kanban-v1-spec.pdf` in the repository.
+For the full design rationale, comparative analysis against Cline Kanban / Paperclip / NanoClaw / Google Gemini Enterprise, and the eight canonical collaboration patterns, see `docs/gengar-kanban-v1-spec.pdf` in the repository.
 
 ## Kanban vs. `delegate_task`
 
@@ -49,7 +49,7 @@ They coexist: a kanban worker may call `delegate_task` internally during its run
 - **Link** — `task_links` row recording a parent → child dependency. The dispatcher promotes `todo → ready` when all parents are `done`.
 - **Comment** — the inter-agent protocol. Agents and humans append comments; when a worker is (re-)spawned it reads the full comment thread as part of its context.
 - **Workspace** — the directory a worker operates in. Three kinds:
-  - `scratch` (default) — fresh tmp dir under `~/.hermes/kanban/workspaces/<id>/`.
+  - `scratch` (default) — fresh tmp dir under `~/.gengar/kanban/workspaces/<id>/`.
   - `dir:<path>` — an existing shared directory (Obsidian vault, mail ops dir, per-account folder). **Must be an absolute path.** Relative paths like `dir:../tenants/foo/` are rejected at dispatch because they'd resolve against whatever CWD the dispatcher happens to be in, which is ambiguous and a confused-deputy escape vector. The path is otherwise trusted — it's your box, your filesystem, the worker runs with your uid. This is the trusted-local-user threat model; kanban is single-host by design.
   - `worktree` — a git worktree under `.worktrees/<id>/` for coding tasks. Worker-side `git worktree add` creates it.
 - **Dispatcher** — a long-lived loop that, every N seconds (default 60): reclaims stale claims, reclaims crashed workers (PID gone but TTL not yet expired), promotes ready tasks, atomically claims, spawns assigned profiles. Runs **inside the gateway** by default (`kanban.dispatch_in_gateway: true`). After ~5 consecutive spawn failures on the same task the dispatcher auto-blocks it with the last error as the reason — prevents thrashing on tasks whose profile doesn't exist, workspace can't mount, etc.
@@ -59,20 +59,20 @@ They coexist: a kanban worker may call `delegate_task` internally during its run
 
 ```bash
 # 1. Create the board
-hermes kanban init
+gengar kanban init
 
 # 2. Start the gateway (hosts the embedded dispatcher)
-hermes gateway start
+gengar gateway start
 
 # 3. Create a task
-hermes kanban create "research AI funding landscape" --assignee researcher
+gengar kanban create "research AI funding landscape" --assignee researcher
 
 # 4. Watch activity live
-hermes kanban watch
+gengar kanban watch
 
 # 5. See the board
-hermes kanban list
-hermes kanban stats
+gengar kanban list
+gengar kanban stats
 ```
 
 ### Gateway-embedded dispatcher (default)
@@ -88,14 +88,14 @@ kanban:
   dispatch_interval_seconds: 60    # default
 ```
 
-Override the config flag at runtime via `HERMES_KANBAN_DISPATCH_IN_GATEWAY=0`
-for debugging. Standard gateway supervision applies: run `hermes gateway
+Override the config flag at runtime via `GENGAR_KANBAN_DISPATCH_IN_GATEWAY=0`
+for debugging. Standard gateway supervision applies: run `gengar gateway
 start` directly, or wire the gateway up as a systemd user unit (see the
 gateway docs). Without a running gateway, `ready` tasks stay where they are
-until one comes up — `hermes kanban create` warns about this at creation
+until one comes up — `gengar kanban create` warns about this at creation
 time.
 
-Running `hermes kanban daemon` as a separate process is **deprecated**;
+Running `gengar kanban daemon` as a separate process is **deprecated**;
 use the gateway. If you truly cannot run the gateway (headless host
 policy forbids long-lived services, etc.) a `--force` escape hatch keeps
 the old standalone daemon alive for one release cycle, but running both
@@ -107,7 +107,7 @@ a gateway-embedded dispatcher AND a standalone daemon against the same
 ```bash
 # First call creates the task. Any subsequent call with the same key
 # returns the existing task id instead of duplicating.
-hermes kanban create "nightly ops review" \
+gengar kanban create "nightly ops review" \
     --assignee ops \
     --idempotency-key "nightly-ops-$(date -u +%Y-%m-%d)" \
     --json
@@ -119,15 +119,15 @@ All the lifecycle verbs accept multiple ids so you can clean up a batch
 in one command:
 
 ```bash
-hermes kanban complete t_abc t_def t_hij --result "batch wrap"
-hermes kanban archive  t_abc t_def t_hij
-hermes kanban unblock  t_abc t_def
-hermes kanban block    t_abc "need input" --ids t_def t_hij
+gengar kanban complete t_abc t_def t_hij --result "batch wrap"
+gengar kanban archive  t_abc t_def t_hij
+gengar kanban unblock  t_abc t_def
+gengar kanban block    t_abc "need input" --ids t_def t_hij
 ```
 
 ## How workers interact with the board
 
-When the dispatcher spawns a worker, it sets `HERMES_KANBAN_TASK` in the child's env. That env var is the gate for a dedicated **kanban toolset** — 7 tools that the normal agent schema never sees:
+When the dispatcher spawns a worker, it sets `GENGAR_KANBAN_TASK` in the child's env. That env var is the gate for a dedicated **kanban toolset** — 7 tools that the normal agent schema never sees:
 
 | Tool | Purpose |
 |---|---|
@@ -139,13 +139,13 @@ When the dispatcher spawns a worker, it sets `HERMES_KANBAN_TASK` in the child's
 | `kanban_create` | (Orchestrators) fan out into child tasks. |
 | `kanban_link` | (Orchestrators) add dependency edges after the fact. |
 
-**Why tools and not just shelling to `hermes kanban`?** Three reasons:
+**Why tools and not just shelling to `gengar kanban`?** Three reasons:
 
-1. **Backend portability.** Workers whose terminal tool points at a remote backend (Docker / Modal / Singularity / SSH) would run `hermes kanban complete` inside the container where `hermes` isn't installed and the DB isn't mounted. The kanban tools run in the agent's own Python process and always reach `~/.hermes/kanban.db` regardless of terminal backend.
+1. **Backend portability.** Workers whose terminal tool points at a remote backend (Docker / Modal / Singularity / SSH) would run `gengar kanban complete` inside the container where `gengar` isn't installed and the DB isn't mounted. The kanban tools run in the agent's own Python process and always reach `~/.gengar/kanban.db` regardless of terminal backend.
 2. **No shell-quoting fragility.** Passing `--metadata '{"files": [...]}'` through shlex + argparse is a latent footgun. Structured tool args skip it.
 3. **Better errors.** Tool results are structured JSON the model can reason about, not stderr strings it has to parse.
 
-**Zero schema footprint on normal sessions.** A regular `hermes chat` session has zero `kanban_*` tools in its schema. The `check_fn` on each tool only returns True when `HERMES_KANBAN_TASK` is set, which only happens when the dispatcher spawned this process. No tool bloat for users who never touch kanban.
+**Zero schema footprint on normal sessions.** A regular `gengar chat` session has zero `kanban_*` tools in its schema. The `check_fn` on each tool only returns True when `GENGAR_KANBAN_TASK` is set, which only happens when the dispatcher spawned this process. No tool bloat for users who never touch kanban.
 
 The `kanban-worker` and `kanban-orchestrator` skills teach the model which tool to call when and in what order.
 
@@ -154,14 +154,14 @@ The `kanban-worker` and `kanban-orchestrator` skills teach the model which tool 
 Any profile that should be able to work kanban tasks must load the `kanban-worker` skill. It teaches the worker the full lifecycle:
 
 1. On spawn, call `kanban_show()` to read title + body + parent handoffs + prior attempts + full comment thread.
-2. `cd $HERMES_KANBAN_WORKSPACE` and do the work there.
+2. `cd $GENGAR_KANBAN_WORKSPACE` and do the work there.
 3. Call `kanban_heartbeat(note="...")` every few minutes during long operations.
 4. Complete with `kanban_complete(summary="...", metadata={...})`, or `kanban_block(reason="...")` if stuck.
 
 Load it with:
 
 ```bash
-hermes skills install devops/kanban-worker
+gengar skills install devops/kanban-worker
 ```
 
 The dispatcher also auto-passes `--skills kanban-worker` when spawning every worker, so the worker always has the pattern library available even if a profile's default skills config doesn't include it.
@@ -172,12 +172,12 @@ Sometimes a single task needs specialist context the assignee profile doesn't ca
 
 ```bash
 # CLI — repeat --skill for each extra skill
-hermes kanban create "translate README to Japanese" \
+gengar kanban create "translate README to Japanese" \
     --assignee linguist \
     --skill translation
 
 # Multiple skills
-hermes kanban create "audit auth flow" \
+gengar kanban create "audit auth flow" \
     --assignee reviewer \
     --skill security-pr-audit \
     --skill github-code-review
@@ -193,7 +193,7 @@ kanban_create(
 )
 ```
 
-These skills are **additive** to the built-in `kanban-worker` — the dispatcher emits one `--skills <name>` flag for each (and for the built-in), so the worker spawns with all of them loaded. The skill names must match skills that are actually installed on the assignee's profile (run `hermes skills list` to see what's available); there's no runtime install.
+These skills are **additive** to the built-in `kanban-worker` — the dispatcher emits one `--skills <name>` flag for each (and for the built-in), so the worker spawns with all of them loaded. The skill names must match skills that are actually installed on the assignee's profile (run `gengar skills list` to see what's available); there's no runtime install.
 
 ### The orchestrator skill
 
@@ -202,26 +202,26 @@ A **well-behaved orchestrator does not do the work itself.** It decomposes the u
 Load it into your orchestrator profile:
 
 ```bash
-hermes skills install devops/kanban-orchestrator
+gengar skills install devops/kanban-orchestrator
 ```
 
 For best results, pair it with a profile whose toolsets are restricted to board operations (`kanban`, `gateway`, `memory`) so the orchestrator literally cannot execute implementation tasks even if it tries.
 
 ## Dashboard (GUI)
 
-The `/kanban` CLI and slash command are enough to run the board headlessly, but a visual board is often the right interface for humans-in-the-loop: triage, cross-profile supervision, reading comment threads, and dragging cards between columns. Hermes ships this as a **bundled dashboard plugin** at `plugins/kanban/` — not a core feature, not a separate service — following the model laid out in [Extending the Dashboard](./extending-the-dashboard).
+The `/kanban` CLI and slash command are enough to run the board headlessly, but a visual board is often the right interface for humans-in-the-loop: triage, cross-profile supervision, reading comment threads, and dragging cards between columns. Gengar ships this as a **bundled dashboard plugin** at `plugins/kanban/` — not a core feature, not a separate service — following the model laid out in [Extending the Dashboard](./extending-the-dashboard).
 
 Open it with:
 
 ```bash
-hermes kanban init      # one-time: create kanban.db if not already present
-hermes dashboard        # "Kanban" tab appears in the nav, after "Skills"
+gengar kanban init      # one-time: create kanban.db if not already present
+gengar dashboard        # "Kanban" tab appears in the nav, after "Skills"
 ```
 
 ### What the plugin gives you
 
 - A **Kanban** tab showing one column per status: `triage`, `todo`, `ready`, `running`, `blocked`, `done` (plus `archived` when the toggle is on).
-  - `triage` is the parking column for rough ideas a specifier is expected to flesh out. Tasks created with `hermes kanban create --triage` (or via the Triage column's inline create) land here and the dispatcher leaves them alone until a human or specifier promotes them to `todo` / `ready`.
+  - `triage` is the parking column for rough ideas a specifier is expected to flesh out. Tasks created with `gengar kanban create --triage` (or via the Triage column's inline create) land here and the dispatcher leaves them alone until a human or specifier promotes them to `todo` / `ready`.
 - Cards show the task id, title, priority badge, tenant tag, assigned profile, comment/link counts, a **progress pill** (`N/M` children done when the task has dependents), and "created N ago". A per-card checkbox enables multi-select.
 - **Per-profile lanes inside Running** — toolbar checkbox toggles sub-grouping of the Running column by assignee.
 - **Live updates via WebSocket** — the plugin tails the append-only `task_events` table on a short poll interval; the board reflects changes the instant any profile (CLI, gateway, or another dashboard tab) acts. Reloads are debounced so a burst of events triggers a single refetch.
@@ -258,7 +258,7 @@ The GUI is strictly a **read-through-the-DB + write-through-kanban_db** layer wi
            │                                                  │
            ▼                                                  │
 ┌────────────────────────┐                                    │
-│  ~/.hermes/kanban.db   │ ───── append task_events ──────────┘
+│  ~/.gengar/kanban.db   │ ───── append task_events ──────────┘
 │  (WAL, shared)         │
 └────────────────────────┘
 ```
@@ -281,11 +281,11 @@ All routes are mounted under `/api/plugins/kanban/` and protected by the dashboa
 | `GET` | `/config` | Read `dashboard.kanban` preferences from `config.yaml` — `default_tenant`, `lane_by_profile`, `include_archived_by_default`, `render_markdown` |
 | `WS` | `/events?since=<event_id>` | Live stream of `task_events` rows |
 
-Every handler is a thin wrapper — the plugin is ~700 lines of Python (router + WebSocket tail + bulk batcher + config reader) and adds no new business logic. A tiny `_conn()` helper auto-initializes `kanban.db` on every read and write, so a fresh install works whether the user opened the dashboard first, hit the REST API directly, or ran `hermes kanban init`.
+Every handler is a thin wrapper — the plugin is ~700 lines of Python (router + WebSocket tail + bulk batcher + config reader) and adds no new business logic. A tiny `_conn()` helper auto-initializes `kanban.db` on every read and write, so a fresh install works whether the user opened the dashboard first, hit the REST API directly, or ran `gengar kanban init`.
 
 ### Dashboard config
 
-Any of these keys under `dashboard.kanban` in `~/.hermes/config.yaml` changes the tab's defaults — the plugin reads them at load time via `GET /config`:
+Any of these keys under `dashboard.kanban` in `~/.gengar/config.yaml` changes the tab's defaults — the plugin reads them at load time via `GET /config`:
 
 ```yaml
 dashboard:
@@ -304,9 +304,9 @@ The dashboard's HTTP auth middleware [explicitly skips `/api/plugins/`](./extend
 
 The WebSocket takes one additional step: it requires the dashboard's ephemeral session token as a `?token=…` query parameter (browsers can't set `Authorization` on an upgrade request), matching the pattern used by the in-browser PTY bridge.
 
-If you run `hermes dashboard --host 0.0.0.0`, every plugin route — kanban included — becomes reachable from the network. **Don't do that on a shared host.** The board contains task bodies, comments, and workspace paths; an attacker reaching these routes gets read access to your entire collaboration surface and can also create / reassign / archive tasks.
+If you run `gengar dashboard --host 0.0.0.0`, every plugin route — kanban included — becomes reachable from the network. **Don't do that on a shared host.** The board contains task bodies, comments, and workspace paths; an attacker reaching these routes gets read access to your entire collaboration surface and can also create / reassign / archive tasks.
 
-Tasks in `~/.hermes/kanban.db` are profile-agnostic on purpose (that's the coordination primitive). If you open the dashboard with `hermes -p <profile> dashboard`, the board still shows tasks created by any other profile on the host. Same user owns all profiles, but this is worth knowing if multiple personas coexist.
+Tasks in `~/.gengar/kanban.db` are profile-agnostic on purpose (that's the coordination primitive). If you open the dashboard with `gengar -p <profile> dashboard`, the board still shows tasks created by any other profile on the host. Same user owns all profiles, but this is worth knowing if multiple personas coexist.
 
 ### Live updates
 
@@ -314,7 +314,7 @@ Tasks in `~/.hermes/kanban.db` are profile-agnostic on purpose (that's the coord
 
 ### Extending it
 
-The plugin uses the standard Hermes dashboard plugin contract — see [Extending the Dashboard](./extending-the-dashboard) for the full manifest reference, shell slots, page-scoped slots, and the Plugin SDK. Extra columns, custom card chrome, tenant-filtered layouts, or full `tab.override` replacements are all expressible without forking this plugin.
+The plugin uses the standard Gengar dashboard plugin contract — see [Extending the Dashboard](./extending-the-dashboard) for the full manifest reference, shell slots, page-scoped slots, and the Plugin SDK. Extra columns, custom card chrome, tenant-filtered layouts, or full `tab.override` replacements are all expressible without forking this plugin.
 
 To disable without removing: add `dashboard.plugins.kanban.enabled: false` to `config.yaml` (or delete `plugins/kanban/dashboard/manifest.json`).
 
@@ -325,47 +325,47 @@ The GUI is deliberately thin. Everything the plugin does is reachable from the C
 ## CLI command reference
 
 ```
-hermes kanban init                                     # create kanban.db + print daemon hint
-hermes kanban create "<title>" [--body ...] [--assignee <profile>]
+gengar kanban init                                     # create kanban.db + print daemon hint
+gengar kanban create "<title>" [--body ...] [--assignee <profile>]
                                 [--parent <id>]... [--tenant <name>]
                                 [--workspace scratch|worktree|dir:<path>]
                                 [--priority N] [--triage] [--idempotency-key KEY]
                                 [--max-runtime 30m|2h|1d|<seconds>]
                                 [--skill <name>]...
                                 [--json]
-hermes kanban list [--mine] [--assignee P] [--status S] [--tenant T] [--archived] [--json]
-hermes kanban show <id> [--json]
-hermes kanban assign <id> <profile>                    # or 'none' to unassign
-hermes kanban link <parent_id> <child_id>
-hermes kanban unlink <parent_id> <child_id>
-hermes kanban claim <id> [--ttl SECONDS]
-hermes kanban comment <id> "<text>" [--author NAME]
+gengar kanban list [--mine] [--assignee P] [--status S] [--tenant T] [--archived] [--json]
+gengar kanban show <id> [--json]
+gengar kanban assign <id> <profile>                    # or 'none' to unassign
+gengar kanban link <parent_id> <child_id>
+gengar kanban unlink <parent_id> <child_id>
+gengar kanban claim <id> [--ttl SECONDS]
+gengar kanban comment <id> "<text>" [--author NAME]
 
 # Bulk verbs — accept multiple ids:
-hermes kanban complete <id>... [--result "..."]
-hermes kanban block <id> "<reason>" [--ids <id>...]
-hermes kanban unblock <id>...
-hermes kanban archive <id>...
+gengar kanban complete <id>... [--result "..."]
+gengar kanban block <id> "<reason>" [--ids <id>...]
+gengar kanban unblock <id>...
+gengar kanban archive <id>...
 
-hermes kanban tail <id>                                # follow a single task's event stream
-hermes kanban watch [--assignee P] [--tenant T]        # live stream ALL events to the terminal
+gengar kanban tail <id>                                # follow a single task's event stream
+gengar kanban watch [--assignee P] [--tenant T]        # live stream ALL events to the terminal
         [--kinds completed,blocked,…] [--interval SECS]
-hermes kanban heartbeat <id> [--note "..."]            # worker liveness signal for long ops
-hermes kanban runs <id> [--json]                       # attempt history (one row per run)
-hermes kanban assignees [--json]                       # profiles on disk + per-assignee task counts
-hermes kanban dispatch [--dry-run] [--max N]           # one-shot pass
+gengar kanban heartbeat <id> [--note "..."]            # worker liveness signal for long ops
+gengar kanban runs <id> [--json]                       # attempt history (one row per run)
+gengar kanban assignees [--json]                       # profiles on disk + per-assignee task counts
+gengar kanban dispatch [--dry-run] [--max N]           # one-shot pass
         [--failure-limit N] [--json]
-hermes kanban daemon --force                           # DEPRECATED — standalone dispatcher (use `hermes gateway start` instead)
+gengar kanban daemon --force                           # DEPRECATED — standalone dispatcher (use `gengar gateway start` instead)
         [--failure-limit N] [--pidfile PATH] [-v]
-hermes kanban stats [--json]                           # per-status + per-assignee counts
-hermes kanban log <id> [--tail BYTES]                  # worker log from ~/.hermes/kanban/logs/
-hermes kanban notify-subscribe <id>                    # gateway bridge hook (used by /kanban in the gateway)
+gengar kanban stats [--json]                           # per-status + per-assignee counts
+gengar kanban log <id> [--tail BYTES]                  # worker log from ~/.gengar/kanban/logs/
+gengar kanban notify-subscribe <id>                    # gateway bridge hook (used by /kanban in the gateway)
         --platform <name> --chat-id <id> [--thread-id <id>] [--user-id <id>]
-hermes kanban notify-list [<id>] [--json]
-hermes kanban notify-unsubscribe <id>
+gengar kanban notify-list [<id>] [--json]
+gengar kanban notify-unsubscribe <id>
         --platform <name> --chat-id <id> [--thread-id <id>]
-hermes kanban context <id>                             # what a worker sees
-hermes kanban gc [--event-retention-days N]            # workspaces + old events + old logs
+gengar kanban context <id>                             # what a worker sees
+gengar kanban gc [--event-retention-days N]            # workspaces + old events + old logs
         [--log-retention-days N]
 ```
 
@@ -387,20 +387,20 @@ The board supports these eight patterns without any new primitives:
 | **P8 Fleet farming** | one profile, N subjects | 50 social accounts |
 | **P9 Triage specifier** | rough idea → `triage` → specifier expands body → `todo` | "turn this one-liner into a spec' task" |
 
-For worked examples of each, see `docs/hermes-kanban-v1-spec.pdf`.
+For worked examples of each, see `docs/gengar-kanban-v1-spec.pdf`.
 
 ## Multi-tenant usage
 
 When one specialist fleet serves multiple businesses, tag each task with a tenant:
 
 ```bash
-hermes kanban create "monthly report" \
+gengar kanban create "monthly report" \
     --assignee researcher \
     --tenant business-a \
     --workspace dir:~/tenants/business-a/data/
 ```
 
-Workers receive `$HERMES_TENANT` and namespace their memory writes by prefix. The board, the dispatcher, and the profile definitions are all shared; only the data is scoped.
+Workers receive `$GENGAR_TENANT` and namespace their memory writes by prefix. The board, the dispatcher, and the profile definitions are all shared; only the data is scoped.
 
 ## Gateway notifications
 
@@ -409,10 +409,10 @@ When you run `/kanban create …` from the gateway (Telegram, Discord, Slack, et
 You can manage subscriptions explicitly from the CLI — useful when a script / cron job wants to notify a chat it didn't originate from:
 
 ```bash
-hermes kanban notify-subscribe t_abcd \
+gengar kanban notify-subscribe t_abcd \
     --platform telegram --chat-id 12345678 --thread-id 7
-hermes kanban notify-list
-hermes kanban notify-unsubscribe t_abcd \
+gengar kanban notify-list
+gengar kanban notify-unsubscribe t_abcd \
     --platform telegram --chat-id 12345678 --thread-id 7
 ```
 
@@ -434,13 +434,13 @@ Downstream children read the most recent completed run's summary + metadata for 
 
 ```bash
 # Worker completes with a structured handoff:
-hermes kanban complete t_abcd \
+gengar kanban complete t_abcd \
     --result "rate limiter shipped" \
     --summary "implemented token bucket, keys on user_id with IP fallback, all tests pass" \
     --metadata '{"changed_files": ["limiter.py", "tests/test_limiter.py"], "tests_run": 14}'
 
 # Review the attempt history on a retried task:
-hermes kanban runs t_abcd
+gengar kanban runs t_abcd
 #   #  OUTCOME       PROFILE           ELAPSED  STARTED
 #   1  blocked       worker               12s  2026-04-27 14:02
 #        → BLOCKED: need decision on rate-limit key
@@ -450,11 +450,11 @@ hermes kanban runs t_abcd
 
 Runs are exposed on the dashboard (Run History section in the drawer, one coloured row per attempt) and on the REST API (`GET /api/plugins/kanban/tasks/:id` returns a `runs[]` array). `PATCH /api/plugins/kanban/tasks/:id` with `{status: "done", summary, metadata}` forwards both to the kernel, so the dashboard's "mark done" button is CLI-equivalent. `task_events` rows carry the `run_id` they belong to so the UI can group them by attempt, and the `completed` event embeds the first-line summary in its payload (capped at 400 chars) so gateway notifiers can render structured handoffs without a second SQL round-trip.
 
-**Bulk close caveat.** `hermes kanban complete a b c --summary X` is refused — structured handoff is per-run, so copy-pasting the same summary to N tasks is almost always wrong. Bulk close *without* `--summary` / `--metadata` still works for the common "I finished a pile of admin tasks" case.
+**Bulk close caveat.** `gengar kanban complete a b c --summary X` is refused — structured handoff is per-run, so copy-pasting the same summary to N tasks is almost always wrong. Bulk close *without* `--summary` / `--metadata` still works for the common "I finished a pile of admin tasks" case.
 
 **Reclaimed runs from status changes.** If you drag a running task off `running` in the dashboard (back to `ready`, or straight to `todo`), or archive a task that was still running, the in-flight run closes with `outcome='reclaimed'` rather than being orphaned. The `task_runs` row is always in a terminal state when `tasks.current_run_id` is `NULL`, and vice versa — that invariant holds across CLI, dashboard, dispatcher, and notifier.
 
-**Synthetic runs for never-claimed completions.** Completing or blocking a task that was never claimed (e.g. a human closes a `ready` task from the dashboard with a summary, or a CLI user runs `hermes kanban complete <ready-task> --summary X`) would otherwise drop the handoff. Instead the kernel inserts a zero-duration run row (`started_at == ended_at`) carrying the summary / metadata / reason so attempt history stays complete. The `completed` / `blocked` event's `run_id` points at that row.
+**Synthetic runs for never-claimed completions.** Completing or blocking a task that was never claimed (e.g. a human closes a `ready` task from the dashboard with a summary, or a CLI user runs `gengar kanban complete <ready-task> --summary X`) would otherwise drop the handoff. Instead the kernel inserts a zero-duration run row (`started_at == ended_at`) carrying the summary / metadata / reason so attempt history stays complete. The `completed` / `blocked` event's `run_id` points at that row.
 
 **Live drawer refresh.** When the dashboard's WebSocket event stream reports new events for the task the user is currently viewing, the drawer reloads itself (via a per-task event counter threaded into its `useEffect` dependency list). Closing and reopening is no longer required to see a run's new row or updated outcome.
 
@@ -464,7 +464,7 @@ Two nullable columns on `tasks` are reserved for v2 workflow routing: `workflow_
 
 ## Event reference
 
-Every transition appends a row to `task_events`. Each row carries an optional `run_id` so UIs can group events by attempt. Kinds group into three clusters so filtering is easy (`hermes kanban watch --kinds completed,gave_up,timed_out`):
+Every transition appends a row to `task_events`. Each row carries an optional `run_id` so UIs can group events by attempt. Kinds group into three clusters so filtering is easy (`gengar kanban watch --kinds completed,gave_up,timed_out`):
 
 **Lifecycle** (what changed about the task as a logical unit):
 
@@ -492,19 +492,19 @@ Every transition appends a row to `task_events`. Each row carries an optional `r
 | Kind | Payload | When |
 |---|---|---|
 | `spawned` | `{pid}` | Dispatcher successfully started a worker process. |
-| `heartbeat` | `{note?}` | Worker called `hermes kanban heartbeat $TASK` to signal liveness during long operations. |
+| `heartbeat` | `{note?}` | Worker called `gengar kanban heartbeat $TASK` to signal liveness during long operations. |
 | `reclaimed` | `{stale_lock}` | Claim TTL expired without a completion; task goes back to `ready`. |
 | `crashed` | `{pid, claimer}` | Worker PID no longer alive but TTL hadn't expired yet. |
 | `timed_out` | `{pid, elapsed_seconds, limit_seconds, sigkill}` | `max_runtime_seconds` exceeded; dispatcher SIGTERM'd (then SIGKILL'd after 5 s grace) and re-queued. |
 | `spawn_failed` | `{error, failures}` | One spawn attempt failed (missing PATH, workspace unmountable, …). Counter increments; task returns to `ready` for retry. |
 | `gave_up` | `{failures, error}` | Circuit breaker fired after N consecutive `spawn_failed`. Task auto-blocks with the last error. Default N = 5; override via `--failure-limit`. |
 
-`hermes kanban tail <id>` shows these for a single task. `hermes kanban watch` streams them board-wide.
+`gengar kanban tail <id>` shows these for a single task. `gengar kanban watch` streams them board-wide.
 
 ## Out of scope
 
-Kanban is deliberately single-host. `~/.hermes/kanban.db` is a local SQLite file and the dispatcher spawns workers on the same machine. Running a shared board across two hosts is not supported — there's no coordination primitive for "worker X on host A, worker Y on host B," and the crash-detection path assumes PIDs are host-local. If you need multi-host, run an independent board per host and use `delegate_task` / a message queue to bridge them.
+Kanban is deliberately single-host. `~/.gengar/kanban.db` is a local SQLite file and the dispatcher spawns workers on the same machine. Running a shared board across two hosts is not supported — there's no coordination primitive for "worker X on host A, worker Y on host B," and the crash-detection path assumes PIDs are host-local. If you need multi-host, run an independent board per host and use `delegate_task` / a message queue to bridge them.
 
 ## Design spec
 
-The complete design — architecture, concurrency correctness, comparison with other systems, implementation plan, risks, open questions — lives in `docs/hermes-kanban-v1-spec.pdf`. Read that before filing any behavior-change PR.
+The complete design — architecture, concurrency correctness, comparison with other systems, implementation plan, risks, open questions — lives in `docs/gengar-kanban-v1-spec.pdf`. Read that before filing any behavior-change PR.

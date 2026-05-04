@@ -1,14 +1,14 @@
 """
-Hermes CLI - Unified command-line interface for Hermes Agent.
+Gengar CLI - Unified command-line interface for Gengar.
 
 Provides subcommands for:
-- hermes chat          - Interactive chat (same as ./hermes)
-- hermes gateway       - Run gateway in foreground
-- hermes gateway start - Start gateway service
-- hermes gateway stop  - Stop gateway service
-- hermes setup         - Interactive setup wizard
-- hermes status        - Show status of all components
-- hermes cron          - Manage cron jobs
+- gengar chat          - Interactive chat (same as ./gengar)
+- gengar gateway       - Run gateway in foreground
+- gengar gateway start - Start gateway service
+- gengar gateway stop  - Stop gateway service
+- gengar setup         - Interactive setup wizard
+- gengar status        - Show status of all components
+- gengar cron          - Manage cron jobs
 """
 
 import os

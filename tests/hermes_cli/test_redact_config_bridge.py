@@ -1,14 +1,14 @@
 """Regression test for config.yaml `security.redact_secrets: false` toggle.
 
 Bug: `agent/redact.py` snapshots `_REDACT_ENABLED` from the env var
-`HERMES_REDACT_SECRETS` at module-import time. `hermes_cli/main.py` at
+`GENGAR_REDACT_SECRETS` at module-import time. `hermes_cli/main.py` at
 line ~174 calls `setup_logging(mode="cli")` which transitively imports
 `agent.redact` — BEFORE any config bridge ran. So if a user set
 `security.redact_secrets: false` in config.yaml (instead of as an env var
-in .env), the toggle was silently ignored in both `hermes chat` and
-`hermes gateway run`.
+in .env), the toggle was silently ignored in both `gengar chat` and
+`gengar gateway run`.
 
-Fix: bridge `security.redact_secrets` from config.yaml → `HERMES_REDACT_SECRETS`
+Fix: bridge `security.redact_secrets` from config.yaml → `GENGAR_REDACT_SECRETS`
 env var in `hermes_cli/main.py` BEFORE the `setup_logging()` call.
 """
 import os
@@ -23,7 +23,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 def test_redact_secrets_false_in_config_yaml_is_honored(tmp_path):
     """Setting `security.redact_secrets: false` in config.yaml must disable
     redaction — even though it's set in YAML, not as an env var."""
-    hermes_home = tmp_path / ".hermes"
+    hermes_home = tmp_path / ".gengar"
     hermes_home.mkdir()
 
     # Write a config.yaml with redact_secrets: false
@@ -44,18 +44,18 @@ def test_redact_secrets_false_in_config_yaml_is_honored(tmp_path):
         """\
         import sys, os
         # Make absolutely sure the env var is not pre-set
-        os.environ.pop("HERMES_REDACT_SECRETS", None)
+        os.environ.pop("GENGAR_REDACT_SECRETS", None)
         sys.path.insert(0, %r)
         import hermes_cli.main  # triggers the bridge + setup_logging
         import agent.redact
         print(f"REDACT_ENABLED={agent.redact._REDACT_ENABLED}")
-        print(f"ENV_VAR={os.environ.get('HERMES_REDACT_SECRETS', '<unset>')}")
+        print(f"ENV_VAR={os.environ.get('GENGAR_REDACT_SECRETS', '<unset>')}")
         """
     ) % str(REPO_ROOT)
 
     env = dict(os.environ)
-    env["HERMES_HOME"] = str(hermes_home)
-    env.pop("HERMES_REDACT_SECRETS", None)
+    env["GENGAR_HOME"] = str(hermes_home)
+    env.pop("GENGAR_REDACT_SECRETS", None)
 
     result = subprocess.run(
         [sys.executable, "-c", probe],
@@ -76,9 +76,9 @@ def test_redact_secrets_default_false_when_unset(tmp_path):
     """Without the config key, redaction stays OFF by default.
 
     Secret redaction is opt-in — users who want it must set
-    `security.redact_secrets: true` explicitly (or HERMES_REDACT_SECRETS=true).
+    `security.redact_secrets: true` explicitly (or GENGAR_REDACT_SECRETS=true).
     """
-    hermes_home = tmp_path / ".hermes"
+    hermes_home = tmp_path / ".gengar"
     hermes_home.mkdir()
     (hermes_home / "config.yaml").write_text("{}\n")  # empty config
     (hermes_home / ".env").write_text("")
@@ -86,7 +86,7 @@ def test_redact_secrets_default_false_when_unset(tmp_path):
     probe = textwrap.dedent(
         """\
         import sys, os
-        os.environ.pop("HERMES_REDACT_SECRETS", None)
+        os.environ.pop("GENGAR_REDACT_SECRETS", None)
         sys.path.insert(0, %r)
         import hermes_cli.main
         import agent.redact
@@ -95,8 +95,8 @@ def test_redact_secrets_default_false_when_unset(tmp_path):
     ) % str(REPO_ROOT)
 
     env = dict(os.environ)
-    env["HERMES_HOME"] = str(hermes_home)
-    env.pop("HERMES_REDACT_SECRETS", None)
+    env["GENGAR_HOME"] = str(hermes_home)
+    env.pop("GENGAR_REDACT_SECRETS", None)
 
     result = subprocess.run(
         [sys.executable, "-c", probe],
@@ -113,7 +113,7 @@ def test_redact_secrets_default_false_when_unset(tmp_path):
 def test_redact_secrets_true_in_config_yaml_is_honored(tmp_path):
     """Setting `security.redact_secrets: true` in config.yaml must enable
     redaction — even though it's set in YAML, not as an env var."""
-    hermes_home = tmp_path / ".hermes"
+    hermes_home = tmp_path / ".gengar"
     hermes_home.mkdir()
     (hermes_home / "config.yaml").write_text(
         textwrap.dedent(
@@ -128,18 +128,18 @@ def test_redact_secrets_true_in_config_yaml_is_honored(tmp_path):
     probe = textwrap.dedent(
         """\
         import sys, os
-        os.environ.pop("HERMES_REDACT_SECRETS", None)
+        os.environ.pop("GENGAR_REDACT_SECRETS", None)
         sys.path.insert(0, %r)
         import hermes_cli.main
         import agent.redact
         print(f"REDACT_ENABLED={agent.redact._REDACT_ENABLED}")
-        print(f"ENV_VAR={os.environ.get('HERMES_REDACT_SECRETS', '<unset>')}")
+        print(f"ENV_VAR={os.environ.get('GENGAR_REDACT_SECRETS', '<unset>')}")
         """
     ) % str(REPO_ROOT)
 
     env = dict(os.environ)
-    env["HERMES_HOME"] = str(hermes_home)
-    env.pop("HERMES_REDACT_SECRETS", None)
+    env["GENGAR_HOME"] = str(hermes_home)
+    env.pop("GENGAR_REDACT_SECRETS", None)
 
     result = subprocess.run(
         [sys.executable, "-c", probe],
@@ -157,8 +157,8 @@ def test_redact_secrets_true_in_config_yaml_is_honored(tmp_path):
 
 
 def test_dotenv_redact_secrets_beats_config_yaml(tmp_path):
-    """.env HERMES_REDACT_SECRETS takes precedence over config.yaml."""
-    hermes_home = tmp_path / ".hermes"
+    """.env GENGAR_REDACT_SECRETS takes precedence over config.yaml."""
+    hermes_home = tmp_path / ".gengar"
     hermes_home.mkdir()
     (hermes_home / "config.yaml").write_text(
         textwrap.dedent(
@@ -169,23 +169,23 @@ def test_dotenv_redact_secrets_beats_config_yaml(tmp_path):
         )
     )
     # .env force-enables redaction
-    (hermes_home / ".env").write_text("HERMES_REDACT_SECRETS=true\n")
+    (hermes_home / ".env").write_text("GENGAR_REDACT_SECRETS=true\n")
 
     probe = textwrap.dedent(
         """\
         import sys, os
-        os.environ.pop("HERMES_REDACT_SECRETS", None)
+        os.environ.pop("GENGAR_REDACT_SECRETS", None)
         sys.path.insert(0, %r)
         import hermes_cli.main
         import agent.redact
         print(f"REDACT_ENABLED={agent.redact._REDACT_ENABLED}")
-        print(f"ENV_VAR={os.environ.get('HERMES_REDACT_SECRETS', '<unset>')}")
+        print(f"ENV_VAR={os.environ.get('GENGAR_REDACT_SECRETS', '<unset>')}")
         """
     ) % str(REPO_ROOT)
 
     env = dict(os.environ)
-    env["HERMES_HOME"] = str(hermes_home)
-    env.pop("HERMES_REDACT_SECRETS", None)
+    env["GENGAR_HOME"] = str(hermes_home)
+    env.pop("GENGAR_REDACT_SECRETS", None)
 
     result = subprocess.run(
         [sys.executable, "-c", probe],

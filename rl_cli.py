@@ -29,7 +29,7 @@ import yaml
 
 from hermes_constants import OPENROUTER_BASE_URL, get_hermes_home
 
-# Load .env from ~/.hermes/.env first, then project root as dev fallback.
+# Load .env from ~/.gengar/.env first, then project root as dev fallback.
 # User-managed env files should override stale shell exports on restart.
 _hermes_home = get_hermes_home()
 _project_env = Path(__file__).parent / '.env'
@@ -40,18 +40,18 @@ _loaded_env_paths = load_hermes_dotenv(hermes_home=_hermes_home, project_env=_pr
 for _env_path in _loaded_env_paths:
     print(f"✅ Loaded environment variables from {_env_path}")
 
-# Set terminal working directory to tinker-atropos submodule
+# Set terminal working directory to tinker-atropos checkout
 # This ensures terminal commands run in the right context for RL work
 tinker_atropos_dir = Path(__file__).parent / 'tinker-atropos'
 if tinker_atropos_dir.exists():
     os.environ['TERMINAL_CWD'] = str(tinker_atropos_dir)
-    os.environ['HERMES_QUIET'] = '1'  # Disable temp subdirectory creation
+    os.environ['GENGAR_QUIET'] = '1'  # Disable temp subdirectory creation
     print(f"📂 Terminal working directory: {tinker_atropos_dir}")
 else:
-    # Fall back to hermes-agent directory if submodule not found
+    # Fall back to gengar directory if checkout not found
     os.environ['TERMINAL_CWD'] = str(Path(__file__).parent)
-    os.environ['HERMES_QUIET'] = '1'
-    print(f"⚠️  tinker-atropos submodule not found, using: {Path(__file__).parent}")
+    os.environ['GENGAR_QUIET'] = '1'
+    print(f"⚠️  tinker-atropos checkout not found, using: {Path(__file__).parent}")
 
 # Import agent and tools
 from run_agent import AIAgent
@@ -68,7 +68,7 @@ DEFAULT_BASE_URL = OPENROUTER_BASE_URL
 
 def load_hermes_config() -> dict:
     """
-    Load configuration from ~/.hermes/config.yaml.
+    Load configuration from ~/.gengar/config.yaml.
     
     Returns:
         dict: Configuration with model, base_url, etc.
@@ -200,11 +200,11 @@ def check_requirements():
 
 
 def check_tinker_atropos():
-    """Check if tinker-atropos submodule is properly set up."""
+    """Check if tinker-atropos checkout is properly set up."""
     tinker_path = Path(__file__).parent / "tinker-atropos"
     
     if not tinker_path.exists():
-        return False, "tinker-atropos submodule not found. Run: git submodule update --init"
+        return False, "tinker-atropos checkout not found. Run: place an Atropos-compatible checkout at ./tinker-atropos"
     
     envs_path = tinker_path / "tinker_atropos" / "environments"
     if not envs_path.exists():
@@ -249,7 +249,7 @@ def main(
     
     Args:
         task: The training task/goal (e.g., "Train a model on GSM8k for math")
-        model: Model to use for the agent (reads from ~/.hermes/config.yaml if not provided)
+        model: Model to use for the agent (reads from ~/.gengar/config.yaml if not provided)
         api_key: OpenRouter API key (uses OPENROUTER_API_KEY env var if not provided)
         base_url: API base URL (reads from config or defaults to OpenRouter)
         max_iterations: Maximum agent iterations (default: 200 for long workflows)
@@ -272,7 +272,7 @@ def main(
         # Check server status
         python rl_cli.py --check-server
     """
-    # Load config from ~/.hermes/config.yaml
+    # Load config from ~/.gengar/config.yaml
     config = load_hermes_config()
     
     # Use config values if not explicitly provided
@@ -289,7 +289,7 @@ def main(
         print("\n🔍 Checking tinker-atropos setup...")
         ok, result = check_tinker_atropos()
         if ok:
-            print("✅ tinker-atropos submodule found")
+            print("✅ tinker-atropos checkout found")
             print(f"   Path: {result.get('path')}")
             print(f"   Environments found: {result.get('environments_count', 0)}")
             
@@ -297,13 +297,13 @@ def main(
             missing = get_missing_keys()
             if missing:
                 print(f"\n⚠️  Missing API keys: {', '.join(missing)}")
-                print("   Add them to ~/.hermes/.env")
+                print("   Add them to ~/.gengar/.env")
             else:
                 print("✅ API keys configured")
         else:
             print(f"❌ tinker-atropos not set up: {result}")
             print("\nTo set up:")
-            print("  git submodule update --init")
+            print("  place an Atropos-compatible checkout at ./tinker-atropos")
             print("  pip install -e ./tinker-atropos")
         return
     
@@ -321,7 +321,7 @@ def main(
             if not envs:
                 print("No environments found.")
                 print("\nMake sure tinker-atropos is set up:")
-                print("  git submodule update --init")
+                print("  place an Atropos-compatible checkout at ./tinker-atropos")
                 return
             
             for env in envs:
@@ -337,7 +337,7 @@ def main(
         except Exception as e:
             print(f"❌ Error listing environments: {e}")
             print("\nMake sure tinker-atropos is set up:")
-            print("  git submodule update --init")
+            print("  place an Atropos-compatible checkout at ./tinker-atropos")
             print("  pip install -e ./tinker-atropos")
         return
     

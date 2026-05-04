@@ -1,15 +1,15 @@
 """
-Hermes Plugin System
+Gengar Plugin System
 ====================
 
 Discovers, loads, and manages plugins from four sources:
 
-1. **Bundled plugins** – ``<repo>/plugins/<name>/`` (shipped with hermes-agent;
+1. **Bundled plugins** – ``<repo>/plugins/<name>/`` (shipped with gengar;
    ``memory/`` and ``context_engine/`` subdirs are excluded — they have their
    own discovery paths)
-2. **User plugins**   – ``~/.hermes/plugins/<name>/``
-3. **Project plugins** – ``./.hermes/plugins/<name>/`` (opt-in via
-   ``HERMES_ENABLE_PROJECT_PLUGINS``)
+2. **User plugins**   – ``~/.gengar/plugins/<name>/``
+3. **Project plugins** – ``./.gengar/plugins/<name>/`` (opt-in via
+   ``GENGAR_ENABLE_PROJECT_PLUGINS``)
 4. **Pip plugins**     – packages that expose the ``hermes_agent.plugins``
    entry-point group.
 
@@ -55,11 +55,11 @@ from hermes_cli.config import cfg_get
 def get_bundled_plugins_dir() -> Path:
     """Locate the bundled ``plugins/`` directory.
 
-    Honours ``HERMES_BUNDLED_PLUGINS`` (set by the Nix wrapper / packaged
+    Honours ``GENGAR_BUNDLED_PLUGINS`` (set by the Nix wrapper / packaged
     installs) so read-only store paths are consulted first.  Falls back to
     the in-repo path used during development.
     """
-    env_override = os.getenv("HERMES_BUNDLED_PLUGINS")
+    env_override = os.getenv("GENGAR_BUNDLED_PLUGINS")
     if env_override:
         return Path(env_override)
     return Path(__file__).resolve().parent.parent / "plugins"
@@ -202,11 +202,11 @@ class PluginManifest:
     # ``platform``: gateway messaging platform adapter (e.g. IRC). Bundled
     #              platform plugins auto-load so every shipped platform is
     #              available out of the box; user-installed platform plugins
-    #              in ~/.hermes/plugins/ still gated by ``plugins.enabled``
+    #              in ~/.gengar/plugins/ still gated by ``plugins.enabled``
     #              (untrusted code).
     kind: str = "standalone"
     # Registry key — path-derived, used by ``plugins.enabled``/``disabled``
-    # lookups and by ``hermes plugins list``. For a flat plugin at
+    # lookups and by ``gengar plugins list``. For a flat plugin at
     # ``plugins/disk-cleanup/`` the key is ``disk-cleanup``; for a nested
     # category plugin at ``plugins/image_gen/openai/`` the key is
     # ``image_gen/openai``. When empty, falls back to ``name``.
@@ -306,7 +306,7 @@ class PluginContext:
         handler_fn: Callable | None = None,
         description: str = "",
     ) -> None:
-        """Register a CLI subcommand (e.g. ``hermes honcho ...``).
+        """Register a CLI subcommand (e.g. ``gengar honcho ...``).
 
         The *setup_fn* receives an argparse subparser and should add any
         arguments/sub-subparsers.  If *handler_fn* is provided it is set
@@ -335,7 +335,7 @@ class PluginContext:
         The handler signature is ``fn(raw_args: str) -> str | None``.
         It may also be an async callable — the gateway dispatch handles both.
 
-        Unlike ``register_cli_command()`` (which creates ``hermes <subcommand>``
+        Unlike ``register_cli_command()`` (which creates ``gengar <subcommand>``
         terminal commands), this registers in-session slash commands that users
         invoke during a conversation.
 
@@ -554,7 +554,7 @@ class PluginContext:
 
         The skill becomes resolvable as ``'<plugin_name>:<name>'`` via
         ``skill_view()``.  It does **not** enter the flat
-        ``~/.hermes/skills/`` tree and is **not** listed in the system
+        ``~/.gengar/skills/`` tree and is **not** listed in the system
         prompt's ``<available_skills>`` index — plugin skills are
         opt-in explicit loads only.
 
@@ -658,13 +658,13 @@ class PluginManager:
             self._scan_directory(repo_plugins / "platforms", source="bundled")
         )
 
-        # 2. User plugins (~/.hermes/plugins/)
+        # 2. User plugins (~/.gengar/plugins/)
         user_dir = get_hermes_home() / "plugins"
         manifests.extend(self._scan_directory(user_dir, source="user"))
 
-        # 3. Project plugins (./.hermes/plugins/)
-        if _env_enabled("HERMES_ENABLE_PROJECT_PLUGINS"):
-            project_dir = Path.cwd() / ".hermes" / "plugins"
+        # 3. Project plugins (./.gengar/plugins/)
+        if _env_enabled("GENGAR_ENABLE_PROJECT_PLUGINS"):
+            project_dir = Path.cwd() / ".gengar" / "plugins"
             manifests.extend(self._scan_directory(project_dir, source="project"))
 
         # 4. Pip / entry-point plugins
@@ -709,13 +709,13 @@ class PluginManager:
                 )
                 continue
 
-            # Built-in backends auto-load — they ship with hermes and must
+            # Built-in backends auto-load — they ship with gengar and must
             # just work. Selection among them (e.g. which image_gen backend
             # services calls) is driven by ``<category>.provider`` config,
             # enforced by the tool wrapper.
             #
             # Bundled platform plugins (gateway adapters like IRC) auto-load
-            # for the same reason: every platform Hermes ships must be
+            # for the same reason: every platform Gengar ships must be
             # available out of the box without the user having to opt in.
             if manifest.source == "bundled" and manifest.kind in ("backend", "platform"):
                 self._load_plugin(manifest)
@@ -732,7 +732,7 @@ class PluginManager:
             if not is_enabled:
                 loaded = LoadedPlugin(manifest=manifest, enabled=False)
                 loaded.error = (
-                    "not enabled in config (run `hermes plugins enable {}` to activate)"
+                    "not enabled in config (run `gengar plugins enable {}` to activate)"
                     .format(lookup_key)
                 )
                 self._plugins[lookup_key] = loaded
@@ -1264,7 +1264,7 @@ def resolve_plugin_command_result(result: Any) -> Any:
 
     thread = threading.Thread(
         target=_runner,
-        name="hermes-plugin-command-await",
+        name="gengar-plugin-command-await",
         daemon=True,
     )
     thread.start()
@@ -1290,7 +1290,7 @@ def get_plugin_commands() -> Dict[str, dict]:
 def get_plugin_toolsets() -> List[tuple]:
     """Return plugin toolsets as ``(key, label, description)`` tuples.
 
-    Used by the ``hermes tools`` TUI so plugin-provided toolsets appear
+    Used by the ``gengar tools`` TUI so plugin-provided toolsets appear
     alongside the built-in ones and can be toggled on/off per platform.
     """
     manager = get_plugin_manager()

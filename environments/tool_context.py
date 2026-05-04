@@ -2,7 +2,7 @@
 ToolContext -- Unrestricted Tool Access for Reward Functions
 
 A per-rollout handle that gives reward/verification functions direct access to
-ALL hermes-agent tools, scoped to the rollout's task_id. The same task_id means
+ALL gengar tools, scoped to the rollout's task_id. The same task_id means
 the terminal/browser session is the SAME one the model used during its rollout --
 all state (files, processes, browser tabs) is preserved.
 
@@ -65,7 +65,7 @@ def _run_tool_in_thread(tool_name: str, arguments: Dict[str, Any], task_id: str)
 
 class ToolContext:
     """
-    Open-ended access to all hermes-agent tools for a specific rollout.
+    Open-ended access to all gengar tools for a specific rollout.
 
     Passed to compute_reward() so verifiers can use any tool they need:
     terminal commands, file reads/writes, web searches, browser automation, etc.
@@ -418,7 +418,7 @@ class ToolContext:
 
     def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> str:
         """
-        Call any hermes-agent tool by name.
+        Call any gengar tool by name.
 
         This is the generic escape hatch -- if a tool doesn't have a convenience
         wrapper above, you can call it directly here.
@@ -460,14 +460,14 @@ class ToolContext:
 
         # Suppress browser_tool's noisy debug prints during cleanup.
         # The cleanup still runs (safe), it just doesn't spam the console.
-        _prev_quiet = os.environ.get("HERMES_QUIET")
-        os.environ["HERMES_QUIET"] = "1"
+        _prev_quiet = os.environ.get("GENGAR_QUIET")
+        os.environ["GENGAR_QUIET"] = "1"
         try:
             cleanup_browser(self.task_id)
         except Exception as e:
             logger.debug("Browser cleanup for task %s: %s", self.task_id, e)
         finally:
             if _prev_quiet is None:
-                os.environ.pop("HERMES_QUIET", None)
+                os.environ.pop("GENGAR_QUIET", None)
             else:
-                os.environ["HERMES_QUIET"] = _prev_quiet
+                os.environ["GENGAR_QUIET"] = _prev_quiet

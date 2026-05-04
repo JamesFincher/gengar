@@ -49,12 +49,12 @@ def _reset_logging_state():
 
 @pytest.fixture
 def hermes_home(tmp_path, monkeypatch):
-    """Provide an isolated HERMES_HOME for logging tests.
+    """Provide an isolated GENGAR_HOME for logging tests.
 
     Uses the same tmp_path as the autouse _isolate_hermes_home from conftest,
     reading it back from the env var to avoid double-mkdir conflicts.
     """
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["GENGAR_HOME"])
     return home
 
 

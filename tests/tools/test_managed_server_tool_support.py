@@ -2,11 +2,11 @@
 Tests for ManagedServer / tool-parser integration.
 
 Validates that:
-1. The installed atroposlib API still matches Hermes's expectations
-2. Hermes's parser registry remains compatible with ManagedServer parsing
-3. HermesAgentBaseEnv wires the selected parser into ServerManager correctly
+1. The installed atroposlib API still matches Gengar's expectations
+2. Gengar's parser registry remains compatible with ManagedServer parsing
+3. GengarBaseEnv wires the selected parser into ServerManager correctly
 
-These tests verify the contract between hermes-agent's environments/ code
+These tests verify the contract between gengar's environments/ code
 and atroposlib's ManagedServer. They detect API incompatibilities early.
 """
 
@@ -25,7 +25,7 @@ except ImportError:
 
 
 class TestManagedServerAPI:
-    """Test that ManagedServer's API matches what hermes-agent expects."""
+    """Test that ManagedServer's API matches what gengar expects."""
 
     def test_managed_server_init_signature(self):
         """ManagedServer should accept tool_call_parser parameter."""
@@ -93,7 +93,7 @@ class TestManagedServerAPI:
 
 
 class TestParserCompatibility:
-    """Test that hermes-agent's parsers match ManagedServer's expectations."""
+    """Test that gengar's parsers match ManagedServer's expectations."""
 
     def test_parser_parse_returns_correct_format(self):
         """
@@ -102,7 +102,7 @@ class TestParserCompatibility:
         """
         from environments.tool_call_parsers import get_parser
 
-        parser = get_parser("hermes")
+        parser = get_parser("gengar")
         text = '<tool_call>{"name": "terminal", "arguments": {"command": "ls"}}</tool_call>'
         content, tool_calls = parser.parse(text)
 
@@ -120,7 +120,7 @@ class TestParserCompatibility:
         """ManagedServer checks `if parsed_tool_calls:` — None should be falsy."""
         from environments.tool_call_parsers import get_parser
 
-        parser = get_parser("hermes")
+        parser = get_parser("gengar")
         content, tool_calls = parser.parse("Just text, no tools")
         assert tool_calls is None
 
@@ -128,7 +128,7 @@ class TestParserCompatibility:
         """ManagedServer uses `parsed_content or ""` — must be str or None."""
         from environments.tool_call_parsers import get_parser
 
-        parser = get_parser("hermes")
+        parser = get_parser("gengar")
 
         # With tool calls
         text = '<tool_call>{"name": "terminal", "arguments": {"command": "ls"}}</tool_call>'
@@ -144,7 +144,7 @@ class TestBaseEnvCompatibility:
     """Test that hermes_base_env.py's tool-parser wiring matches the current API."""
 
     def test_hermes_base_env_sets_server_manager_tool_parser(self):
-        """Hermes wires parser selection through ServerManager.tool_parser."""
+        """Gengar wires parser selection through ServerManager.tool_parser."""
         import ast
 
         base_env_path = Path(__file__).parent.parent.parent / "environments" / "hermes_base_env.py"

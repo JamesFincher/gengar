@@ -3,8 +3,8 @@
 Standalone Web Tools Module
 
 This module provides generic web tools that work with multiple backend providers.
-Backend is selected during ``hermes tools`` setup (web.backend in config.yaml).
-When available, Hermes can route Firecrawl calls through a Nous-hosted tool-gateway
+Backend is selected during ``gengar tools`` setup (web.backend in config.yaml).
+When available, Gengar can route Firecrawl calls through a Nous-hosted tool-gateway
 for Nous Subscribers only.
 
 Available tools:
@@ -111,7 +111,7 @@ def _has_env(name: str) -> bool:
     return bool(val and val.strip())
 
 def _load_web_config() -> dict:
-    """Load the ``web:`` section from ~/.hermes/config.yaml."""
+    """Load the ``web:`` section from ~/.gengar/config.yaml."""
     try:
         from hermes_cli.config import load_config
         return load_config().get("web", {})
@@ -121,7 +121,7 @@ def _load_web_config() -> dict:
 def _get_backend() -> str:
     """Determine which web backend to use.
 
-    Reads ``web.backend`` from config.yaml (set by ``hermes tools``).
+    Reads ``web.backend`` from config.yaml (set by ``gengar tools``).
     Falls back to whichever API key is present for users who configured
     keys manually without running setup.
     """
@@ -204,7 +204,7 @@ def _raise_web_backend_configuration_error() -> None:
     if managed_nous_tools_enabled():
         message += (
             " With your Nous subscription you can also use the Tool Gateway — "
-            "run `hermes tools` and select Nous Subscription as the web provider."
+            "run `gengar tools` and select Nous Subscription as the web provider."
         )
     raise ValueError(message)
 
@@ -489,7 +489,7 @@ def _is_nous_auxiliary_client(client: Any) -> bool:
 
     base_url = str(getattr(client, "base_url", "") or "")
     host = (urlparse(base_url).hostname or "").lower()
-    return host == "nousresearch.com" or host.endswith(".nousresearch.com")
+    return host == "jamesfincher.com" or host.endswith(".jamesfincher.com")
 
 
 def _resolve_web_extract_auxiliary(model: Optional[str] = None) -> tuple[Optional[Any], Optional[str], Dict[str, Any]]:
@@ -501,7 +501,7 @@ def _resolve_web_extract_auxiliary(model: Optional[str] = None) -> tuple[Optiona
     extra_body: Dict[str, Any] = {}
     if client is not None and _is_nous_auxiliary_client(client):
         from agent.auxiliary_client import get_auxiliary_extra_body
-        extra_body = get_auxiliary_extra_body() or {"tags": ["product=hermes-agent"]}
+        extra_body = get_auxiliary_extra_body() or {"tags": ["product=gengar"]}
 
     return client, effective_model, extra_body
 
@@ -929,7 +929,7 @@ def _get_exa_client():
                 "Get your API key at https://exa.ai"
             )
         _exa_client = Exa(api_key=api_key)
-        _exa_client.headers["x-exa-integration"] = "hermes-agent"
+        _exa_client.headers["x-exa-integration"] = "gengar"
     return _exa_client
 
 

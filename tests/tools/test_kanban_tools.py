@@ -1,7 +1,7 @@
 """Tests for the Kanban tool surface (tools/kanban_tools.py).
 
 Verifies:
-  - Tools are gated on HERMES_KANBAN_TASK: a normal chat session sees
+  - Tools are gated on GENGAR_KANBAN_TASK: a normal chat session sees
     zero kanban tools in its schema; a worker session sees all seven.
   - Each handler's happy path.
   - Error paths (missing required args, bad metadata type, etc).
@@ -19,18 +19,18 @@ import pytest
 # ---------------------------------------------------------------------------
 
 def test_kanban_tools_hidden_without_env_var(monkeypatch, tmp_path):
-    """Normal `hermes chat` sessions (no HERMES_KANBAN_TASK) must have
+    """Normal `gengar chat` sessions (no GENGAR_KANBAN_TASK) must have
     zero kanban_* tools in their schema."""
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
-    home = tmp_path / ".hermes"
+    monkeypatch.delenv("GENGAR_KANBAN_TASK", raising=False)
+    home = tmp_path / ".gengar"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
 
     import tools.kanban_tools  # ensure registered
     from tools.registry import registry
     from toolsets import resolve_toolset
 
-    schema = registry.get_definitions(set(resolve_toolset("hermes-cli")), quiet=True)
+    schema = registry.get_definitions(set(resolve_toolset("gengar-cli")), quiet=True)
     names = {s["function"].get("name") for s in schema if "function" in s}
     kanban = {n for n in names if n and n.startswith("kanban_")}
     assert kanban == set(), (
@@ -39,17 +39,17 @@ def test_kanban_tools_hidden_without_env_var(monkeypatch, tmp_path):
 
 
 def test_kanban_tools_visible_with_env_var(monkeypatch, tmp_path):
-    """Worker sessions (HERMES_KANBAN_TASK set) must have all 7 tools."""
-    monkeypatch.setenv("HERMES_KANBAN_TASK", "t_fake")
-    home = tmp_path / ".hermes"
+    """Worker sessions (GENGAR_KANBAN_TASK set) must have all 7 tools."""
+    monkeypatch.setenv("GENGAR_KANBAN_TASK", "t_fake")
+    home = tmp_path / ".gengar"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
 
     import tools.kanban_tools  # ensure registered
     from tools.registry import registry
     from toolsets import resolve_toolset
 
-    schema = registry.get_definitions(set(resolve_toolset("hermes-cli")), quiet=True)
+    schema = registry.get_definitions(set(resolve_toolset("gengar-cli")), quiet=True)
     names = {s["function"].get("name") for s in schema if "function" in s}
     kanban = {n for n in names if n and n.startswith("kanban_")}
     expected = {
@@ -65,12 +65,12 @@ def test_kanban_tools_visible_with_env_var(monkeypatch, tmp_path):
 
 @pytest.fixture
 def worker_env(monkeypatch, tmp_path):
-    """Simulate being a worker: HERMES_HOME isolated, HERMES_KANBAN_TASK set
+    """Simulate being a worker: GENGAR_HOME isolated, GENGAR_KANBAN_TASK set
     after we've created the task."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_PROFILE", "test-worker")
+    monkeypatch.setenv("GENGAR_HOME", str(home))
+    monkeypatch.setenv("GENGAR_PROFILE", "test-worker")
     from pathlib import Path as _Path
     monkeypatch.setattr(_Path, "home", lambda: tmp_path)
 
@@ -83,7 +83,7 @@ def worker_env(monkeypatch, tmp_path):
         kb.claim_task(conn, tid)
     finally:
         conn.close()
-    monkeypatch.setenv("HERMES_KANBAN_TASK", tid)
+    monkeypatch.setenv("GENGAR_KANBAN_TASK", tid)
     return tid
 
 
@@ -202,7 +202,7 @@ def test_comment_happy_path(worker_env):
     try:
         comments = kb.list_comments(conn, worker_env)
         assert len(comments) == 1
-        # Author defaults to HERMES_PROFILE env we set in the fixture
+        # Author defaults to GENGAR_PROFILE env we set in the fixture
         assert comments[0].author == "test-worker"
         assert comments[0].body == "hello thread"
     finally:
@@ -426,12 +426,12 @@ def test_worker_lifecycle_through_tools(worker_env):
 # ---------------------------------------------------------------------------
 
 def test_kanban_guidance_not_in_normal_prompt(monkeypatch, tmp_path):
-    """A normal chat session (no HERMES_KANBAN_TASK) must NOT have
+    """A normal chat session (no GENGAR_KANBAN_TASK) must NOT have
     KANBAN_GUIDANCE in its system prompt."""
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
-    home = tmp_path / ".hermes"
+    monkeypatch.delenv("GENGAR_KANBAN_TASK", raising=False)
+    home = tmp_path / ".gengar"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
     from pathlib import Path as _P
     monkeypatch.setattr(_P, "home", lambda: tmp_path)
 
@@ -449,12 +449,12 @@ def test_kanban_guidance_not_in_normal_prompt(monkeypatch, tmp_path):
 
 
 def test_kanban_guidance_in_worker_prompt(monkeypatch, tmp_path):
-    """A worker session (HERMES_KANBAN_TASK set) MUST have the full
+    """A worker session (GENGAR_KANBAN_TASK set) MUST have the full
     lifecycle guidance in its system prompt."""
-    monkeypatch.setenv("HERMES_KANBAN_TASK", "t_fake")
-    home = tmp_path / ".hermes"
+    monkeypatch.setenv("GENGAR_KANBAN_TASK", "t_fake")
+    home = tmp_path / ".gengar"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
     from pathlib import Path as _P
     monkeypatch.setattr(_P, "home", lambda: tmp_path)
 
@@ -481,10 +481,10 @@ def test_kanban_guidance_in_worker_prompt(monkeypatch, tmp_path):
 def test_kanban_guidance_prompt_size_bounded(monkeypatch, tmp_path):
     """Sanity: the guidance block is under 4 KB so it doesn't blow
     up the cached prompt."""
-    monkeypatch.setenv("HERMES_KANBAN_TASK", "t_fake")
-    home = tmp_path / ".hermes"
+    monkeypatch.setenv("GENGAR_KANBAN_TASK", "t_fake")
+    home = tmp_path / ".gengar"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
     from pathlib import Path as _P
     monkeypatch.setattr(_P, "home", lambda: tmp_path)
 

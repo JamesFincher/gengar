@@ -193,21 +193,21 @@ def test_write_json_skips_flush_when_disable_flush_true(monkeypatch):
 
 
 def test_disable_flush_env_var_actually_wires_to_module_constant(monkeypatch):
-    """End-to-end: setting `HERMES_TUI_GATEWAY_NO_FLUSH=1` and importing
+    """End-to-end: setting `GENGAR_TUI_GATEWAY_NO_FLUSH=1` and importing
     `tui_gateway.transport` fresh actually flips `_DISABLE_FLUSH` true.
 
     Reloads only the transport module — server.py is untouched so its
     atexit hooks/worker pool stay intact."""
     import importlib
 
-    monkeypatch.setenv("HERMES_TUI_GATEWAY_NO_FLUSH", "1")
+    monkeypatch.setenv("GENGAR_TUI_GATEWAY_NO_FLUSH", "1")
     transport_mod = importlib.reload(importlib.import_module("tui_gateway.transport"))
 
     try:
         assert transport_mod._DISABLE_FLUSH is True
     finally:
         # Restore the env-disabled state so other tests see the default.
-        monkeypatch.delenv("HERMES_TUI_GATEWAY_NO_FLUSH", raising=False)
+        monkeypatch.delenv("GENGAR_TUI_GATEWAY_NO_FLUSH", raising=False)
         importlib.reload(transport_mod)
 
 
@@ -376,13 +376,13 @@ def test_slash_exec_rejects_skill_commands(server):
     server._sessions[sid] = {"session_key": sid, "agent": None}
 
     # Mock scan_skill_commands to return a known skill
-    fake_skills = {"/hermes-agent-dev": {"name": "hermes-agent-dev", "description": "Dev workflow"}}
+    fake_skills = {"/gengar-dev": {"name": "gengar-dev", "description": "Dev workflow"}}
 
     with patch("agent.skill_commands.get_skill_commands", return_value=fake_skills):
         resp = server.handle_request({
             "id": "r1",
             "method": "slash.exec",
-            "params": {"command": "hermes-agent-dev", "session_id": sid},
+            "params": {"command": "gengar-dev", "session_id": sid},
         })
 
     # Should return an error so the TUI's .catch() fires command.dispatch
@@ -576,7 +576,7 @@ def test_command_dispatch_returns_skill_payload(server):
     sid = "test-session"
     server._sessions[sid] = {"session_key": sid}
 
-    fake_skills = {"/hermes-agent-dev": {"name": "hermes-agent-dev", "description": "Dev workflow"}}
+    fake_skills = {"/gengar-dev": {"name": "gengar-dev", "description": "Dev workflow"}}
     fake_msg = "Loaded skill content here"
 
     with patch("agent.skill_commands.scan_skill_commands", return_value=fake_skills), \
@@ -584,14 +584,14 @@ def test_command_dispatch_returns_skill_payload(server):
         resp = server.handle_request({
             "id": "r2",
             "method": "command.dispatch",
-            "params": {"name": "hermes-agent-dev", "session_id": sid},
+            "params": {"name": "gengar-dev", "session_id": sid},
         })
 
     assert "error" not in resp
     result = resp["result"]
     assert result["type"] == "skill"
     assert result["message"] == fake_msg
-    assert result["name"] == "hermes-agent-dev"
+    assert result["name"] == "gengar-dev"
 
 
 def test_command_dispatch_awaits_async_plugin_handler(server):

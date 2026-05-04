@@ -49,7 +49,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 # Where memory files live — resolved dynamically so profile overrides
-# (HERMES_HOME env var changes) are always respected.  The old module-level
+# (GENGAR_HOME env var changes) are always respected.  The old module-level
 # constant was cached at import time and could go stale if a profile switch
 # happened after the first import.
 def get_memory_dir() -> Path:
@@ -79,7 +79,7 @@ _MEMORY_THREAT_PATTERNS = [
     # Persistence via shell rc
     (r'authorized_keys', "ssh_backdoor"),
     (r'\$HOME/\.ssh|\~/\.ssh', "ssh_access"),
-    (r'\$HOME/\.hermes/\.env|\~/\.hermes/\.env', "hermes_env"),
+    (r'\$HOME/\.gengar/\.env|\~/\.gengar/\.env', "hermes_env"),
 ]
 
 # Subset of invisible chars for injection detection

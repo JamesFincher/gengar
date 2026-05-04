@@ -1,7 +1,7 @@
-# nix/hermes-agent.nix — Overridable Hermes Agent package
+# nix/gengar.nix — Overridable Gengar package
 #
 # callPackage auto-wires nixpkgs args; flake inputs are passed explicitly.
-# Users override via: pkgs.hermes-agent.override { extraPythonPackages = [...]; }
+# Users override via: pkgs.gengar.override { extraPythonPackages = [...]; }
 {
   lib,
   stdenv,
@@ -51,7 +51,7 @@ let
 
   # Import bundled plugins (memory, context_engine, platforms/*).  Keeping
   # them out of the Python site-packages keeps import semantics identical
-  # to a dev checkout — the loader reads them from HERMES_BUNDLED_PLUGINS.
+  # to a dev checkout — the loader reads them from GENGAR_BUNDLED_PLUGINS.
   bundledPlugins = lib.cleanSourceWith {
     src = ../plugins;
     filter = path: _type: !(lib.hasInfix "/__pycache__/" path);
@@ -114,7 +114,7 @@ let
                 if line.startswith('Name:'):
                     pkg = canonical(line.split(':', 1)[1].strip())
                     if pkg in core:
-                        print(f'ERROR: plugin package \"{pkg}\" collides with a package in hermes sealed venv', file=sys.stderr)
+                        print(f'ERROR: plugin package \"{pkg}\" collides with a package in gengar sealed venv', file=sys.stderr)
                         print(f'  from: {di}', file=sys.stderr)
                         print(f'  Remove this dependency from extraPythonPackages.', file=sys.stderr)
                         sys.exit(1)
@@ -124,7 +124,7 @@ let
   '';
 in
 stdenv.mkDerivation {
-  pname = "hermes-agent";
+  pname = "gengar";
   version = (fromTOML (builtins.readFile ../pyproject.toml)).project.version;
 
   dontUnpack = true;
@@ -134,31 +134,31 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/share/hermes-agent $out/bin
-    cp -r ${bundledSkills} $out/share/hermes-agent/skills
-    cp -r ${bundledPlugins} $out/share/hermes-agent/plugins
-    cp -r ${hermesWeb} $out/share/hermes-agent/web_dist
+    mkdir -p $out/share/gengar $out/bin
+    cp -r ${bundledSkills} $out/share/gengar/skills
+    cp -r ${bundledPlugins} $out/share/gengar/plugins
+    cp -r ${hermesWeb} $out/share/gengar/web_dist
 
     mkdir -p $out/ui-tui
-    cp -r ${hermesTui}/lib/hermes-tui/* $out/ui-tui/
+    cp -r ${hermesTui}/lib/gengar-tui/* $out/ui-tui/
 
     ${lib.concatMapStringsSep "\n"
       (name: ''
         makeWrapper ${hermesVenv}/bin/${name} $out/bin/${name} \
           --suffix PATH : "${runtimePath}" \
-          --set HERMES_BUNDLED_SKILLS $out/share/hermes-agent/skills \
-          --set HERMES_BUNDLED_PLUGINS $out/share/hermes-agent/plugins \
-          --set HERMES_WEB_DIST $out/share/hermes-agent/web_dist \
-          --set HERMES_TUI_DIR $out/ui-tui \
-          --set HERMES_PYTHON ${hermesVenv}/bin/python3 \
-          --set HERMES_NODE ${lib.getExe nodejs} \
-          ${lib.optionalString (rev != null) ''--set HERMES_REVISION ${rev} \''}
+          --set GENGAR_BUNDLED_SKILLS $out/share/gengar/skills \
+          --set GENGAR_BUNDLED_PLUGINS $out/share/gengar/plugins \
+          --set GENGAR_WEB_DIST $out/share/gengar/web_dist \
+          --set GENGAR_TUI_DIR $out/ui-tui \
+          --set GENGAR_PYTHON ${hermesVenv}/bin/python3 \
+          --set GENGAR_NODE ${lib.getExe nodejs} \
+          ${lib.optionalString (rev != null) ''--set GENGAR_REVISION ${rev} \''}
           ${lib.optionalString (extraPythonPackages != [ ]) ''--suffix PYTHONPATH : "${pythonPath}"''}
       '')
       [
-        "hermes"
-        "hermes-agent"
-        "hermes-acp"
+        "gengar"
+        "gengar"
+        "gengar-acp"
       ]
     }
 
@@ -180,10 +180,10 @@ stdenv.mkDerivation {
       ;
 
     devShellHook = ''
-      STAMP=".nix-stamps/hermes-agent"
+      STAMP=".nix-stamps/gengar"
       STAMP_VALUE="${pyprojectHash}:${uvLockHash}"
       if [ ! -f "$STAMP" ] || [ "$(cat "$STAMP")" != "$STAMP_VALUE" ]; then
-        echo "hermes-agent: installing Python dependencies..."
+        echo "gengar: installing Python dependencies..."
         uv venv .venv --python ${python312}/bin/python3 2>/dev/null || true
         source .venv/bin/activate
         uv pip install -e ".[all]"
@@ -193,15 +193,15 @@ stdenv.mkDerivation {
         echo "$STAMP_VALUE" > "$STAMP"
       else
         source .venv/bin/activate
-        export HERMES_PYTHON=${hermesVenv}/bin/python3
+        export GENGAR_PYTHON=${hermesVenv}/bin/python3
       fi
     '';
   };
 
   meta = with lib; {
     description = "AI agent with advanced tool-calling capabilities";
-    homepage = "https://github.com/NousResearch/hermes-agent";
-    mainProgram = "hermes";
+    homepage = "https://github.com/jamesfincher/gengar";
+    mainProgram = "gengar";
     license = licenses.mit;
     platforms = platforms.unix;
   };

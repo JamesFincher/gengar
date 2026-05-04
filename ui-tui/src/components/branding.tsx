@@ -1,4 +1,4 @@
-import { Box, Text, useStdout } from '@hermes/ink'
+import { Box, Text, useStdout } from '@gengar/ink'
 import { useEffect, useState } from 'react'
 import unicodeSpinners from 'unicode-animations'
 
@@ -49,11 +49,11 @@ export function Banner({ t }: { t: Theme }) {
         <ArtLines lines={logoLines} />
       ) : (
         <Text bold color={t.color.primary}>
-          {t.brand.icon} NOUS HERMES
+          {t.brand.icon} NOUS GENGAR
         </Text>
       )}
 
-      <Text color={t.color.muted}>{t.brand.icon} Nous Research · Messenger of the Digital Gods</Text>
+      <Text color={t.color.muted}>{t.brand.icon} James Fincher · Messenger of the Digital Gods</Text>
     </Box>
   )
 }
@@ -126,7 +126,7 @@ export function SessionPanel({ info, sid, t }: SessionPanelProps) {
 
           <Text color={t.color.accent}>
             {info.model.split('/').pop()}
-            <Text color={t.color.muted}> · Nous Research</Text>
+            <Text color={t.color.muted}> · James Fincher</Text>
           </Text>
 
           <Text color={t.color.muted} wrap="truncate-end">
@@ -195,7 +195,7 @@ export function SessionPanel({ info, sid, t }: SessionPanelProps) {
               - run{' '}
             </Text>
             <Text bold color={t.color.warn}>
-              {info.update_command || 'hermes update'}
+              {info.update_command || 'gengar update'}
             </Text>
             <Text bold={false} color={t.color.warn} dimColor>
               {' '}

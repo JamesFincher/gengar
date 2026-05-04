@@ -1,6 +1,6 @@
 """Tests for the gateway stale-code self-check (Issue #17648).
 
-A gateway that survives ``hermes update`` keeps pre-update modules cached
+A gateway that survives ``gengar update`` keeps pre-update modules cached
 in ``sys.modules``.  Later imports of names added post-update (e.g.
 ``cfg_get`` from PR #17304) raise ImportError against the stale module
 object.  The self-check in ``GatewayRunner._detect_stale_code()`` detects
@@ -105,7 +105,7 @@ def test_detect_stale_code_true_after_update(tmp_path):
 
     runner = _make_runner(repo, boot_mtime=baseline, boot_wall=baseline)
 
-    # Simulate hermes update touching config.py
+    # Simulate gengar update touching config.py
     new_mtime = time.time()
     os.utime(repo / "hermes_cli/config.py", (new_mtime, new_mtime))
 

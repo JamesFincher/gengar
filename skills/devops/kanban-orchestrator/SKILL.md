@@ -3,7 +3,7 @@ name: kanban-orchestrator
 description: Decomposition playbook + specialist-roster conventions + anti-temptation rules for an orchestrator profile routing work through Kanban. The "don't do the work yourself" rule and the basic lifecycle are auto-injected into every kanban worker's system prompt; this skill is the deeper playbook when you're specifically playing the orchestrator role.
 version: 2.0.0
 metadata:
-  hermes:
+  gengar:
     tags: [kanban, multi-agent, orchestration, routing]
     related_skills: [kanban-worker]
 ---
@@ -75,7 +75,7 @@ t1 = kanban_create(
     title="research: Postgres cost vs current",
     assignee="researcher",
     body="Compare estimated infrastructure costs, migration costs, and ongoing ops costs over a 3-year window. Sources: AWS/GCP pricing, team time estimates, current Postgres bills from peers.",
-    tenant=os.environ.get("HERMES_TENANT"),
+    tenant=os.environ.get("GENGAR_TENANT"),
 )["task_id"]
 
 t2 = kanban_create(
@@ -129,7 +129,7 @@ Tell them what you created in plain prose:
 > - **T3** (analyst): synthesizes T1 + T2 into a recommendation
 > - **T4** (writer): turns T3 into a CTO memo
 >
-> The dispatcher will pick up T1 and T2 now. T3 starts when both finish. You'll get a gateway ping when T4 completes. Use the dashboard or `hermes kanban tail <id>` to follow along.
+> The dispatcher will pick up T1 and T2 now. T3 starts when both finish. You'll get a gateway ping when T4 completes. Use the dashboard or `gengar kanban tail <id>` to follow along.
 
 ## Common patterns
 
@@ -149,4 +149,4 @@ Tell them what you created in plain prose:
 
 **Don't pre-create the whole graph if the shape depends on intermediate findings.** If T3's structure depends on what T1 and T2 find, let T3 exist as a "synthesize findings" task whose own first step is to read parent handoffs and plan the rest. Orchestrators can spawn orchestrators.
 
-**Tenant inheritance.** If `HERMES_TENANT` is set in your env, pass `tenant=os.environ.get("HERMES_TENANT")` on every `kanban_create` call so child tasks stay in the same namespace.
+**Tenant inheritance.** If `GENGAR_TENANT` is set in your env, pass `tenant=os.environ.get("GENGAR_TENANT")` on every `kanban_create` call so child tasks stay in the same namespace.

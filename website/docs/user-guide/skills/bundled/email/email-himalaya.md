@@ -24,7 +24,7 @@ Himalaya CLI: IMAP/SMTP email from terminal.
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Gengar loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # Himalaya Email CLI
@@ -88,7 +88,7 @@ message.send.backend.auth.type = "password"
 message.send.backend.auth.cmd = "pass show email/smtp"
 ```
 
-## Hermes Integration Notes
+## Gengar Integration Notes
 
 - **Reading, listing, searching, moving, deleting** all work directly through the terminal tool
 - **Composing/replying/forwarding** — piped input (`cat << EOF | himalaya template send`) is recommended for reliability. Interactive `$EDITOR` mode works with `pty=true` + background + process tool, but requires knowing the editor and its commands
@@ -145,7 +145,7 @@ himalaya message export 42 --full
 
 ### Reply to an Email
 
-To reply non-interactively from Hermes, read the original message, compose a reply, and pipe it:
+To reply non-interactively from Gengar, read the original message, compose a reply, and pipe it:
 
 ```bash
 # Get the reply template, edit it, and send
@@ -180,7 +180,7 @@ himalaya template forward 42 | sed 's/^To:.*/To: newrecipient@example.com/' | hi
 
 ### Write a New Email
 
-**Non-interactive (use this from Hermes)** — pipe the message via stdin:
+**Non-interactive (use this from Gengar)** — pipe the message via stdin:
 
 ```bash
 cat << 'EOF' | himalaya template send

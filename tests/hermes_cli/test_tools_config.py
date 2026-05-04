@@ -124,8 +124,8 @@ def test_get_platform_tools_preserves_explicit_empty_selection():
     # An explicit empty list disables every CONFIGURABLE toolset (web,
     # terminal, memory, …). Non-configurable platform toolsets that ride
     # along on the platform's default composite (e.g. `kanban`, whose tools
-    # live in _HERMES_CORE_TOOLS but aren't user-toggleable) are still
-    # auto-recovered by _get_platform_tools so saving via `hermes tools`
+    # live in _GENGAR_CORE_TOOLS but aren't user-toggleable) are still
+    # auto-recovered by _get_platform_tools so saving via `gengar tools`
     # doesn't silently drop them. The contract this test guards is the
     # configurable side: nothing the user could have checked in the TUI
     # checklist should reappear here.
@@ -254,7 +254,7 @@ def test_get_platform_tools_no_mcp_sentinel_does_not_affect_other_platforms():
 
 
 def test_toolset_has_keys_for_vision_accepts_codex_auth(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
     (tmp_path / "auth.json").write_text(
         '{"active_provider":"openai-codex","providers":{"openai-codex":{"tokens":{"access_token": "codex-...oken","refresh_token": "codex-...oken"}}}}'
     )
@@ -273,7 +273,7 @@ def test_toolset_has_keys_for_vision_accepts_codex_auth(tmp_path, monkeypatch):
 def test_save_platform_tools_preserves_mcp_server_names():
     """Ensure MCP server names are preserved when saving platform tools.
 
-    Regression test for https://github.com/NousResearch/hermes-agent/issues/1247
+    Regression test for https://github.com/jamesfincher/gengar/issues/1247
     """
     config = {
         "platform_toolsets": {
@@ -324,7 +324,7 @@ def test_save_platform_tools_handles_invalid_existing_config():
 
 
 def test_save_platform_tools_does_not_preserve_platform_default_toolsets():
-    """Platform default toolsets (hermes-cli, hermes-telegram, etc.) must NOT
+    """Platform default toolsets (gengar-cli, gengar-telegram, etc.) must NOT
     be preserved across saves.
 
     These "super" toolsets resolve to ALL tools, so if they survive in the
@@ -334,14 +334,14 @@ def test_save_platform_tools_does_not_preserve_platform_default_toolsets():
     (like MCP server names), causing them to be kept unconditionally.
 
     Regression test: user unchecks image_gen and homeassistant via
-    ``hermes tools``, but hermes-cli stays in the config and re-enables
+    ``gengar tools``, but gengar-cli stays in the config and re-enables
     everything on the next read.
     """
     config = {
         "platform_toolsets": {
             "cli": [
                 "browser", "clarify", "code_execution", "cronjob",
-                "delegation", "file", "hermes-cli",  # <-- the culprit
+                "delegation", "file", "gengar-cli",  # <-- the culprit
                 "memory", "session_search", "skills", "terminal",
                 "todo", "tts", "vision", "web",
             ]
@@ -360,8 +360,8 @@ def test_save_platform_tools_does_not_preserve_platform_default_toolsets():
 
     saved = config["platform_toolsets"]["cli"]
 
-    # hermes-cli must NOT survive — it's a platform default, not an MCP server
-    assert "hermes-cli" not in saved
+    # gengar-cli must NOT survive — it's a platform default, not an MCP server
+    assert "gengar-cli" not in saved
 
     # The individual toolset keys the user selected must be present
     assert "web" in saved
@@ -375,11 +375,11 @@ def test_save_platform_tools_does_not_preserve_platform_default_toolsets():
 
 
 def test_save_platform_tools_does_not_preserve_hermes_telegram():
-    """Same bug for Telegram — hermes-telegram must not be preserved."""
+    """Same bug for Telegram — gengar-telegram must not be preserved."""
     config = {
         "platform_toolsets": {
             "telegram": [
-                "browser", "file", "hermes-telegram", "terminal", "web",
+                "browser", "file", "gengar-telegram", "terminal", "web",
             ]
         }
     }
@@ -390,7 +390,7 @@ def test_save_platform_tools_does_not_preserve_hermes_telegram():
         _save_platform_tools(config, "telegram", new_selection)
 
     saved = config["platform_toolsets"]["telegram"]
-    assert "hermes-telegram" not in saved
+    assert "gengar-telegram" not in saved
     assert "web" in saved
 
 
@@ -400,7 +400,7 @@ def test_save_platform_tools_still_preserves_mcp_with_platform_default_present()
     config = {
         "platform_toolsets": {
             "cli": [
-                "web", "terminal", "hermes-cli", "my-mcp-server", "github-tools",
+                "web", "terminal", "gengar-cli", "my-mcp-server", "github-tools",
             ]
         }
     }
@@ -417,7 +417,7 @@ def test_save_platform_tools_still_preserves_mcp_with_platform_default_present()
     assert "github-tools" in saved
 
     # Platform default stripped
-    assert "hermes-cli" not in saved
+    assert "gengar-cli" not in saved
 
     # User selections present
     assert "web" in saved
@@ -568,11 +568,11 @@ class TestPlatformToolsetConsistency:
             )
 
     def test_gateway_toolset_includes_all_messaging_platforms(self):
-        """hermes-gateway includes list should cover all messaging platforms."""
+        """gengar-gateway includes list should cover all messaging platforms."""
         from hermes_cli.tools_config import PLATFORMS
         from toolsets import TOOLSETS
 
-        gateway_includes = set(TOOLSETS["hermes-gateway"]["includes"])
+        gateway_includes = set(TOOLSETS["gengar-gateway"]["includes"])
         # Exclude non-messaging platforms from the check
         non_messaging = {"cli", "api_server", "cron"}
         for platform, meta in PLATFORMS.items():
@@ -581,7 +581,7 @@ class TestPlatformToolsetConsistency:
             ts_name = meta["default_toolset"]
             assert ts_name in gateway_includes, (
                 f"Platform {platform!r} toolset {ts_name!r} missing from "
-                f"hermes-gateway includes"
+                f"gengar-gateway includes"
             )
 
     def test_skills_config_covers_tools_config_platforms(self):
@@ -605,7 +605,7 @@ def test_numeric_mcp_server_name_does_not_crash_sorted():
     _get_platform_tools must normalise them to str so that sorted()
     on the returned set never raises TypeError on mixed int/str.
 
-    Regression test for https://github.com/NousResearch/hermes-agent/issues/6901
+    Regression test for https://github.com/jamesfincher/gengar/issues/6901
     """
     config = {
         "platform_toolsets": {"cli": ["web", 12306]},
@@ -733,7 +733,7 @@ def test_save_platform_tools_normalizes_numeric_entries():
 
 
 def test_save_platform_tools_clears_no_mcp_sentinel():
-    """`hermes tools` has no UI for no_mcp, so saving from the picker clears
+    """`gengar tools` has no UI for no_mcp, so saving from the picker clears
     the sentinel unconditionally — otherwise a user who once set no_mcp by
     hand could never re-enable MCP servers through the UI.
     """
@@ -782,14 +782,14 @@ def test_get_platform_tools_recovers_non_configurable_toolsets_from_composite():
         "tools": ["_test_special_tool"],
         "includes": [],
     }
-    fake_toolsets["hermes-_test_platform"] = {
+    fake_toolsets["gengar-_test_platform"] = {
         "description": "test composite",
         "tools": ["web_search", "web_extract", "terminal", "process", "_test_special_tool"],
         "includes": [],
     }
 
     test_platforms = {
-        "_test_platform": {"label": "Test", "default_toolset": "hermes-_test_platform"},
+        "_test_platform": {"label": "Test", "default_toolset": "gengar-_test_platform"},
     }
 
     with mock_patch("hermes_cli.tools_config.PLATFORMS", {**PLATFORMS, **test_platforms}):
@@ -803,7 +803,7 @@ def test_get_platform_tools_recovers_non_configurable_toolsets_from_composite():
 
 def test_get_platform_tools_second_pass_skips_fully_claimed_toolsets():
     """Toolsets whose tools are fully covered by configurable keys should NOT
-    be added by the second pass (prevents 'search', 'hermes-acp' noise).
+    be added by the second pass (prevents 'search', 'gengar-acp' noise).
     """
     enabled = _get_platform_tools({}, "cli")
 
@@ -811,7 +811,7 @@ def test_get_platform_tools_second_pass_skips_fully_claimed_toolsets():
 
 
 def test_get_platform_tools_discord_both_off_by_default():
-    """Both `discord` and `discord_admin` are opt-in via `hermes tools`,
+    """Both `discord` and `discord_admin` are opt-in via `gengar tools`,
     even on the Discord platform itself.  Users shouldn't auto-inherit 19
     extra tools just because DISCORD_BOT_TOKEN is set."""
     enabled = _get_platform_tools({}, "discord")
@@ -846,7 +846,7 @@ def test_discord_toolsets_not_available_on_other_platforms():
 
 
 def test_discord_toolsets_user_enabled_are_honored():
-    """When the user opts in via `hermes tools`, the toolset appears."""
+    """When the user opts in via `gengar tools`, the toolset appears."""
     config = {"platform_toolsets": {"discord": ["web", "terminal", "discord"]}}
     enabled = _get_platform_tools(config, "discord")
     assert "discord" in enabled
@@ -882,7 +882,7 @@ def test_get_platform_tools_feishu_tools_not_on_other_platforms():
 def test_get_effective_configurable_toolsets_dedupes_bundled_plugins():
     """Bundled plugins (plugins/spotify) share their toolset key with the
     built-in CONFIGURABLE_TOOLSETS entry. The effective list must not list
-    them twice — otherwise `hermes tools` → "reconfigure existing" shows
+    them twice — otherwise `gengar tools` → "reconfigure existing" shows
     the same toolset two rows in a row.
     """
     from hermes_cli.tools_config import _get_effective_configurable_toolsets

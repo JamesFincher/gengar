@@ -1,12 +1,12 @@
 ---
 sidebar_position: 2
 title: "Environment Variables"
-description: "Complete reference of all environment variables used by Hermes Agent"
+description: "Complete reference of all environment variables used by Gengar"
 ---
 
 # Environment Variables Reference
 
-All variables go in `~/.hermes/.env`. You can also set them with `hermes config set VAR value`.
+All variables go in `~/.gengar/.env`. You can also set them with `gengar config set VAR value`.
 
 ## LLM Providers
 
@@ -14,8 +14,8 @@ All variables go in `~/.hermes/.env`. You can also set them with `hermes config 
 |----------|-------------|
 | `OPENROUTER_API_KEY` | OpenRouter API key (recommended for flexibility) |
 | `OPENROUTER_BASE_URL` | Override the OpenRouter-compatible base URL |
-| `HERMES_OPENROUTER_CACHE` | Enable OpenRouter response caching (`1`/`true`/`yes`/`on`). Overrides `openrouter.response_cache` in config.yaml. See [Response Caching](https://openrouter.ai/docs/guides/features/response-caching). |
-| `HERMES_OPENROUTER_CACHE_TTL` | Cache TTL in seconds (1-86400). Overrides `openrouter.response_cache_ttl` in config.yaml. |
+| `GENGAR_OPENROUTER_CACHE` | Enable OpenRouter response caching (`1`/`true`/`yes`/`on`). Overrides `openrouter.response_cache` in config.yaml. See [Response Caching](https://openrouter.ai/docs/guides/features/response-caching). |
+| `GENGAR_OPENROUTER_CACHE_TTL` | Cache TTL in seconds (1-86400). Overrides `openrouter.response_cache_ttl` in config.yaml. |
 | `NOUS_BASE_URL` | Override Nous Portal base URL (rarely needed; development/testing only) |
 | `NOUS_INFERENCE_BASE_URL` | Override Nous inference endpoint directly |
 | `AI_GATEWAY_API_KEY` | Vercel AI Gateway API key ([ai-gateway.vercel.sh](https://ai-gateway.vercel.sh)) |
@@ -25,9 +25,9 @@ All variables go in `~/.hermes/.env`. You can also set them with `hermes config 
 | `COPILOT_GITHUB_TOKEN` | GitHub token for Copilot API — first priority (OAuth `gho_*` or fine-grained PAT `github_pat_*`; classic PATs `ghp_*` are **not supported**) |
 | `GH_TOKEN` | GitHub token — second priority for Copilot (also used by `gh` CLI) |
 | `GITHUB_TOKEN` | GitHub token — third priority for Copilot |
-| `HERMES_COPILOT_ACP_COMMAND` | Override Copilot ACP CLI binary path (default: `copilot`) |
-| `COPILOT_CLI_PATH` | Alias for `HERMES_COPILOT_ACP_COMMAND` |
-| `HERMES_COPILOT_ACP_ARGS` | Override Copilot ACP arguments (default: `--acp --stdio`) |
+| `GENGAR_COPILOT_ACP_COMMAND` | Override Copilot ACP CLI binary path (default: `copilot`) |
+| `COPILOT_CLI_PATH` | Alias for `GENGAR_COPILOT_ACP_COMMAND` |
+| `GENGAR_COPILOT_ACP_ARGS` | Override Copilot ACP arguments (default: `--acp --stdio`) |
 | `COPILOT_ACP_BASE_URL` | Override Copilot ACP base URL |
 | `GLM_API_KEY` | z.ai / ZhipuAI GLM API key ([z.ai](https://z.ai)) |
 | `ZAI_API_KEY` | Alias for `GLM_API_KEY` |
@@ -41,7 +41,7 @@ All variables go in `~/.hermes/.env`. You can also set them with `hermes config 
 | `GMI_API_KEY` | GMI Cloud API key ([gmicloud.ai](https://www.gmicloud.ai/)) |
 | `GMI_BASE_URL` | Override GMI Cloud base URL (default: `https://api.gmi-serving.com/v1`) |
 | `MINIMAX_API_KEY` | MiniMax API key — global endpoint ([minimax.io](https://www.minimax.io)). **Not used by `minimax-oauth`** (OAuth path uses browser login instead). |
-| `MINIMAX_BASE_URL` | Override MiniMax base URL (default: `https://api.minimax.io/anthropic` — Hermes uses MiniMax's Anthropic Messages-compatible endpoint). **Not used by `minimax-oauth`**. |
+| `MINIMAX_BASE_URL` | Override MiniMax base URL (default: `https://api.minimax.io/anthropic` — Gengar uses MiniMax's Anthropic Messages-compatible endpoint). **Not used by `minimax-oauth`**. |
 | `MINIMAX_CN_API_KEY` | MiniMax API key — China endpoint ([minimaxi.com](https://www.minimaxi.com)). **Not used by `minimax-oauth`** (OAuth path uses browser login instead). |
 | `MINIMAX_CN_BASE_URL` | Override MiniMax China base URL (default: `https://api.minimaxi.com/anthropic`). **Not used by `minimax-oauth`**. |
 | `KILOCODE_API_KEY` | Kilo Code API key ([kilo.ai](https://kilo.ai)) |
@@ -58,9 +58,9 @@ All variables go in `~/.hermes/.env`. You can also set them with `hermes config 
 | `GOOGLE_API_KEY` | Google AI Studio API key ([aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)) |
 | `GEMINI_API_KEY` | Alias for `GOOGLE_API_KEY` |
 | `GEMINI_BASE_URL` | Override Google AI Studio base URL |
-| `HERMES_GEMINI_CLIENT_ID` | OAuth client ID for `google-gemini-cli` PKCE login (optional; defaults to Google's public gemini-cli client) |
-| `HERMES_GEMINI_CLIENT_SECRET` | OAuth client secret for `google-gemini-cli` (optional) |
-| `HERMES_GEMINI_PROJECT_ID` | GCP project ID for paid Gemini tiers (free tier auto-provisions) |
+| `GENGAR_GEMINI_CLIENT_ID` | OAuth client ID for `google-gemini-cli` PKCE login (optional; defaults to Google's public gemini-cli client) |
+| `GENGAR_GEMINI_CLIENT_SECRET` | OAuth client secret for `google-gemini-cli` (optional) |
+| `GENGAR_GEMINI_PROJECT_ID` | GCP project ID for paid Gemini tiers (free tier auto-provisions) |
 | `ANTHROPIC_API_KEY` | Anthropic Console API key ([console.anthropic.com](https://console.anthropic.com/)) |
 | `ANTHROPIC_TOKEN` | Manual or legacy Anthropic OAuth/setup-token override |
 | `DASHSCOPE_API_KEY` | Alibaba Cloud DashScope API key for Qwen models ([modelstudio.console.alibabacloud.com](https://modelstudio.console.alibabacloud.com/)) |
@@ -77,35 +77,35 @@ All variables go in `~/.hermes/.env`. You can also set them with `hermes config 
 | `AWS_REGION` | AWS region for Bedrock inference (e.g. `us-east-1`, `eu-central-1`). Read by boto3. |
 | `AWS_PROFILE` | AWS named profile for Bedrock authentication (reads `~/.aws/credentials`). Leave unset to use default boto3 credential chain. |
 | `BEDROCK_BASE_URL` | Override Bedrock runtime base URL (default: `https://bedrock-runtime.us-east-1.amazonaws.com`; usually leave unset and use `AWS_REGION` instead) |
-| `HERMES_QWEN_BASE_URL` | Qwen Portal base URL override (default: `https://portal.qwen.ai/v1`) |
+| `GENGAR_QWEN_BASE_URL` | Qwen Portal base URL override (default: `https://portal.qwen.ai/v1`) |
 | `OPENCODE_ZEN_API_KEY` | OpenCode Zen API key — pay-as-you-go access to curated models ([opencode.ai](https://opencode.ai/auth)) |
 | `OPENCODE_ZEN_BASE_URL` | Override OpenCode Zen base URL |
 | `OPENCODE_GO_API_KEY` | OpenCode Go API key — $10/month subscription for open models ([opencode.ai](https://opencode.ai/auth)) |
 | `OPENCODE_GO_BASE_URL` | Override OpenCode Go base URL |
 | `CLAUDE_CODE_OAUTH_TOKEN` | Explicit Claude Code token override if you export one manually |
-| `HERMES_MODEL` | Override model name at process level (used by cron scheduler; prefer `config.yaml` for normal use) |
+| `GENGAR_MODEL` | Override model name at process level (used by cron scheduler; prefer `config.yaml` for normal use) |
 | `VOICE_TOOLS_OPENAI_KEY` | Preferred OpenAI key for OpenAI speech-to-text and text-to-speech providers |
-| `HERMES_LOCAL_STT_COMMAND` | Optional local speech-to-text command template. Supports `{input_path}`, `{output_dir}`, `{language}`, and `{model}` placeholders |
-| `HERMES_LOCAL_STT_LANGUAGE` | Default language passed to `HERMES_LOCAL_STT_COMMAND` or auto-detected local `whisper` CLI fallback (default: `en`) |
-| `HERMES_HOME` | Override Hermes config directory (default: `~/.hermes`). Also scopes the gateway PID file and systemd service name, so multiple installations can run concurrently |
-| `HERMES_KANBAN_HOME` | Override the shared Hermes root that anchors the kanban board (db + workspaces + worker logs). Falls back to `get_default_hermes_root()` (the parent of any active profile). Useful for tests and unusual deployments |
-| `HERMES_KANBAN_DB` | Pin the kanban database file path directly (highest precedence; beats `HERMES_KANBAN_HOME`). The dispatcher injects this into worker subprocess env so profile workers converge on the dispatcher's board |
-| `HERMES_KANBAN_WORKSPACES_ROOT` | Pin the kanban workspaces root directly (highest precedence for workspaces; beats `HERMES_KANBAN_HOME`). The dispatcher injects this into worker subprocess env |
+| `GENGAR_LOCAL_STT_COMMAND` | Optional local speech-to-text command template. Supports `{input_path}`, `{output_dir}`, `{language}`, and `{model}` placeholders |
+| `GENGAR_LOCAL_STT_LANGUAGE` | Default language passed to `GENGAR_LOCAL_STT_COMMAND` or auto-detected local `whisper` CLI fallback (default: `en`) |
+| `GENGAR_HOME` | Override Gengar config directory (default: `~/.gengar`). Also scopes the gateway PID file and systemd service name, so multiple installations can run concurrently |
+| `GENGAR_KANBAN_HOME` | Override the shared Gengar root that anchors the kanban board (db + workspaces + worker logs). Falls back to `get_default_hermes_root()` (the parent of any active profile). Useful for tests and unusual deployments |
+| `GENGAR_KANBAN_DB` | Pin the kanban database file path directly (highest precedence; beats `GENGAR_KANBAN_HOME`). The dispatcher injects this into worker subprocess env so profile workers converge on the dispatcher's board |
+| `GENGAR_KANBAN_WORKSPACES_ROOT` | Pin the kanban workspaces root directly (highest precedence for workspaces; beats `GENGAR_KANBAN_HOME`). The dispatcher injects this into worker subprocess env |
 
 ## Provider Auth (OAuth)
 
-For native Anthropic auth, Hermes prefers Claude Code's own credential files when they exist because those credentials can refresh automatically. **OAuth against Anthropic requires a Claude Max plan with purchased extra usage credits** — Hermes routes as Claude Code, which only draws from the Max plan's extra/overage credits, not the base Max allowance, and does not work on Claude Pro. Without Max + extra credits, use an API key instead. Environment variables such as `ANTHROPIC_TOKEN` remain useful as manual overrides, but they are no longer the preferred path for Claude Max login.
+For native Anthropic auth, Gengar prefers Claude Code's own credential files when they exist because those credentials can refresh automatically. **OAuth against Anthropic requires a Claude Max plan with purchased extra usage credits** — Gengar routes as Claude Code, which only draws from the Max plan's extra/overage credits, not the base Max allowance, and does not work on Claude Pro. Without Max + extra credits, use an API key instead. Environment variables such as `ANTHROPIC_TOKEN` remain useful as manual overrides, but they are no longer the preferred path for Claude Max login.
 
 | Variable | Description |
 |----------|-------------|
-| `HERMES_INFERENCE_PROVIDER` | Override provider selection: `auto`, `custom`, `openrouter`, `nous`, `openai-codex`, `copilot`, `copilot-acp`, `anthropic`, `huggingface`, `gemini`, `zai`, `kimi-coding`, `kimi-coding-cn`, `minimax`, `minimax-cn`, `minimax-oauth` (browser OAuth login — no API key required; see [MiniMax OAuth guide](../guides/minimax-oauth.md)), `kilocode`, `xiaomi`, `arcee`, `gmi`, `alibaba`, `alibaba-coding-plan` (alias `alibaba_coding`), `deepseek`, `nvidia`, `ollama-cloud`, `xai` (alias `grok`), `google-gemini-cli`, `qwen-oauth`, `bedrock`, `opencode-zen`, `opencode-go`, `ai-gateway`, `tencent-tokenhub` (default: `auto`) |
-| `HERMES_PORTAL_BASE_URL` | Override Nous Portal URL (for development/testing) |
+| `GENGAR_INFERENCE_PROVIDER` | Override provider selection: `auto`, `custom`, `openrouter`, `nous`, `openai-codex`, `copilot`, `copilot-acp`, `anthropic`, `huggingface`, `gemini`, `zai`, `kimi-coding`, `kimi-coding-cn`, `minimax`, `minimax-cn`, `minimax-oauth` (browser OAuth login — no API key required; see [MiniMax OAuth guide](../guides/minimax-oauth.md)), `kilocode`, `xiaomi`, `arcee`, `gmi`, `alibaba`, `alibaba-coding-plan` (alias `alibaba_coding`), `deepseek`, `nvidia`, `ollama-cloud`, `xai` (alias `grok`), `google-gemini-cli`, `qwen-oauth`, `bedrock`, `opencode-zen`, `opencode-go`, `ai-gateway`, `tencent-tokenhub` (default: `auto`) |
+| `GENGAR_PORTAL_BASE_URL` | Override Nous Portal URL (for development/testing) |
 | `NOUS_INFERENCE_BASE_URL` | Override Nous inference API URL |
-| `HERMES_NOUS_MIN_KEY_TTL_SECONDS` | Min agent key TTL before re-mint (default: 1800 = 30min) |
-| `HERMES_NOUS_TIMEOUT_SECONDS` | HTTP timeout for Nous credential / token flows |
-| `HERMES_DUMP_REQUESTS` | Dump API request payloads to log files (`true`/`false`) |
-| `HERMES_PREFILL_MESSAGES_FILE` | Path to a JSON file of ephemeral prefill messages injected at API-call time |
-| `HERMES_TIMEZONE` | IANA timezone override (for example `America/New_York`) |
+| `GENGAR_NOUS_MIN_KEY_TTL_SECONDS` | Min agent key TTL before re-mint (default: 1800 = 30min) |
+| `GENGAR_NOUS_TIMEOUT_SECONDS` | HTTP timeout for Nous credential / token flows |
+| `GENGAR_DUMP_REQUESTS` | Dump API request payloads to log files (`true`/`false`) |
+| `GENGAR_PREFILL_MESSAGES_FILE` | Path to a JSON file of ephemeral prefill messages injected at API-call time |
+| `GENGAR_TIMEZONE` | IANA timezone override (for example `America/New_York`) |
 
 ## Tool APIs
 
@@ -146,27 +146,27 @@ For native Anthropic auth, Hermes prefers Claude Code's own credential files whe
 
 ### Langfuse Observability
 
-Environment variables for the bundled [`observability/langfuse`](/docs/user-guide/features/built-in-plugins#observabilitylangfuse) plugin. Set these with `hermes tools → Langfuse Observability` or manually in `~/.hermes/.env`. The plugin must also be enabled (`hermes plugins enable observability/langfuse`) before any of these take effect.
+Environment variables for the bundled [`observability/langfuse`](/docs/user-guide/features/built-in-plugins#observabilitylangfuse) plugin. Set these with `gengar tools → Langfuse Observability` or manually in `~/.gengar/.env`. The plugin must also be enabled (`gengar plugins enable observability/langfuse`) before any of these take effect.
 
 | Variable | Description |
 |----------|-------------|
-| `HERMES_LANGFUSE_PUBLIC_KEY` | Langfuse project public key (`pk-lf-...`). Required. |
-| `HERMES_LANGFUSE_SECRET_KEY` | Langfuse project secret key (`sk-lf-...`). Required. |
-| `HERMES_LANGFUSE_BASE_URL` | Langfuse server URL (default: `https://cloud.langfuse.com`). Set for self-hosted. |
-| `HERMES_LANGFUSE_ENV` | Environment tag on traces (`production`, `staging`, …) |
-| `HERMES_LANGFUSE_RELEASE` | Release/version tag on traces |
-| `HERMES_LANGFUSE_SAMPLE_RATE` | SDK sampling rate 0.0–1.0 (default: `1.0`) |
-| `HERMES_LANGFUSE_MAX_CHARS` | Per-field truncation for serialized payloads (default: `12000`) |
-| `HERMES_LANGFUSE_DEBUG` | `true` enables verbose plugin logging to `agent.log` |
-| `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` / `LANGFUSE_BASE_URL` | Standard Langfuse SDK names. Accepted as fallbacks when the `HERMES_LANGFUSE_*` equivalents are unset. |
+| `GENGAR_LANGFUSE_PUBLIC_KEY` | Langfuse project public key (`pk-lf-...`). Required. |
+| `GENGAR_LANGFUSE_SECRET_KEY` | Langfuse project secret key (`sk-lf-...`). Required. |
+| `GENGAR_LANGFUSE_BASE_URL` | Langfuse server URL (default: `https://cloud.langfuse.com`). Set for self-hosted. |
+| `GENGAR_LANGFUSE_ENV` | Environment tag on traces (`production`, `staging`, …) |
+| `GENGAR_LANGFUSE_RELEASE` | Release/version tag on traces |
+| `GENGAR_LANGFUSE_SAMPLE_RATE` | SDK sampling rate 0.0–1.0 (default: `1.0`) |
+| `GENGAR_LANGFUSE_MAX_CHARS` | Per-field truncation for serialized payloads (default: `12000`) |
+| `GENGAR_LANGFUSE_DEBUG` | `true` enables verbose plugin logging to `agent.log` |
+| `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` / `LANGFUSE_BASE_URL` | Standard Langfuse SDK names. Accepted as fallbacks when the `GENGAR_LANGFUSE_*` equivalents are unset. |
 
 ### Nous Tool Gateway
 
-These variables configure the [Tool Gateway](/docs/user-guide/features/tool-gateway) for paid Nous subscribers or self-hosted gateway deployments. Most users don't need to set these — the gateway is configured automatically via `hermes model` or `hermes tools`.
+These variables configure the [Tool Gateway](/docs/user-guide/features/tool-gateway) for paid Nous subscribers or self-hosted gateway deployments. Most users don't need to set these — the gateway is configured automatically via `gengar model` or `gengar tools`.
 
 | Variable | Description |
 |----------|-------------|
-| `TOOL_GATEWAY_DOMAIN` | Base domain for Tool Gateway routing (default: `nousresearch.com`) |
+| `TOOL_GATEWAY_DOMAIN` | Base domain for Tool Gateway routing (default: `jamesfincher.com`) |
 | `TOOL_GATEWAY_SCHEME` | HTTP or HTTPS scheme for gateway URLs (default: `https`) |
 | `TOOL_GATEWAY_USER_TOKEN` | Auth token for the Tool Gateway (normally auto-populated from Nous auth) |
 | `FIRECRAWL_GATEWAY_URL` | Override URL for the Firecrawl gateway endpoint specifically |
@@ -176,7 +176,7 @@ These variables configure the [Tool Gateway](/docs/user-guide/features/tool-gate
 | Variable | Description |
 |----------|-------------|
 | `TERMINAL_ENV` | Backend: `local`, `docker`, `ssh`, `singularity`, `modal`, `daytona`, `vercel_sandbox` |
-| `HERMES_DOCKER_BINARY` | Override the container binary Hermes shells out to (e.g. `podman`, `/usr/local/bin/docker`). When unset, Hermes auto-discovers `docker` or `podman` on `PATH`. Needed when both are installed and you want the non-default, or when the binary lives outside `PATH`. |
+| `GENGAR_DOCKER_BINARY` | Override the container binary Gengar shells out to (e.g. `podman`, `/usr/local/bin/docker`). When unset, Gengar auto-discovers `docker` or `podman` on `PATH`. Needed when both are installed and you want the non-default, or when the binary lives outside `PATH`. |
 | `TERMINAL_DOCKER_IMAGE` | Docker image (default: `nikolaik/python-nodejs:python3.11-nodejs20`) |
 | `TERMINAL_DOCKER_FORWARD_ENV` | JSON array of env var names to explicitly forward into Docker terminal sessions. Note: skill-declared `required_environment_variables` are forwarded automatically — you only need this for vars not declared by any skill. |
 | `TERMINAL_DOCKER_VOLUMES` | Additional Docker volume mounts (comma-separated `host:container` pairs) |
@@ -190,7 +190,7 @@ These variables configure the [Tool Gateway](/docs/user-guide/features/tool-gate
 | `TERMINAL_CWD` | Working directory for all terminal sessions |
 | `SUDO_PASSWORD` | Enable sudo without interactive prompt |
 
-For cloud sandbox backends, persistence is filesystem-oriented. `TERMINAL_LIFETIME_SECONDS` controls when Hermes cleans up an idle terminal session, and later resumes may recreate the sandbox rather than keep the same live processes running.
+For cloud sandbox backends, persistence is filesystem-oriented. `TERMINAL_LIFETIME_SECONDS` controls when Gengar cleans up an idle terminal session, and later resumes may recreate the sandbox rather than keep the same live processes running.
 
 ## SSH Backend
 
@@ -210,7 +210,7 @@ For cloud sandbox backends, persistence is filesystem-oriented. `TERMINAL_LIFETI
 | `TERMINAL_CONTAINER_MEMORY` | Memory in MB (default: 5120) |
 | `TERMINAL_CONTAINER_DISK` | Disk in MB (default: 51200) |
 | `TERMINAL_CONTAINER_PERSISTENT` | Persist container filesystem across sessions (default: `true`) |
-| `TERMINAL_SANDBOX_DIR` | Host directory for workspaces and overlays (default: `~/.hermes/sandboxes/`) |
+| `TERMINAL_SANDBOX_DIR` | Host directory for workspaces and overlays (default: `~/.gengar/sandboxes/`) |
 
 ## Persistent Shell
 
@@ -360,12 +360,12 @@ For cloud sandbox backends, persistence is filesystem-oriented. `TERMINAL_LIFETI
 | `MATTERMOST_REPLY_MODE` | Reply style: `thread` (threaded replies) or `off` (flat messages, default) |
 | `MATRIX_HOMESERVER` | Matrix homeserver URL (e.g. `https://matrix.org`) |
 | `MATRIX_ACCESS_TOKEN` | Matrix access token for bot authentication |
-| `MATRIX_USER_ID` | Matrix user ID (e.g. `@hermes:matrix.org`) — required for password login, optional with access token |
+| `MATRIX_USER_ID` | Matrix user ID (e.g. `@gengar:matrix.org`) — required for password login, optional with access token |
 | `MATRIX_PASSWORD` | Matrix password (alternative to access token) |
 | `MATRIX_ALLOWED_USERS` | Comma-separated Matrix user IDs allowed to message the bot (e.g. `@alice:matrix.org`) |
 | `MATRIX_HOME_ROOM` | Room ID for proactive message delivery (e.g. `!abc123:matrix.org`) |
 | `MATRIX_ENCRYPTION` | Enable end-to-end encryption (`true`/`false`, default: `false`) |
-| `MATRIX_DEVICE_ID` | Stable Matrix device ID for E2EE persistence across restarts (e.g. `HERMES_BOT`). Without this, E2EE keys rotate every startup and historic-room decrypt breaks. |
+| `MATRIX_DEVICE_ID` | Stable Matrix device ID for E2EE persistence across restarts (e.g. `GENGAR_BOT`). Without this, E2EE keys rotate every startup and historic-room decrypt breaks. |
 | `MATRIX_REACTIONS` | Enable processing-lifecycle emoji reactions on inbound messages (default: `true`). Set to `false` to disable. |
 | `MATRIX_REQUIRE_MENTION` | Require `@mention` in rooms (default: `true`). Set to `false` to respond to all messages. |
 | `MATRIX_FREE_RESPONSE_ROOMS` | Comma-separated room IDs where bot responds without `@mention` |
@@ -382,8 +382,8 @@ For cloud sandbox backends, persistence is filesystem-oriented. `TERMINAL_LIFETI
 | `API_SERVER_CORS_ORIGINS` | Comma-separated browser origins allowed to call the API server directly (for example `http://localhost:3000,http://127.0.0.1:3000`). Default: disabled. |
 | `API_SERVER_PORT` | Port for the API server (default: `8642`) |
 | `API_SERVER_HOST` | Host/bind address for the API server (default: `127.0.0.1`). Use `0.0.0.0` for network access — requires `API_SERVER_KEY` and a narrow `API_SERVER_CORS_ORIGINS` allowlist. |
-| `API_SERVER_MODEL_NAME` | Model name advertised on `/v1/models`. Defaults to the profile name (or `hermes-agent` for the default profile). Useful for multi-user setups where frontends like Open WebUI need distinct model names per connection. |
-| `GATEWAY_PROXY_URL` | URL of a remote Hermes API server to forward messages to ([proxy mode](/docs/user-guide/messaging/matrix#proxy-mode-e2ee-on-macos)). When set, the gateway handles platform I/O only — all agent work is delegated to the remote server. Also configurable via `gateway.proxy_url` in `config.yaml`. |
+| `API_SERVER_MODEL_NAME` | Model name advertised on `/v1/models`. Defaults to the profile name (or `gengar` for the default profile). Useful for multi-user setups where frontends like Open WebUI need distinct model names per connection. |
+| `GATEWAY_PROXY_URL` | URL of a remote Gengar API server to forward messages to ([proxy mode](/docs/user-guide/messaging/matrix#proxy-mode-e2ee-on-macos)). When set, the gateway handles platform I/O only — all agent work is delegated to the remote server. Also configurable via `gateway.proxy_url` in `config.yaml`. |
 | `GATEWAY_PROXY_KEY` | Bearer token for authenticating with the remote API server in proxy mode. Must match `API_SERVER_KEY` on the remote host. |
 | `MESSAGING_CWD` | Working directory for terminal commands in messaging mode (default: `~`) |
 | `GATEWAY_ALLOWED_USERS` | Comma-separated user IDs allowed across all platforms |
@@ -395,85 +395,85 @@ Advanced per-platform knobs for throttling the outbound message batcher. Most us
 
 | Variable | Description |
 |----------|-------------|
-| `HERMES_TELEGRAM_TEXT_BATCH_DELAY_SECONDS` | Grace window before flushing a queued Telegram text chunk (default: `0.6`). |
-| `HERMES_TELEGRAM_TEXT_BATCH_SPLIT_DELAY_SECONDS` | Delay between split chunks when a single Telegram message exceeds the length limit (default: `2.0`). |
-| `HERMES_TELEGRAM_MEDIA_BATCH_DELAY_SECONDS` | Grace window before flushing queued Telegram media (default: `0.6`). |
-| `HERMES_TELEGRAM_FOLLOWUP_GRACE_SECONDS` | Delay before sending a follow-up after the agent finishes, to avoid racing the last stream chunk. |
-| `HERMES_TELEGRAM_HTTP_CONNECT_TIMEOUT` / `_READ_TIMEOUT` / `_WRITE_TIMEOUT` / `_POOL_TIMEOUT` | Override the underlying `python-telegram-bot` HTTP timeouts (seconds). |
-| `HERMES_TELEGRAM_HTTP_POOL_SIZE` | Max concurrent HTTP connections to the Telegram API. |
-| `HERMES_TELEGRAM_DISABLE_FALLBACK_IPS` | Disable the hard-coded Cloudflare fallback IPs used when DNS fails (`true`/`false`). |
-| `HERMES_DISCORD_TEXT_BATCH_DELAY_SECONDS` | Grace window before flushing a queued Discord text chunk (default: `0.6`). |
-| `HERMES_DISCORD_TEXT_BATCH_SPLIT_DELAY_SECONDS` | Delay between split chunks when a Discord message exceeds the length limit (default: `2.0`). |
-| `HERMES_MATRIX_TEXT_BATCH_DELAY_SECONDS` / `_SPLIT_DELAY_SECONDS` | Matrix equivalents of the Telegram batch knobs. |
-| `HERMES_FEISHU_TEXT_BATCH_DELAY_SECONDS` / `_SPLIT_DELAY_SECONDS` / `_MAX_CHARS` / `_MAX_MESSAGES` | Feishu batcher tuning — delay, split delay, max chars per message, max messages per batch. |
-| `HERMES_FEISHU_MEDIA_BATCH_DELAY_SECONDS` | Feishu media flush delay. |
-| `HERMES_FEISHU_DEDUP_CACHE_SIZE` | Size of the Feishu webhook dedup cache (default: `1024`). |
-| `HERMES_WECOM_TEXT_BATCH_DELAY_SECONDS` / `_SPLIT_DELAY_SECONDS` | WeCom batcher tuning. |
-| `HERMES_VISION_DOWNLOAD_TIMEOUT` | Timeout in seconds for downloading an image before handing it to vision models (default: `30`). |
-| `HERMES_RESTART_DRAIN_TIMEOUT` | Gateway: seconds to wait for active runs to drain on `/restart` before forcing the restart (default: `900`). |
-| `HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT` | Per-platform connect timeout during gateway startup (seconds). |
-| `HERMES_GATEWAY_BUSY_INPUT_MODE` | Default gateway busy-input behavior: `queue`, `steer`, or `interrupt`. Can be overridden per chat with `/busy`. |
-| `HERMES_GATEWAY_BUSY_ACK_ENABLED` | Whether the gateway sends an acknowledgment message (⚡/⏳/⏩) when a user sends input while the agent is busy (default: `true`). Set to `false` to suppress these messages entirely — the input is still queued/steered/interrupts as normal, only the chat reply is silenced. Bridged from `display.busy_ack_enabled` in `config.yaml`. |
-| `HERMES_CRON_TIMEOUT` | Inactivity timeout for cron job agent runs in seconds (default: `600`). The agent can run indefinitely while actively calling tools or receiving stream tokens — this only triggers when idle. Set to `0` for unlimited. |
-| `HERMES_CRON_SCRIPT_TIMEOUT` | Timeout for pre-run scripts attached to cron jobs in seconds (default: `120`). Override for scripts that need longer execution (e.g., randomized delays for anti-bot timing). Also configurable via `cron.script_timeout_seconds` in `config.yaml`. |
-| `HERMES_CRON_MAX_PARALLEL` | Max cron jobs run in parallel per tick (default: `4`). |
+| `GENGAR_TELEGRAM_TEXT_BATCH_DELAY_SECONDS` | Grace window before flushing a queued Telegram text chunk (default: `0.6`). |
+| `GENGAR_TELEGRAM_TEXT_BATCH_SPLIT_DELAY_SECONDS` | Delay between split chunks when a single Telegram message exceeds the length limit (default: `2.0`). |
+| `GENGAR_TELEGRAM_MEDIA_BATCH_DELAY_SECONDS` | Grace window before flushing queued Telegram media (default: `0.6`). |
+| `GENGAR_TELEGRAM_FOLLOWUP_GRACE_SECONDS` | Delay before sending a follow-up after the agent finishes, to avoid racing the last stream chunk. |
+| `GENGAR_TELEGRAM_HTTP_CONNECT_TIMEOUT` / `_READ_TIMEOUT` / `_WRITE_TIMEOUT` / `_POOL_TIMEOUT` | Override the underlying `python-telegram-bot` HTTP timeouts (seconds). |
+| `GENGAR_TELEGRAM_HTTP_POOL_SIZE` | Max concurrent HTTP connections to the Telegram API. |
+| `GENGAR_TELEGRAM_DISABLE_FALLBACK_IPS` | Disable the hard-coded Cloudflare fallback IPs used when DNS fails (`true`/`false`). |
+| `GENGAR_DISCORD_TEXT_BATCH_DELAY_SECONDS` | Grace window before flushing a queued Discord text chunk (default: `0.6`). |
+| `GENGAR_DISCORD_TEXT_BATCH_SPLIT_DELAY_SECONDS` | Delay between split chunks when a Discord message exceeds the length limit (default: `2.0`). |
+| `GENGAR_MATRIX_TEXT_BATCH_DELAY_SECONDS` / `_SPLIT_DELAY_SECONDS` | Matrix equivalents of the Telegram batch knobs. |
+| `GENGAR_FEISHU_TEXT_BATCH_DELAY_SECONDS` / `_SPLIT_DELAY_SECONDS` / `_MAX_CHARS` / `_MAX_MESSAGES` | Feishu batcher tuning — delay, split delay, max chars per message, max messages per batch. |
+| `GENGAR_FEISHU_MEDIA_BATCH_DELAY_SECONDS` | Feishu media flush delay. |
+| `GENGAR_FEISHU_DEDUP_CACHE_SIZE` | Size of the Feishu webhook dedup cache (default: `1024`). |
+| `GENGAR_WECOM_TEXT_BATCH_DELAY_SECONDS` / `_SPLIT_DELAY_SECONDS` | WeCom batcher tuning. |
+| `GENGAR_VISION_DOWNLOAD_TIMEOUT` | Timeout in seconds for downloading an image before handing it to vision models (default: `30`). |
+| `GENGAR_RESTART_DRAIN_TIMEOUT` | Gateway: seconds to wait for active runs to drain on `/restart` before forcing the restart (default: `900`). |
+| `GENGAR_GATEWAY_PLATFORM_CONNECT_TIMEOUT` | Per-platform connect timeout during gateway startup (seconds). |
+| `GENGAR_GATEWAY_BUSY_INPUT_MODE` | Default gateway busy-input behavior: `queue`, `steer`, or `interrupt`. Can be overridden per chat with `/busy`. |
+| `GENGAR_GATEWAY_BUSY_ACK_ENABLED` | Whether the gateway sends an acknowledgment message (⚡/⏳/⏩) when a user sends input while the agent is busy (default: `true`). Set to `false` to suppress these messages entirely — the input is still queued/steered/interrupts as normal, only the chat reply is silenced. Bridged from `display.busy_ack_enabled` in `config.yaml`. |
+| `GENGAR_CRON_TIMEOUT` | Inactivity timeout for cron job agent runs in seconds (default: `600`). The agent can run indefinitely while actively calling tools or receiving stream tokens — this only triggers when idle. Set to `0` for unlimited. |
+| `GENGAR_CRON_SCRIPT_TIMEOUT` | Timeout for pre-run scripts attached to cron jobs in seconds (default: `120`). Override for scripts that need longer execution (e.g., randomized delays for anti-bot timing). Also configurable via `cron.script_timeout_seconds` in `config.yaml`. |
+| `GENGAR_CRON_MAX_PARALLEL` | Max cron jobs run in parallel per tick (default: `4`). |
 
 ## Agent Behavior
 
 | Variable | Description |
 |----------|-------------|
-| `HERMES_MAX_ITERATIONS` | Max tool-calling iterations per conversation (default: 90) |
-| `HERMES_INFERENCE_MODEL` | Override model name at process level (takes priority over `config.yaml` for the session). Also settable via `-m`/`--model` flag. |
-| `HERMES_YOLO_MODE` | Set to `1` to bypass dangerous-command approval prompts. Equivalent to `--yolo`. |
-| `HERMES_ACCEPT_HOOKS` | Auto-approve any unseen shell hooks declared in `config.yaml` without a TTY prompt. Equivalent to `--accept-hooks` or `hooks_auto_accept: true`. |
-| `HERMES_IGNORE_USER_CONFIG` | Skip `~/.hermes/config.yaml` and use built-in defaults (credentials in `.env` still load). Equivalent to `--ignore-user-config`. |
-| `HERMES_IGNORE_RULES` | Skip auto-injection of `AGENTS.md`, `SOUL.md`, `.cursorrules`, memory, and preloaded skills. Equivalent to `--ignore-rules`. |
-| `HERMES_MD_NAMES` | Comma-separated list of rules-file names to auto-inject (default: `AGENTS.md,CLAUDE.md,.cursorrules,SOUL.md`). |
-| `HERMES_TOOL_PROGRESS` | Deprecated compatibility variable for tool progress display. Prefer `display.tool_progress` in `config.yaml`. |
-| `HERMES_TOOL_PROGRESS_MODE` | Deprecated compatibility variable for tool progress mode. Prefer `display.tool_progress` in `config.yaml`. |
-| `HERMES_HUMAN_DELAY_MODE` | Response pacing: `off`/`natural`/`custom` |
-| `HERMES_HUMAN_DELAY_MIN_MS` | Custom delay range minimum (ms) |
-| `HERMES_HUMAN_DELAY_MAX_MS` | Custom delay range maximum (ms) |
-| `HERMES_QUIET` | Suppress non-essential output (`true`/`false`) |
-| `HERMES_API_TIMEOUT` | LLM API call timeout in seconds (default: `1800`) |
-| `HERMES_API_CALL_STALE_TIMEOUT` | Non-streaming stale-call timeout in seconds (default: `300`). Auto-disabled for local providers when left unset. Also configurable via `providers.<id>.stale_timeout_seconds` or `providers.<id>.models.<model>.stale_timeout_seconds` in `config.yaml`. |
-| `HERMES_STREAM_READ_TIMEOUT` | Streaming socket read timeout in seconds (default: `120`). Auto-increased to `HERMES_API_TIMEOUT` for local providers. Increase if local LLMs time out during long code generation. |
-| `HERMES_STREAM_STALE_TIMEOUT` | Stale stream detection timeout in seconds (default: `180`). Auto-disabled for local providers. Triggers connection kill if no chunks arrive within this window. |
-| `HERMES_STREAM_RETRIES` | Number of mid-stream reconnect attempts on transient network errors (default: `3`). |
-| `HERMES_AGENT_TIMEOUT` | Gateway inactivity timeout for a running agent in seconds (default: `900`). Resets on every tool call and streamed token. Set to `0` to disable. |
-| `HERMES_AGENT_TIMEOUT_WARNING` | Gateway: send a warning message after this many seconds of inactivity (default: 75% of `HERMES_AGENT_TIMEOUT`). |
-| `HERMES_AGENT_NOTIFY_INTERVAL` | Gateway: interval in seconds between progress notifications on long-running agent turns. |
-| `HERMES_CHECKPOINT_TIMEOUT` | Timeout for filesystem checkpoint creation in seconds (default: `30`). |
-| `HERMES_EXEC_ASK` | Enable execution approval prompts in gateway mode (`true`/`false`) |
-| `HERMES_ENABLE_PROJECT_PLUGINS` | Enable auto-discovery of repo-local plugins from `./.hermes/plugins/` (`true`/`false`, default: `false`) |
-| `HERMES_BACKGROUND_NOTIFICATIONS` | Background process notification mode in gateway: `all` (default), `result`, `error`, `off` |
-| `HERMES_EPHEMERAL_SYSTEM_PROMPT` | Ephemeral system prompt injected at API-call time (never persisted to sessions) |
-| `HERMES_PREFILL_MESSAGES_FILE` | Path to a JSON file of ephemeral prefill messages injected at API-call time. |
-| `HERMES_ALLOW_PRIVATE_URLS` | `true`/`false` — allow tools to fetch localhost/private-network URLs. Off by default in gateway mode. |
-| `HERMES_REDACT_SECRETS` | `true`/`false` — control secret redaction in logs and shareable outputs (default: `true`). |
-| `HERMES_WRITE_SAFE_ROOT` | Optional directory prefix that restricts `write_file`/`patch` writes; paths outside require approval. |
-| `HERMES_DISABLE_FILE_STATE_GUARD` | Set to `1` to turn off the "file changed since you read it" guard on `patch`/`write_file`. |
-| `HERMES_CORE_TOOLS` | Comma-separated override for the canonical core tool list (advanced; rarely needed). |
-| `HERMES_BUNDLED_SKILLS` | Comma-separated override for the list of bundled skills loaded at startup. |
-| `HERMES_OPTIONAL_SKILLS` | Comma-separated list of optional-skill names to auto-install on first run. |
-| `HERMES_DEBUG_INTERRUPT` | Set to `1` to log detailed interrupt/cancel tracing to `agent.log`. |
-| `HERMES_DUMP_REQUESTS` | Dump API request payloads to log files (`true`/`false`) |
-| `HERMES_DUMP_REQUEST_STDOUT` | Dump API request payloads to stdout instead of log files. |
-| `HERMES_OAUTH_TRACE` | Set to `1` to log OAuth token exchange and refresh attempts. Includes redacted timing info. |
-| `HERMES_OAUTH_FILE` | Override the path used for OAuth credential storage (default: `~/.hermes/auth.json`). |
-| `HERMES_AGENT_HELP_GUIDANCE` | Append additional guidance text to the system prompt for custom deployments. |
-| `HERMES_AGENT_LOGO` | Override the ASCII banner logo at CLI startup. |
+| `GENGAR_MAX_ITERATIONS` | Max tool-calling iterations per conversation (default: 90) |
+| `GENGAR_INFERENCE_MODEL` | Override model name at process level (takes priority over `config.yaml` for the session). Also settable via `-m`/`--model` flag. |
+| `GENGAR_YOLO_MODE` | Set to `1` to bypass dangerous-command approval prompts. Equivalent to `--yolo`. |
+| `GENGAR_ACCEPT_HOOKS` | Auto-approve any unseen shell hooks declared in `config.yaml` without a TTY prompt. Equivalent to `--accept-hooks` or `hooks_auto_accept: true`. |
+| `GENGAR_IGNORE_USER_CONFIG` | Skip `~/.gengar/config.yaml` and use built-in defaults (credentials in `.env` still load). Equivalent to `--ignore-user-config`. |
+| `GENGAR_IGNORE_RULES` | Skip auto-injection of `AGENTS.md`, `SOUL.md`, `.cursorrules`, memory, and preloaded skills. Equivalent to `--ignore-rules`. |
+| `GENGAR_MD_NAMES` | Comma-separated list of rules-file names to auto-inject (default: `AGENTS.md,CLAUDE.md,.cursorrules,SOUL.md`). |
+| `GENGAR_TOOL_PROGRESS` | Deprecated compatibility variable for tool progress display. Prefer `display.tool_progress` in `config.yaml`. |
+| `GENGAR_TOOL_PROGRESS_MODE` | Deprecated compatibility variable for tool progress mode. Prefer `display.tool_progress` in `config.yaml`. |
+| `GENGAR_HUMAN_DELAY_MODE` | Response pacing: `off`/`natural`/`custom` |
+| `GENGAR_HUMAN_DELAY_MIN_MS` | Custom delay range minimum (ms) |
+| `GENGAR_HUMAN_DELAY_MAX_MS` | Custom delay range maximum (ms) |
+| `GENGAR_QUIET` | Suppress non-essential output (`true`/`false`) |
+| `GENGAR_API_TIMEOUT` | LLM API call timeout in seconds (default: `1800`) |
+| `GENGAR_API_CALL_STALE_TIMEOUT` | Non-streaming stale-call timeout in seconds (default: `300`). Auto-disabled for local providers when left unset. Also configurable via `providers.<id>.stale_timeout_seconds` or `providers.<id>.models.<model>.stale_timeout_seconds` in `config.yaml`. |
+| `GENGAR_STREAM_READ_TIMEOUT` | Streaming socket read timeout in seconds (default: `120`). Auto-increased to `GENGAR_API_TIMEOUT` for local providers. Increase if local LLMs time out during long code generation. |
+| `GENGAR_STREAM_STALE_TIMEOUT` | Stale stream detection timeout in seconds (default: `180`). Auto-disabled for local providers. Triggers connection kill if no chunks arrive within this window. |
+| `GENGAR_STREAM_RETRIES` | Number of mid-stream reconnect attempts on transient network errors (default: `3`). |
+| `GENGAR_AGENT_TIMEOUT` | Gateway inactivity timeout for a running agent in seconds (default: `900`). Resets on every tool call and streamed token. Set to `0` to disable. |
+| `GENGAR_AGENT_TIMEOUT_WARNING` | Gateway: send a warning message after this many seconds of inactivity (default: 75% of `GENGAR_AGENT_TIMEOUT`). |
+| `GENGAR_AGENT_NOTIFY_INTERVAL` | Gateway: interval in seconds between progress notifications on long-running agent turns. |
+| `GENGAR_CHECKPOINT_TIMEOUT` | Timeout for filesystem checkpoint creation in seconds (default: `30`). |
+| `GENGAR_EXEC_ASK` | Enable execution approval prompts in gateway mode (`true`/`false`) |
+| `GENGAR_ENABLE_PROJECT_PLUGINS` | Enable auto-discovery of repo-local plugins from `./.gengar/plugins/` (`true`/`false`, default: `false`) |
+| `GENGAR_BACKGROUND_NOTIFICATIONS` | Background process notification mode in gateway: `all` (default), `result`, `error`, `off` |
+| `GENGAR_EPHEMERAL_SYSTEM_PROMPT` | Ephemeral system prompt injected at API-call time (never persisted to sessions) |
+| `GENGAR_PREFILL_MESSAGES_FILE` | Path to a JSON file of ephemeral prefill messages injected at API-call time. |
+| `GENGAR_ALLOW_PRIVATE_URLS` | `true`/`false` — allow tools to fetch localhost/private-network URLs. Off by default in gateway mode. |
+| `GENGAR_REDACT_SECRETS` | `true`/`false` — control secret redaction in logs and shareable outputs (default: `true`). |
+| `GENGAR_WRITE_SAFE_ROOT` | Optional directory prefix that restricts `write_file`/`patch` writes; paths outside require approval. |
+| `GENGAR_DISABLE_FILE_STATE_GUARD` | Set to `1` to turn off the "file changed since you read it" guard on `patch`/`write_file`. |
+| `GENGAR_CORE_TOOLS` | Comma-separated override for the canonical core tool list (advanced; rarely needed). |
+| `GENGAR_BUNDLED_SKILLS` | Comma-separated override for the list of bundled skills loaded at startup. |
+| `GENGAR_OPTIONAL_SKILLS` | Comma-separated list of optional-skill names to auto-install on first run. |
+| `GENGAR_DEBUG_INTERRUPT` | Set to `1` to log detailed interrupt/cancel tracing to `agent.log`. |
+| `GENGAR_DUMP_REQUESTS` | Dump API request payloads to log files (`true`/`false`) |
+| `GENGAR_DUMP_REQUEST_STDOUT` | Dump API request payloads to stdout instead of log files. |
+| `GENGAR_OAUTH_TRACE` | Set to `1` to log OAuth token exchange and refresh attempts. Includes redacted timing info. |
+| `GENGAR_OAUTH_FILE` | Override the path used for OAuth credential storage (default: `~/.gengar/auth.json`). |
+| `GENGAR_AGENT_HELP_GUIDANCE` | Append additional guidance text to the system prompt for custom deployments. |
+| `GENGAR_AGENT_LOGO` | Override the ASCII banner logo at CLI startup. |
 | `DELEGATION_MAX_CONCURRENT_CHILDREN` | Max parallel subagents per `delegate_task` batch (default: `3`, floor of 1, no ceiling). Also configurable via `delegation.max_concurrent_children` in `config.yaml` — the config value takes priority. |
 
 ## Interface
 
 | Variable | Description |
 |----------|-------------|
-| `HERMES_TUI` | Launch the [TUI](../user-guide/tui.md) instead of the classic CLI when set to `1`. Equivalent to passing `--tui`. |
-| `HERMES_TUI_DIR` | Path to a prebuilt `ui-tui/` directory (must contain `dist/entry.js` and populated `node_modules`). Used by distros and Nix to skip the first-launch `npm install`. |
-| `HERMES_TUI_RESUME` | Resume a specific TUI session by ID on launch. When set, `hermes --tui` skips forging a fresh session and picks up the named session instead — useful for re-attaching after a disconnect or terminal crash. |
-| `HERMES_TUI_THEME` | Force the TUI color theme: `light`, `dark`, or a raw 6-character background hex (e.g. `ffffff` or `1a1a2e`). When unset, Hermes auto-detects using `COLORFGBG` and terminal background queries; this variable overrides detection on terminals (Ghostty, Warp, iTerm2, etc.) that don't set `COLORFGBG`. |
-| `HERMES_INFERENCE_MODEL` | Force the model for `hermes -z` / `hermes chat` without mutating `config.yaml`. Pairs with `HERMES_INFERENCE_PROVIDER`. Useful for scripted callers (sweeper, CI, batch runners) that need to override the default model per run. |
+| `GENGAR_TUI` | Launch the [TUI](../user-guide/tui.md) instead of the classic CLI when set to `1`. Equivalent to passing `--tui`. |
+| `GENGAR_TUI_DIR` | Path to a prebuilt `ui-tui/` directory (must contain `dist/entry.js` and populated `node_modules`). Used by distros and Nix to skip the first-launch `npm install`. |
+| `GENGAR_TUI_RESUME` | Resume a specific TUI session by ID on launch. When set, `gengar --tui` skips forging a fresh session and picks up the named session instead — useful for re-attaching after a disconnect or terminal crash. |
+| `GENGAR_TUI_THEME` | Force the TUI color theme: `light`, `dark`, or a raw 6-character background hex (e.g. `ffffff` or `1a1a2e`). When unset, Gengar auto-detects using `COLORFGBG` and terminal background queries; this variable overrides detection on terminals (Ghostty, Warp, iTerm2, etc.) that don't set `COLORFGBG`. |
+| `GENGAR_INFERENCE_MODEL` | Force the model for `gengar -z` / `gengar chat` without mutating `config.yaml`. Pairs with `GENGAR_INFERENCE_PROVIDER`. Useful for scripted callers (sweeper, CI, batch runners) that need to override the default model per run. |
 
 ## Session Settings
 
@@ -511,7 +511,7 @@ Older configs with `compression.summary_model`, `compression.summary_provider`, 
 | `AUXILIARY_WEB_EXTRACT_BASE_URL` | Direct OpenAI-compatible endpoint for web extraction/summarization |
 | `AUXILIARY_WEB_EXTRACT_API_KEY` | API key paired with `AUXILIARY_WEB_EXTRACT_BASE_URL` |
 
-For task-specific direct endpoints, Hermes uses the task's configured API key or `OPENAI_API_KEY`. It does not reuse `OPENROUTER_API_KEY` for those custom endpoints.
+For task-specific direct endpoints, Gengar uses the task's configured API key or `OPENAI_API_KEY`. It does not reuse `OPENROUTER_API_KEY` for those custom endpoints.
 
 ## Fallback Model (config.yaml only)
 
@@ -527,7 +527,7 @@ See [Fallback Providers](/docs/user-guide/features/fallback-providers) for full 
 
 ## Provider Routing (config.yaml only)
 
-These go in `~/.hermes/config.yaml` under the `provider_routing` section:
+These go in `~/.gengar/config.yaml` under the `provider_routing` section:
 
 | Key | Description |
 |-----|-------------|
@@ -539,5 +539,5 @@ These go in `~/.hermes/config.yaml` under the `provider_routing` section:
 | `data_collection` | `"allow"` (default) or `"deny"` to exclude data-storing providers |
 
 :::tip
-Use `hermes config set` to set environment variables — it automatically saves them to the right file (`.env` for secrets, `config.yaml` for everything else).
+Use `gengar config set` to set environment variables — it automatically saves them to the right file (`.env` for secrets, `config.yaml` for everything else).
 :::

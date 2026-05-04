@@ -1,7 +1,7 @@
 ---
 sidebar_position: 8
 title: "MCP Config Reference"
-description: "Reference for Hermes Agent MCP configuration keys, filtering semantics, and utility-tool policy"
+description: "Reference for Gengar MCP configuration keys, filtering semantics, and utility-tool policy"
 ---
 
 # MCP Config Reference
@@ -10,7 +10,7 @@ This page is the compact reference companion to the main MCP docs.
 
 For conceptual guidance, see:
 - [MCP (Model Context Protocol)](/docs/user-guide/features/mcp)
-- [Use MCP with Hermes](/docs/guides/use-mcp-with-hermes)
+- [Use MCP with Gengar](/docs/guides/use-mcp-with-gengar)
 
 ## Root config shape
 
@@ -96,7 +96,7 @@ Result:
 
 ## Utility-tool policy
 
-Hermes may register these utility wrappers per MCP server:
+Gengar may register these utility wrappers per MCP server:
 
 Resources:
 - `list_resources`
@@ -122,7 +122,7 @@ tools:
 
 ### Capability-aware registration
 
-Even when `resources: true` or `prompts: true`, Hermes only registers those utility tools if the MCP session actually exposes the corresponding capability.
+Even when `resources: true` or `prompts: true`, Gengar only registers those utility tools if the MCP session actually exposes the corresponding capability.
 
 So this is normal:
 - you enable prompts
@@ -146,7 +146,7 @@ Behavior:
 
 ## Empty result behavior
 
-If filtering removes all server-native tools and no utility tools are registered, Hermes does not create an empty MCP runtime toolset for that server.
+If filtering removes all server-native tools and no utility tools are registered, Gengar does not create an empty MCP runtime toolset for that server.
 
 ## Example configs
 
@@ -240,8 +240,8 @@ mcp_servers:
 ```
 
 Behavior:
-- Hermes uses the MCP SDK's OAuth 2.1 PKCE flow (metadata discovery, dynamic client registration, token exchange, and refresh)
+- Gengar uses the MCP SDK's OAuth 2.1 PKCE flow (metadata discovery, dynamic client registration, token exchange, and refresh)
 - On first connect, a browser window opens for authorization
-- Tokens are persisted to `~/.hermes/mcp-tokens/<server>.json` and reused across sessions
+- Tokens are persisted to `~/.gengar/mcp-tokens/<server>.json` and reused across sessions
 - Token refresh is automatic; re-authorization only happens when refresh fails
 - Only applies to HTTP/StreamableHTTP transport (`url`-based servers)

@@ -1,5 +1,5 @@
 """
-Hermes Agent — Web UI server.
+Gengar — Web UI server.
 
 Provides a FastAPI backend serving the Vite/React frontend and REST API
 endpoints for managing configuration, environment variables, and sessions.
@@ -61,10 +61,10 @@ except ImportError:
         f"Install with: {sys.executable} -m pip install 'fastapi' 'uvicorn[standard]'"
     )
 
-WEB_DIST = Path(os.environ["HERMES_WEB_DIST"]) if "HERMES_WEB_DIST" in os.environ else Path(__file__).parent / "web_dist"
+WEB_DIST = Path(os.environ["GENGAR_WEB_DIST"]) if "GENGAR_WEB_DIST" in os.environ else Path(__file__).parent / "web_dist"
 _log = logging.getLogger(__name__)
 
-app = FastAPI(title="Hermes Agent", version=__version__)
+app = FastAPI(title="Gengar", version=__version__)
 
 # ---------------------------------------------------------------------------
 # Session token for protecting sensitive endpoints (reveal).
@@ -72,10 +72,10 @@ app = FastAPI(title="Hermes Agent", version=__version__)
 # Injected into the SPA HTML so only the legitimate web UI can use it.
 # ---------------------------------------------------------------------------
 _SESSION_TOKEN = secrets.token_urlsafe(32)
-_SESSION_HEADER_NAME = "X-Hermes-Session-Token"
+_SESSION_HEADER_NAME = "X-Gengar-Session-Token"
 
-# In-browser Chat tab (/chat, /api/pty, …).  Off unless ``hermes dashboard --tui``
-# or HERMES_DASHBOARD_TUI=1.  Set from :func:`start_server`.
+# In-browser Chat tab (/chat, /api/pty, …).  Off unless ``gengar dashboard --tui``
+# or GENGAR_DASHBOARD_TUI=1.  Set from :func:`start_server`.
 _DASHBOARD_EMBEDDED_CHAT_ENABLED = False
 
 # Simple rate limiter for the reveal endpoint
@@ -619,7 +619,7 @@ async def get_status():
 # Both commands are spawned as detached subprocesses so the HTTP request
 # returns immediately.  stdin is closed (``DEVNULL``) so any stray ``input()``
 # calls fail fast with EOF rather than hanging forever.  stdout/stderr are
-# streamed to a per-action log file under ``~/.hermes/logs/<action>.log`` so
+# streamed to a per-action log file under ``~/.gengar/logs/<action>.log`` so
 # the dashboard can tail them back to the user.
 # ---------------------------------------------------------------------------
 
@@ -628,7 +628,7 @@ _ACTION_LOG_DIR: Path = get_hermes_home() / "logs"
 # Short ``name`` (from the URL) → absolute log file path.
 _ACTION_LOG_FILES: Dict[str, str] = {
     "gateway-restart": "gateway-restart.log",
-    "hermes-update": "hermes-update.log",
+    "gengar-update": "gengar-update.log",
 }
 
 # ``name`` → most recently spawned Popen handle.  Used so ``status`` can
@@ -637,7 +637,7 @@ _ACTION_PROCS: Dict[str, subprocess.Popen] = {}
 
 
 def _spawn_hermes_action(subcommand: List[str], name: str) -> subprocess.Popen:
-    """Spawn ``hermes <subcommand>`` detached and record the Popen handle.
+    """Spawn ``gengar <subcommand>`` detached and record the Popen handle.
 
     Uses the running interpreter's ``hermes_cli.main`` module so the action
     inherits the same venv/PYTHONPATH the web server is using.
@@ -657,7 +657,7 @@ def _spawn_hermes_action(subcommand: List[str], name: str) -> subprocess.Popen:
         "stdin": subprocess.DEVNULL,
         "stdout": log_file,
         "stderr": subprocess.STDOUT,
-        "env": {**os.environ, "HERMES_NONINTERACTIVE": "1"},
+        "env": {**os.environ, "GENGAR_NONINTERACTIVE": "1"},
     }
     if sys.platform == "win32":
         popen_kwargs["creationflags"] = (
@@ -688,7 +688,7 @@ def _tail_lines(path: Path, n: int) -> List[str]:
 
 @app.post("/api/gateway/restart")
 async def restart_gateway():
-    """Kick off a ``hermes gateway restart`` in the background."""
+    """Kick off a ``gengar gateway restart`` in the background."""
     try:
         proc = _spawn_hermes_action(["gateway", "restart"], "gateway-restart")
     except Exception as exc:
@@ -701,18 +701,18 @@ async def restart_gateway():
     }
 
 
-@app.post("/api/hermes/update")
+@app.post("/api/gengar/update")
 async def update_hermes():
-    """Kick off ``hermes update`` in the background."""
+    """Kick off ``gengar update`` in the background."""
     try:
-        proc = _spawn_hermes_action(["update"], "hermes-update")
+        proc = _spawn_hermes_action(["update"], "gengar-update")
     except Exception as exc:
-        _log.exception("Failed to spawn hermes update")
+        _log.exception("Failed to spawn gengar update")
         raise HTTPException(status_code=500, detail=f"Failed to start update: {exc}")
     return {
         "ok": True,
         "pid": proc.pid,
-        "name": "hermes-update",
+        "name": "gengar-update",
     }
 
 
@@ -812,7 +812,7 @@ async def search_sessions(q: str = "", limit: int = 20):
 def _normalize_config_for_web(config: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize config for the web UI.
 
-    Hermes supports ``model`` as either a bare string (``"anthropic/claude-sonnet-4"``)
+    Gengar supports ``model`` as either a bare string (``"anthropic/claude-sonnet-4"``)
     or a dict (``{default: ..., provider: ..., base_url: ...}``).  The schema is built
     from DEFAULT_CONFIG where ``model`` is a string, but user configs often have the
     dict form.  Normalize to the string form so the frontend schema matches.
@@ -1053,7 +1053,7 @@ def get_auxiliary_models():
 async def set_model_assignment(body: ModelAssignment):
     """Assign a model to the main slot or an auxiliary task slot.
 
-    Writes to ``~/.hermes/config.yaml`` — applies to **new** sessions only.
+    Writes to ``~/.gengar/config.yaml`` — applies to **new** sessions only.
     The currently running chat PTY (if any) is not affected; use the
     ``/model`` slash command inside a chat to hot-swap that specific session.
     """
@@ -1281,7 +1281,7 @@ async def reveal_env_var(body: EnvVarReveal, request: Request):
 # connected, plus a disconnect button. The actual login flow (PKCE for
 # Anthropic, device-code for Nous/Codex) still runs in the CLI for now;
 # Phase 2 will add in-browser flows. For unconnected providers we return
-# the canonical ``hermes auth add <provider>`` command so the dashboard
+# the canonical ``gengar auth add <provider>`` command so the dashboard
 # can surface a one-click copy.
 
 
@@ -1307,8 +1307,8 @@ def _truncate_token(value: Optional[str], visible: int = 6) -> str:
 def _anthropic_oauth_status() -> Dict[str, Any]:
     """Combined status across the three Anthropic credential sources we read.
 
-    Hermes resolves Anthropic creds in this order at runtime:
-    1. ``~/.hermes/.anthropic_oauth.json`` — Hermes-managed PKCE flow
+    Gengar resolves Anthropic creds in this order at runtime:
+    1. ``~/.gengar/.anthropic_oauth.json`` — Gengar-managed PKCE flow
     2. ``~/.claude/.credentials.json`` — Claude Code CLI credentials (auto)
     3. ``ANTHROPIC_TOKEN`` / ``ANTHROPIC_API_KEY`` env vars
     The dashboard reports the highest-priority source that's actually present.
@@ -1317,12 +1317,12 @@ def _anthropic_oauth_status() -> Dict[str, Any]:
         from agent.anthropic_adapter import (
             read_hermes_oauth_credentials,
             read_claude_code_credentials,
-            _HERMES_OAUTH_FILE,
+            _GENGAR_OAUTH_FILE,
         )
     except ImportError:
         read_claude_code_credentials = None  # type: ignore
         read_hermes_oauth_credentials = None  # type: ignore
-        _HERMES_OAUTH_FILE = None  # type: ignore
+        _GENGAR_OAUTH_FILE = None  # type: ignore
 
     hermes_creds = None
     if read_hermes_oauth_credentials:
@@ -1334,7 +1334,7 @@ def _anthropic_oauth_status() -> Dict[str, Any]:
         return {
             "logged_in": True,
             "source": "hermes_pkce",
-            "source_label": f"Hermes PKCE ({_HERMES_OAUTH_FILE})",
+            "source_label": f"Gengar PKCE ({_GENGAR_OAUTH_FILE})",
             "token_preview": _truncate_token(hermes_creds.get("accessToken")),
             "expires_at": hermes_creds.get("expiresAt"),
             "has_refresh_token": bool(hermes_creds.get("refreshToken")),
@@ -1373,8 +1373,8 @@ def _claude_code_only_status() -> Dict[str, Any]:
     """Surface Claude Code CLI credentials as their own provider entry.
 
     Independent of the Anthropic entry above so users can see whether their
-    Claude Code subscription tokens are actively flowing into Hermes even
-    when they also have a separate Hermes-managed PKCE login.
+    Claude Code subscription tokens are actively flowing into Gengar even
+    when they also have a separate Gengar-managed PKCE login.
     """
     try:
         from agent.anthropic_adapter import read_claude_code_credentials
@@ -1405,7 +1405,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
         "id": "anthropic",
         "name": "Anthropic (Claude API)",
         "flow": "pkce",
-        "cli_command": "hermes auth add anthropic",
+        "cli_command": "gengar auth add anthropic",
         "docs_url": "https://docs.claude.com/en/api/getting-started",
         "status_fn": _anthropic_oauth_status,
     },
@@ -1421,7 +1421,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
         "id": "nous",
         "name": "Nous Portal",
         "flow": "device_code",
-        "cli_command": "hermes auth add nous",
+        "cli_command": "gengar auth add nous",
         "docs_url": "https://portal.nousresearch.com",
         "status_fn": None,  # dispatched via auth.get_nous_auth_status
     },
@@ -1429,7 +1429,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
         "id": "openai-codex",
         "name": "OpenAI Codex (ChatGPT)",
         "flow": "device_code",
-        "cli_command": "hermes auth add openai-codex",
+        "cli_command": "gengar auth add openai-codex",
         "docs_url": "https://platform.openai.com/docs",
         "status_fn": None,  # dispatched via auth.get_codex_auth_status
     },
@@ -1437,7 +1437,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
         "id": "qwen-oauth",
         "name": "Qwen (via Qwen CLI)",
         "flow": "external",
-        "cli_command": "hermes auth add qwen-oauth",
+        "cli_command": "gengar auth add qwen-oauth",
         "docs_url": "https://github.com/QwenLM/qwen-code",
         "status_fn": None,  # dispatched via auth.get_qwen_auth_status
     },
@@ -1445,7 +1445,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
         "id": "minimax-oauth",
         "name": "MiniMax (OAuth)",
         "flow": "pkce",
-        "cli_command": "hermes auth add minimax-oauth",
+        "cli_command": "gengar auth add minimax-oauth",
         "docs_url": "https://www.minimax.io",
         "status_fn": None,  # dispatched via auth.get_minimax_oauth_auth_status
     },
@@ -1552,15 +1552,15 @@ async def disconnect_oauth_provider(provider_id: str, request: Request):
                    f"Available: {', '.join(sorted(valid_ids))}",
         )
 
-    # Anthropic and claude-code clear the same Hermes-managed PKCE file
+    # Anthropic and claude-code clear the same Gengar-managed PKCE file
     # AND forget the Claude Code import. We don't touch ~/.claude/* directly
     # — that's owned by the Claude Code CLI; users can re-auth there if they
     # want to undo a disconnect.
     if provider_id in ("anthropic", "claude-code"):
         try:
-            from agent.anthropic_adapter import _HERMES_OAUTH_FILE
-            if _HERMES_OAUTH_FILE.exists():
-                _HERMES_OAUTH_FILE.unlink()
+            from agent.anthropic_adapter import _GENGAR_OAUTH_FILE
+            if _GENGAR_OAUTH_FILE.exists():
+                _GENGAR_OAUTH_FILE.unlink()
         except Exception:
             pass
         # Also clear the credential pool entry if present.
@@ -1596,7 +1596,7 @@ async def disconnect_oauth_provider(provider_id: str, request: Request):
 #     2. UI opens auth_url in a new tab. User authorizes, copies code.
 #     3. POST /api/providers/oauth/anthropic/submit { session_id, code }
 #          → server exchanges (code + verifier) → tokens at console.anthropic.com
-#          → persists to ~/.hermes/.anthropic_oauth.json AND credential pool
+#          → persists to ~/.gengar/.anthropic_oauth.json AND credential pool
 #          → returns { ok: true, status: "approved" }
 #
 #   Device code (Nous, OpenAI Codex):
@@ -1623,7 +1623,7 @@ _oauth_sessions: Dict[str, Dict[str, Any]] = {}
 _oauth_sessions_lock = threading.Lock()
 
 # Import OAuth constants from canonical source instead of duplicating.
-# Guarded so hermes web still starts if anthropic_adapter is unavailable;
+# Guarded so gengar web still starts if anthropic_adapter is unavailable;
 # Phase 2 endpoints will return 501 in that case.
 try:
     from agent.anthropic_adapter import (
@@ -1665,19 +1665,19 @@ def _new_oauth_session(provider_id: str, flow: str) -> tuple[str, Dict[str, Any]
 
 
 def _save_anthropic_oauth_creds(access_token: str, refresh_token: str, expires_at_ms: int) -> None:
-    """Persist Anthropic PKCE creds to both Hermes file AND credential pool.
+    """Persist Anthropic PKCE creds to both Gengar file AND credential pool.
 
     Mirrors what auth_commands.add_command does so the dashboard flow leaves
-    the system in the same state as ``hermes auth add anthropic``.
+    the system in the same state as ``gengar auth add anthropic``.
     """
-    from agent.anthropic_adapter import _HERMES_OAUTH_FILE
+    from agent.anthropic_adapter import _GENGAR_OAUTH_FILE
     payload = {
         "accessToken": access_token,
         "refreshToken": refresh_token,
         "expiresAt": expires_at_ms,
     }
-    _HERMES_OAUTH_FILE.parent.mkdir(parents=True, exist_ok=True)
-    _HERMES_OAUTH_FILE.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    _GENGAR_OAUTH_FILE.parent.mkdir(parents=True, exist_ok=True)
+    _GENGAR_OAUTH_FILE.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     # Best-effort credential-pool insert. Failure here doesn't invalidate
     # the file write — pool registration only matters for the rotation
     # strategy, not for runtime credential resolution.
@@ -1770,7 +1770,7 @@ def _submit_anthropic_pkce(session_id: str, code_input: str) -> Dict[str, Any]:
         data=exchange_data,
         headers={
             "Content-Type": "application/json",
-            "User-Agent": "hermes-dashboard/1.0",
+            "User-Agent": "gengar-dashboard/1.0",
         },
         method="POST",
     )
@@ -1818,7 +1818,7 @@ async def _start_device_code_flow(provider_id: str) -> Dict[str, Any]:
         import httpx
         pconfig = PROVIDER_REGISTRY["nous"]
         portal_base_url = (
-            os.getenv("HERMES_PORTAL_BASE_URL")
+            os.getenv("GENGAR_PORTAL_BASE_URL")
             or os.getenv("NOUS_PORTAL_BASE_URL")
             or pconfig.portal_base_url
         ).rstrip("/")
@@ -2057,7 +2057,7 @@ def _codex_full_login_worker(session_id: str) -> None:
         import uuid as _uuid
         pool = load_pool("openai-codex")
         base_url = (
-            os.getenv("HERMES_CODEX_BASE_URL", "").strip().rstrip("/")
+            os.getenv("GENGAR_CODEX_BASE_URL", "").strip().rstrip("/")
             or DEFAULT_CODEX_BASE_URL
         )
         entry = PooledCredential(
@@ -2437,7 +2437,7 @@ def _resolve_profile_dir(name: str) -> Path:
 def _profile_setup_command(name: str) -> str:
     """Return the shell command used to configure a profile in the CLI."""
     _resolve_profile_dir(name)
-    return "hermes setup" if name == "default" else f"{name} setup"
+    return "gengar setup" if name == "default" else f"{name} setup"
 
 
 @app.get("/api/profiles")
@@ -2859,7 +2859,7 @@ async def get_models_analytics(days: int = 30):
 # ---------------------------------------------------------------------------
 # /api/pty — PTY-over-WebSocket bridge for the dashboard "Chat" tab.
 #
-# The endpoint spawns the same ``hermes --tui`` binary the CLI uses, behind
+# The endpoint spawns the same ``gengar --tui`` binary the CLI uses, behind
 # a POSIX pseudo-terminal, and forwards bytes + resize escapes across a
 # WebSocket.  The browser renders the ANSI through xterm.js (see
 # web/src/pages/ChatPage.tsx).
@@ -2915,16 +2915,16 @@ def _resolve_chat_argv(
 ) -> tuple[list[str], Optional[str], Optional[dict]]:
     """Resolve the argv + cwd + env for the chat PTY.
 
-    Default: whatever ``hermes --tui`` would run.  Tests monkeypatch this
+    Default: whatever ``gengar --tui`` would run.  Tests monkeypatch this
     function to inject a tiny fake command (``cat``, ``sh -c 'printf …'``)
     so nothing has to build Node or the TUI bundle.
 
-    Session resume is propagated via the ``HERMES_TUI_RESUME`` env var —
+    Session resume is propagated via the ``GENGAR_TUI_RESUME`` env var —
     matching what ``hermes_cli.main._launch_tui`` does for the CLI path.
     Appending ``--resume <id>`` to argv doesn't work because ``ui-tui`` does
     not parse its argv.
 
-    `sidecar_url` (when set) is forwarded as ``HERMES_TUI_SIDECAR_URL`` so
+    `sidecar_url` (when set) is forwarded as ``GENGAR_TUI_SIDECAR_URL`` so
     the spawned ``tui_gateway.entry`` can mirror dispatcher emits to the
     dashboard's ``/api/pub`` endpoint (see :func:`pub_ws`).
     """
@@ -2935,10 +2935,10 @@ def _resolve_chat_argv(
     env.setdefault("NODE_ENV", "production")
 
     if resume:
-        env["HERMES_TUI_RESUME"] = resume
+        env["GENGAR_TUI_RESUME"] = resume
 
     if sidecar_url:
-        env["HERMES_TUI_SIDECAR_URL"] = sidecar_url
+        env["GENGAR_TUI_SIDECAR_URL"] = sidecar_url
 
     return list(argv), str(cwd) if cwd else None, env
 
@@ -3111,7 +3111,7 @@ async def gateway_ws(ws: WebSocket) -> None:
 # /api/pub + /api/events — chat-tab event broadcast.
 #
 # The PTY-side ``tui_gateway.entry`` opens /api/pub at startup (driven by
-# HERMES_TUI_SIDECAR_URL set in /api/pty's PTY env) and writes every
+# GENGAR_TUI_SIDECAR_URL set in /api/pty's PTY env) and writes every
 # dispatcher emit through it.  The dashboard fans those frames out to any
 # subscriber that opened /api/events on the same channel id.  This is what
 # gives the React sidebar its tool-call feed without breaking the PTY
@@ -3215,8 +3215,8 @@ def mount_spa(application: FastAPI):
         html = _index_path.read_text()
         chat_js = "true" if _DASHBOARD_EMBEDDED_CHAT_ENABLED else "false"
         token_script = (
-            f'<script>window.__HERMES_SESSION_TOKEN__="{_SESSION_TOKEN}";'
-            f"window.__HERMES_DASHBOARD_EMBEDDED_CHAT__={chat_js};</script>"
+            f'<script>window.__GENGAR_SESSION_TOKEN__="{_SESSION_TOKEN}";'
+            f"window.__GENGAR_DASHBOARD_EMBEDDED_CHAT__={chat_js};</script>"
         )
         html = html.replace("</head>", f"{token_script}</head>", 1)
         return HTMLResponse(
@@ -3247,7 +3247,7 @@ def mount_spa(application: FastAPI):
 # Built-in dashboard themes — label + description only.  The actual color
 # definitions live in the frontend (web/src/themes/presets.ts).
 _BUILTIN_DASHBOARD_THEMES = [
-    {"name": "default",   "label": "Hermes Teal",  "description": "Classic dark teal — the canonical Hermes look"},
+    {"name": "default",   "label": "Gengar Teal",  "description": "Classic dark teal — the canonical Gengar look"},
     {"name": "midnight",  "label": "Midnight",      "description": "Deep blue-violet with cool accents"},
     {"name": "ember",     "label": "Ember",          "description": "Warm crimson and bronze — forge vibes"},
     {"name": "mono",      "label": "Mono",           "description": "Clean grayscale — minimal and focused"},
@@ -3416,7 +3416,7 @@ def _normalise_theme_definition(data: Dict[str, Any]) -> Optional[Dict[str, Any]
     # tag on theme apply.  Clipped to _THEME_CUSTOM_CSS_MAX to keep the
     # payload bounded.  We intentionally do NOT parse/sanitise the CSS
     # here — the dashboard is localhost-only and themes are user-authored
-    # YAML in ~/.hermes/, same trust level as the config file itself.
+    # YAML in ~/.gengar/, same trust level as the config file itself.
     custom_css_val = data.get("customCSS")
     custom_css: Optional[str] = None
     if isinstance(custom_css_val, str) and custom_css_val.strip():
@@ -3471,7 +3471,7 @@ def _normalise_theme_definition(data: Dict[str, Any]) -> Optional[Dict[str, Any]
 
 
 def _discover_user_themes() -> list:
-    """Scan ~/.hermes/dashboard-themes/*.yaml for user-created themes.
+    """Scan ~/.gengar/dashboard-themes/*.yaml for user-created themes.
 
     Returns a list of fully-normalised theme definitions ready to ship
     to the frontend, so the client can apply them without a secondary
@@ -3498,7 +3498,7 @@ async def get_dashboard_themes():
 
     Built-in entries ship name/label/description only (the frontend owns
     their full definitions in `web/src/themes/presets.ts`).  User themes
-    from `~/.hermes/dashboard-themes/*.yaml` ship with their full
+    from `~/.gengar/dashboard-themes/*.yaml` ship with their full
     normalised definition under `definition`, so the client can apply
     them without a stub.
     """
@@ -3546,9 +3546,9 @@ def _discover_dashboard_plugins() -> list:
     """Scan plugins/*/dashboard/manifest.json for dashboard extensions.
 
     Checks three plugin sources (same as hermes_cli.plugins):
-    1. User plugins:    ~/.hermes/plugins/<name>/dashboard/manifest.json
+    1. User plugins:    ~/.gengar/plugins/<name>/dashboard/manifest.json
     2. Bundled plugins: <repo>/plugins/<name>/dashboard/manifest.json  (memory/, etc.)
-    3. Project plugins: ./.hermes/plugins/  (only if HERMES_ENABLE_PROJECT_PLUGINS)
+    3. Project plugins: ./.gengar/plugins/  (only if GENGAR_ENABLE_PROJECT_PLUGINS)
     """
     plugins = []
     seen_names: set = set()
@@ -3560,8 +3560,8 @@ def _discover_dashboard_plugins() -> list:
         (bundled_root / "memory", "bundled"),
         (bundled_root, "bundled"),
     ]
-    if os.environ.get("HERMES_ENABLE_PROJECT_PLUGINS"):
-        search_dirs.append((Path.cwd() / ".hermes" / "plugins", "project"))
+    if os.environ.get("GENGAR_ENABLE_PROJECT_PLUGINS"):
+        search_dirs.append((Path.cwd() / ".gengar" / "plugins", "project"))
 
     for plugins_root, source in search_dirs:
         if not plugins_root.is_dir():
@@ -3724,7 +3724,7 @@ def _merged_plugins_hub() -> Dict[str, Any]:
                     entry = registry.get_entry(tname)
                     if entry and entry.check_fn and not entry.check_fn():
                         auth_required = True
-                        auth_command = f"hermes auth {name}"
+                        auth_command = f"gengar auth {name}"
                         break
             except Exception:
                 pass
@@ -4045,5 +4045,5 @@ def start_server(
 
         threading.Thread(target=_open, daemon=True).start()
 
-    print(f"  Hermes Web UI → http://{host}:{port}")
+    print(f"  Gengar Web UI → http://{host}:{port}")
     uvicorn.run(app, host=host, port=port, log_level="warning")

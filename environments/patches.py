@@ -1,5 +1,5 @@
 """
-Monkey patches for making hermes-agent tools work inside async frameworks (Atropos).
+Monkey patches for making gengar tools work inside async frameworks (Atropos).
 
 Problem:
     Some tools use asyncio.run() internally (e.g., Modal backend via SWE-ReX,

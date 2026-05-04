@@ -1,7 +1,7 @@
 """
-Hermes-Agent Atropos Environments
+Gengar Atropos Environments
 
-Provides a layered integration between hermes-agent's tool-calling capabilities
+Provides a layered integration between gengar's tool-calling capabilities
 and the Atropos RL training framework.
 
 Core layers:
@@ -19,9 +19,9 @@ Benchmarks (eval-only):
 """
 
 try:
-    from environments.agent_loop import AgentResult, HermesAgentLoop
+    from environments.agent_loop import AgentResult, GengarLoop
     from environments.tool_context import ToolContext
-    from environments.hermes_base_env import HermesAgentBaseEnv, HermesAgentEnvConfig
+    from environments.gengar_base_env import GengarBaseEnv, GengarEnvConfig
 except ImportError:
     # atroposlib not installed — environments are unavailable but
     # submodules like tool_call_parsers can still be imported directly.
@@ -29,8 +29,8 @@ except ImportError:
 
 __all__ = [
     "AgentResult",
-    "HermesAgentLoop",
+    "GengarLoop",
     "ToolContext",
-    "HermesAgentBaseEnv",
-    "HermesAgentEnvConfig",
+    "GengarBaseEnv",
+    "GengarEnvConfig",
 ]

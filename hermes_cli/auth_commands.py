@@ -268,7 +268,7 @@ def auth_add_command(args) -> None:
         return
 
     if provider == "openai-codex":
-        # Clear any existing suppression marker so a re-link after `hermes auth
+        # Clear any existing suppression marker so a re-link after `gengar auth
         # remove openai-codex` works without the new tokens being skipped.
         auth_mod.unsuppress_credential_source(provider, "device_code")
         creds = auth_mod._codex_device_code_login()
@@ -354,7 +354,7 @@ def auth_add_command(args) -> None:
         print(f'Added {provider} OAuth credential #{len(pool.entries())}: "{entry.label}"')
         return
 
-    raise SystemExit(f"`hermes auth add {provider}` is not implemented for auth type {requested_type} yet.")
+    raise SystemExit(f"`gengar auth add {provider}` is not implemented for auth type {requested_type} yet.")
 
 
 def auth_list_command(args) -> None:
@@ -398,7 +398,7 @@ def auth_remove_command(args) -> None:
         raise SystemExit(f'No credential matching "{target}" for provider {provider}.')
     print(f"Removed {provider} credential #{index} ({removed.label})")
 
-    # Unified removal dispatch.  Every credential source Hermes reads from
+    # Unified removal dispatch.  Every credential source Gengar reads from
     # (env vars, external OAuth files, auth.json blocks, custom config)
     # has a RemovalStep registered in agent.credential_sources.  The step
     # handles its source-specific cleanup and we centralise suppression +
@@ -432,7 +432,7 @@ def auth_reset_command(args) -> None:
 def auth_status_command(args) -> None:
     provider = _normalize_provider(getattr(args, "provider", "") or "")
     if not provider:
-        raise SystemExit("Provider is required. Example: `hermes auth status spotify`.")
+        raise SystemExit("Provider is required. Example: `gengar auth status spotify`.")
     status = auth_mod.get_auth_status(provider)
     if not status.get("logged_in"):
         reason = status.get("error")
@@ -468,7 +468,7 @@ def auth_spotify_command(args) -> None:
 
 
 def _interactive_auth() -> None:
-    """Interactive credential pool management when `hermes auth` is called bare."""
+    """Interactive credential pool management when `gengar auth` is called bare."""
     # Show current pool status first
     print("Credential Pool Status")
     print("=" * 50)

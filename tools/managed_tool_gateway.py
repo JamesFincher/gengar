@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 from hermes_constants import get_hermes_home
 from tools.tool_backend_helpers import managed_nous_tools_enabled
 
-_DEFAULT_TOOL_GATEWAY_DOMAIN = "nousresearch.com"
+_DEFAULT_TOOL_GATEWAY_DOMAIN = "jamesfincher.com"
 _DEFAULT_TOOL_GATEWAY_SCHEME = "https"
 _NOUS_ACCESS_TOKEN_REFRESH_SKEW_SECONDS = 120
 
@@ -28,7 +28,7 @@ class ManagedToolGatewayConfig:
 
 
 def auth_json_path():
-    """Return the Hermes auth store path, respecting HERMES_HOME overrides."""
+    """Return the Gengar auth store path, respecting GENGAR_HOME overrides."""
     return get_hermes_home() / "auth.json"
 
 

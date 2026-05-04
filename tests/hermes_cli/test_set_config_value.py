@@ -12,10 +12,10 @@ from hermes_cli.config import set_config_value, config_command
 
 @pytest.fixture(autouse=True)
 def _isolated_hermes_home(tmp_path):
-    """Point HERMES_HOME at a temp dir so tests never touch real config."""
+    """Point GENGAR_HOME at a temp dir so tests never touch real config."""
     env_file = tmp_path / ".env"
     env_file.touch()
-    with patch.dict(os.environ, {"HERMES_HOME": str(tmp_path)}):
+    with patch.dict(os.environ, {"GENGAR_HOME": str(tmp_path)}):
         yield tmp_path
 
 
@@ -179,7 +179,7 @@ class TestFalsyValues:
 # ---------------------------------------------------------------------------
 
 class TestListNavigation:
-    """hermes config set must preserve YAML list fields when using numeric
+    """gengar config set must preserve YAML list fields when using numeric
     indices.  Before #17876, _set_nested would silently replace the entire
     list with a dict, destroying every sibling entry.
     """

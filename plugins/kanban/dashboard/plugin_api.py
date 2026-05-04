@@ -366,7 +366,7 @@ class UpdateTaskBody(BaseModel):
     result: Optional[str] = None
     block_reason: Optional[str] = None
     # Structured handoff fields — forwarded to complete_task when status
-    # transitions to 'done'. Dashboard parity with ``hermes kanban
+    # transitions to 'done'. Dashboard parity with ``gengar kanban
     # complete --summary ... --metadata ...``.
     summary: Optional[str] = None
     metadata: Optional[dict] = None
@@ -663,7 +663,7 @@ def bulk_update(payload: BulkTaskBody):
 
 @router.get("/config")
 def get_config():
-    """Return kanban dashboard preferences from ~/.hermes/config.yaml.
+    """Return kanban dashboard preferences from ~/.gengar/config.yaml.
 
     Reads the ``dashboard.kanban`` section if present; defaults otherwise.
     Used by the UI to pre-select tenant filters, toggle markdown rendering,
@@ -708,7 +708,7 @@ def get_stats():
 def get_assignees():
     """Known profiles + per-profile task counts.
 
-    Returns the union of ``~/.hermes/profiles/*`` on disk and every
+    Returns the union of ``~/.gengar/profiles/*`` on disk and every
     distinct assignee currently used on the board. The dashboard uses
     this to populate its assignee dropdown so a freshly-created profile
     appears in the picker before it's been given any task.

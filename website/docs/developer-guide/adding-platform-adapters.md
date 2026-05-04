@@ -4,11 +4,11 @@ sidebar_position: 9
 
 # Adding a Platform Adapter
 
-This guide covers adding a new messaging platform to the Hermes gateway. A platform adapter connects Hermes to an external messaging service (Telegram, Discord, WeCom, etc.) so users can interact with the agent through that service.
+This guide covers adding a new messaging platform to the Gengar gateway. A platform adapter connects Gengar to an external messaging service (Telegram, Discord, WeCom, etc.) so users can interact with the agent through that service.
 
 :::tip
 There are two ways to add a platform:
-- **Plugin** (recommended for community/third-party): Drop a plugin directory into `~/.hermes/plugins/` — zero core code changes needed. See [Plugin Path](#plugin-path-recommended) below.
+- **Plugin** (recommended for community/third-party): Drop a plugin directory into `~/.gengar/plugins/` — zero core code changes needed. See [Plugin Path](#plugin-path-recommended) below.
 - **Built-in**: Modify 20+ files across code, config, and docs. Use the [Built-in Checklist](#step-by-step-checklist) below.
 :::
 
@@ -30,10 +30,10 @@ Inbound messages are received by the adapter and forwarded via `self.handle_mess
 
 ## Plugin Path (Recommended)
 
-The plugin system lets you add a platform adapter without modifying any core Hermes code. Your plugin is a directory with two files:
+The plugin system lets you add a platform adapter without modifying any core Gengar code. Your plugin is a directory with two files:
 
 ```
-~/.hermes/plugins/my-platform/
+~/.gengar/plugins/my-platform/
   PLUGIN.yaml      # Plugin metadata
   adapter.py       # Adapter class + register() entry point
 ```
@@ -91,7 +91,7 @@ def validate_config(config) -> bool:
 
 
 def register(ctx):
-    """Plugin entry point — called by the Hermes plugin system."""
+    """Plugin entry point — called by the Gengar plugin system."""
     ctx.register_platform(
         name="my_platform",
         label="My Platform",
@@ -157,9 +157,9 @@ When you call `ctx.register_platform()`, the following integration points are ha
 | System prompt hints | `platform_hint` injected into LLM context |
 | Message chunking | `max_message_length` for smart splitting |
 | PII redaction | `pii_safe` flag |
-| `hermes status` | Shows plugin platforms with `(plugin)` tag |
-| `hermes gateway setup` | Plugin platforms appear in setup menu |
-| `hermes tools` / `hermes skills` | Plugin platforms in per-platform config |
+| `gengar status` | Shows plugin platforms with `(plugin)` tag |
+| `gengar gateway setup` | Plugin platforms appear in setup menu |
+| `gengar tools` / `gengar skills` | Plugin platforms in per-platform config |
 | Token lock (multi-profile) | Use `acquire_scoped_lock()` in your `connect()` |
 | Orphaned config warning | Descriptive log when plugin is missing |
 
@@ -172,7 +172,7 @@ See `plugins/platforms/irc/` in the repo for a complete working example — a fu
 ## Step-by-Step Checklist (Built-in Path)
 
 :::note
-This checklist is for adding a platform directly to the Hermes core codebase — typically done by core contributors for officially supported platforms. Community/third-party platforms should use the [Plugin Path](#plugin-path-recommended) above.
+This checklist is for adding a platform directly to the Gengar core codebase — typically done by core contributors for officially supported platforms. Community/third-party platforms should use the [Plugin Path](#plugin-path-recommended) above.
 :::
 
 ### 1. Platform Enum
@@ -282,8 +282,8 @@ Five touchpoints:
 
 ### 8. Toolsets
 
-1. **`toolsets.py`** — Add `"hermes-newplat"` toolset definition with `_HERMES_CORE_TOOLS`
-2. **`toolsets.py`** — Add `"hermes-newplat"` to the `"hermes-gateway"` includes list
+1. **`toolsets.py`** — Add `"gengar-newplat"` toolset definition with `_GENGAR_CORE_TOOLS`
+2. **`toolsets.py`** — Add `"gengar-newplat"` to the `"gengar-gateway"` includes list
 
 ### 9. Optional: Platform Hints
 
@@ -317,7 +317,7 @@ Create `tests/gateway/test_newplat.py` covering:
 | `website/docs/user-guide/messaging/newplat.md` | Full platform setup page |
 | `website/docs/user-guide/messaging/index.md` | Platform comparison table, architecture diagram, toolsets table, security section, next-steps link |
 | `website/docs/reference/environment-variables.md` | All NEWPLAT_* env vars |
-| `website/docs/reference/toolsets-reference.md` | hermes-newplat toolset |
+| `website/docs/reference/toolsets-reference.md` | gengar-newplat toolset |
 | `website/docs/integrations/index.md` | Platform link |
 | `website/sidebars.ts` | Sidebar entry for the docs page |
 | `website/docs/developer-guide/architecture.md` | Adapter count + listing |

@@ -2,10 +2,10 @@
 name: arxiv
 description: "Search arXiv papers by keyword, author, category, or ID."
 version: 1.0.0
-author: Hermes Agent
+author: Gengar
 license: MIT
 metadata:
-  hermes:
+  gengar:
     tags: [Research, Arxiv, Papers, Academic, Science, API]
     related_skills: [ocr-and-documents]
 ---

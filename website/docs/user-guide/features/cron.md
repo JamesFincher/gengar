@@ -6,7 +6,7 @@ description: "Schedule automated tasks with natural language, manage them with o
 
 # Scheduled Tasks (Cron)
 
-Schedule tasks to run automatically with natural language or cron expressions. Hermes exposes cron management through a single `cronjob` tool with action-style operations instead of separate schedule/list/remove tools.
+Schedule tasks to run automatically with natural language or cron expressions. Gengar exposes cron management through a single `cronjob` tool with action-style operations instead of separate schedule/list/remove tools.
 
 ## What cron can do now
 
@@ -19,7 +19,7 @@ Cron jobs can:
 - run in fresh agent sessions with the normal static tool list
 
 :::warning
-Cron-run sessions cannot recursively create more cron jobs. Hermes disables cron management tools inside cron executions to prevent runaway scheduling loops.
+Cron-run sessions cannot recursively create more cron jobs. Gengar disables cron management tools inside cron executions to prevent runaway scheduling loops.
 :::
 
 ## Creating scheduled tasks
@@ -36,9 +36,9 @@ Cron-run sessions cannot recursively create more cron jobs. Hermes disables cron
 ### From the standalone CLI
 
 ```bash
-hermes cron create "every 2h" "Check server status"
-hermes cron create "every 1h" "Summarize new feed items" --skill blogwatcher
-hermes cron create "every 1h" "Use both skills and combine the result" \
+gengar cron create "every 2h" "Check server status"
+gengar cron create "every 1h" "Summarize new feed items" --skill blogwatcher
+gengar cron create "every 1h" "Use both skills and combine the result" \
   --skill blogwatcher \
   --skill maps \
   --name "Skill combo"
@@ -46,13 +46,13 @@ hermes cron create "every 1h" "Use both skills and combine the result" \
 
 ### Through natural conversation
 
-Ask Hermes normally:
+Ask Gengar normally:
 
 ```text
 Every morning at 9am, check Hacker News for AI news and send me a summary on Telegram.
 ```
 
-Hermes will use the unified `cronjob` tool internally.
+Gengar will use the unified `cronjob` tool internally.
 
 ## Skill-backed cron jobs
 
@@ -92,7 +92,7 @@ Cron jobs default to running detached from any repo — no `AGENTS.md`, `CLAUDE.
 
 ```bash
 # Standalone CLI (schedule and prompt are positional)
-hermes cron create "every 1d at 09:00" \
+gengar cron create "every 1d at 09:00" \
   "Audit open PRs, summarize CI health, and post to #eng" \
   --workdir /home/me/projects/acme
 ```
@@ -135,12 +135,12 @@ You do not need to delete and recreate jobs just to change them.
 ### Standalone CLI
 
 ```bash
-hermes cron edit <job_id> --schedule "every 4h"
-hermes cron edit <job_id> --prompt "Use the revised task"
-hermes cron edit <job_id> --skill blogwatcher --skill maps
-hermes cron edit <job_id> --add-skill maps
-hermes cron edit <job_id> --remove-skill blogwatcher
-hermes cron edit <job_id> --clear-skills
+gengar cron edit <job_id> --schedule "every 4h"
+gengar cron edit <job_id> --prompt "Use the revised task"
+gengar cron edit <job_id> --skill blogwatcher --skill maps
+gengar cron edit <job_id> --add-skill maps
+gengar cron edit <job_id> --remove-skill blogwatcher
+gengar cron edit <job_id> --clear-skills
 ```
 
 Notes:
@@ -167,13 +167,13 @@ Cron jobs now have a fuller lifecycle than just create/remove.
 ### Standalone CLI
 
 ```bash
-hermes cron list
-hermes cron pause <job_id>
-hermes cron resume <job_id>
-hermes cron run <job_id>
-hermes cron remove <job_id>
-hermes cron status
-hermes cron tick
+gengar cron list
+gengar cron pause <job_id>
+gengar cron resume <job_id>
+gengar cron run <job_id>
+gengar cron remove <job_id>
+gengar cron status
+gengar cron tick
 ```
 
 What they do:
@@ -188,19 +188,19 @@ What they do:
 **Cron execution is handled by the gateway daemon.** The gateway ticks the scheduler every 60 seconds, running any due jobs in isolated agent sessions.
 
 ```bash
-hermes gateway install     # Install as a user service
-sudo hermes gateway install --system   # Linux: boot-time system service for servers
-hermes gateway             # Or run in foreground
+gengar gateway install     # Install as a user service
+sudo gengar gateway install --system   # Linux: boot-time system service for servers
+gengar gateway             # Or run in foreground
 
-hermes cron list
-hermes cron status
+gengar cron list
+gengar cron status
 ```
 
 ### Gateway scheduler behavior
 
-On each tick Hermes:
+On each tick Gengar:
 
-1. loads jobs from `~/.hermes/cron/jobs.json`
+1. loads jobs from `~/.gengar/cron/jobs.json`
 2. checks `next_run_at` against the current time
 3. starts a fresh `AIAgent` session for each due job
 4. optionally injects one or more attached skills into that fresh session
@@ -208,7 +208,7 @@ On each tick Hermes:
 6. delivers the final response
 7. updates run metadata and the next scheduled time
 
-A file lock at `~/.hermes/cron/.tick.lock` prevents overlapping scheduler ticks from double-running the same job batch.
+A file lock at `~/.gengar/cron/.tick.lock` prevents overlapping scheduler ticks from double-running the same job batch.
 
 ## Delivery options
 
@@ -217,7 +217,7 @@ When scheduling jobs, you specify where the output goes:
 | Option | Description | Example |
 |--------|-------------|---------|
 | `"origin"` | Back to where the job was created | Default on messaging platforms |
-| `"local"` | Save to local files only (`~/.hermes/cron/output/`) | Default on CLI |
+| `"local"` | Save to local files only (`~/.gengar/cron/output/`) | Default on CLI |
 | `"telegram"` | Telegram home channel | Uses `TELEGRAM_HOME_CHANNEL` |
 | `"telegram:123456"` | Specific Telegram chat by ID | Direct delivery |
 | `"telegram:-100123:17585"` | Specific Telegram topic | `chat_id:thread_id` format |
@@ -256,14 +256,14 @@ Note: The agent cannot see this message, and therefore cannot respond to it.
 To deliver the raw agent output without the wrapper, set `cron.wrap_response` to `false`:
 
 ```yaml
-# ~/.hermes/config.yaml
+# ~/.gengar/config.yaml
 cron:
   wrap_response: false
 ```
 
 ### Silent suppression
 
-If the agent's final response starts with `[SILENT]`, delivery is suppressed entirely. The output is still saved locally for audit (in `~/.hermes/cron/output/`), but no message is sent to the delivery target.
+If the agent's final response starts with `[SILENT]`, delivery is suppressed entirely. The output is still saved locally for audit (in `~/.gengar/cron/output/`), but no message is sent to the delivery target.
 
 This is useful for monitoring jobs that should only report when something is wrong:
 
@@ -279,12 +279,12 @@ Failed jobs always deliver regardless of the `[SILENT]` marker — only successf
 Pre-run scripts (attached via the `script` parameter) have a default timeout of 120 seconds. If your scripts need longer — for example, to include randomized delays that avoid bot-like timing patterns — you can increase this:
 
 ```yaml
-# ~/.hermes/config.yaml
+# ~/.gengar/config.yaml
 cron:
   script_timeout_seconds: 300   # 5 minutes
 ```
 
-Or set the `HERMES_CRON_SCRIPT_TIMEOUT` environment variable. The resolution order is: env var → config.yaml → 120s default.
+Or set the `GENGAR_CRON_SCRIPT_TIMEOUT` environment variable. The resolution order is: env var → config.yaml → 120s default.
 
 ## Provider recovery
 
@@ -297,7 +297,7 @@ This means cron jobs that run at high frequency or during peak hours are more re
 
 ## Schedule formats
 
-The agent's final response is automatically delivered — you do **not** need to include `send_message` in the cron prompt for that same destination. If a cron run calls `send_message` to the exact target the scheduler will already deliver to, Hermes skips that duplicate send and tells the model to put the user-facing content in the final response instead. Use `send_message` only for additional or different targets.
+The agent's final response is automatically delivered — you do **not** need to include `send_message` in the cron prompt for that same destination. If a cron run calls `send_message` to the exact target the scheduler will already deliver to, Gengar skips that duplicate send and tells the model to put the user-facing content in the final response instead. Use `send_message` only for additional or different targets.
 
 ### Relative delays (one-shot)
 
@@ -368,10 +368,10 @@ For `update`, pass `skills=[]` to remove all attached skills.
 
 ## Toolsets available to cron jobs
 
-Cron runs each job in a fresh agent session with no chat platform attached. By default the cron agent gets **the toolset you configured for the `cron` platform in `hermes tools`** — not the CLI default, not everything under the sun.
+Cron runs each job in a fresh agent session with no chat platform attached. By default the cron agent gets **the toolset you configured for the `cron` platform in `gengar tools`** — not the CLI default, not everything under the sun.
 
 ```bash
-hermes tools
+gengar tools
 # → pick the "cron" platform in the curses UI
 # → toggle toolsets on/off just like you would for Telegram/Discord/etc.
 ```
@@ -385,11 +385,11 @@ cronjob(action="create", name="weekly-news-summary",
         prompt="Summarize this week's AI news: ...")
 ```
 
-When `enabled_toolsets` is set on a job it wins; otherwise the `hermes tools` cron-platform config wins; otherwise Hermes falls back to the built-in defaults. This matters for cost control: carrying `moa`, `browser`, `delegation` into every tiny "fetch news" job bloats the tool-schema prompt on every LLM call.
+When `enabled_toolsets` is set on a job it wins; otherwise the `gengar tools` cron-platform config wins; otherwise Gengar falls back to the built-in defaults. This matters for cost control: carrying `moa`, `browser`, `delegation` into every tiny "fetch news" job bloats the tool-schema prompt on every LLM call.
 
 ### Skipping the agent entirely: `wakeAgent`
 
-If your cron job attaches a pre-check script (via `script=`), the script can decide at runtime whether Hermes should even invoke the agent. Emit a final stdout line of the form:
+If your cron job attaches a pre-check script (via `script=`), the script can decide at runtime whether Gengar should even invoke the agent. Emit a final stdout line of the form:
 
 ```text
 {"wakeAgent": false}
@@ -426,9 +426,9 @@ The referenced jobs' most recent completed outputs are injected above the prompt
 
 ## Job storage
 
-Jobs are stored in `~/.hermes/cron/jobs.json`. Output from job runs is saved to `~/.hermes/cron/output/{job_id}/{timestamp}.md`.
+Jobs are stored in `~/.gengar/cron/jobs.json`. Output from job runs is saved to `~/.gengar/cron/output/{job_id}/{timestamp}.md`.
 
-Jobs may store `model` and `provider` as `null`. When those fields are omitted, Hermes resolves them at execution time from the global configuration. They only appear in the job record when a per-job override is set.
+Jobs may store `model` and `provider` as `null`. When those fields are omitted, Gengar resolves them at execution time from the global configuration. They only appear in the job record when a per-job override is set.
 
 The storage uses atomic file writes so interrupted writes do not leave a partially written job file behind.
 

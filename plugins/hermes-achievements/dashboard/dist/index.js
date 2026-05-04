@@ -1,12 +1,12 @@
 (function () {
   "use strict";
-  // hermes-achievements dashboard plugin
-  // Originally authored by @PCinkusz — https://github.com/PCinkusz/hermes-achievements (MIT).
-  // Bundled into hermes-agent. Upstream repo remains the staging ground for new
+  // gengar-achievements dashboard plugin
+  // Originally authored by @PCinkusz — https://github.com/PCinkusz/gengar-achievements (MIT).
+  // Bundled into gengar. Upstream repo remains the staging ground for new
   // badges and UI iteration; the in-progress scan banner below is a small addition
   // layered on top of the original dist bundle.
-  const SDK = window.__HERMES_PLUGIN_SDK__;
-  if (!SDK || !window.__HERMES_PLUGINS__) return;
+  const SDK = window.__GENGAR_PLUGIN_SDK__;
+  if (!SDK || !window.__GENGAR_PLUGINS__) return;
 
   const React = SDK.React;
   const hooks = SDK.hooks;
@@ -20,7 +20,7 @@
   };
 
   async function api(path, options) {
-    const url = "/api/plugins/hermes-achievements" + path;
+    const url = "/api/plugins/gengar-achievements" + path;
     const res = await fetch(url, options || {});
     if (!res.ok) {
       const text = await res.text().catch(function () { return res.statusText; });
@@ -122,8 +122,8 @@
       React.createElement("section", { className: "ha-hero ha-loading-hero" },
         React.createElement("div", null,
           React.createElement("div", { className: "ha-kicker" }, "Agentic Gamerscore"),
-          React.createElement("h1", null, "Hermes Achievements"),
-          React.createElement("p", null, "Scanning Hermes session history. First scan can take 5–10 seconds on large histories.")
+          React.createElement("h1", null, "Gengar Achievements"),
+          React.createElement("p", null, "Scanning Gengar session history. First scan can take 5–10 seconds on large histories.")
         ),
         React.createElement("div", { className: "ha-scan-status", role: "status", "aria-live": "polite" },
           React.createElement("span", { className: "ha-scan-pulse", "aria-hidden": "true" }),
@@ -147,7 +147,7 @@
       React.createElement("section", { className: "ha-guide ha-loading-guide" },
         React.createElement("div", null,
           React.createElement("strong", null, "Scan status"),
-          React.createElement("p", null, "Hermes is scanning local history once, then cards will appear automatically. Nothing is stuck if this takes a few seconds.")
+          React.createElement("p", null, "Gengar is scanning local history once, then cards will appear automatically. Nothing is stuck if this takes a few seconds.")
         ),
         React.createElement("div", null,
           React.createElement("strong", null, "What is scanned"),
@@ -294,8 +294,8 @@
       React.createElement("section", { className: "ha-hero" },
         React.createElement("div", null,
           React.createElement("div", { className: "ha-kicker" }, "Agentic Gamerscore"),
-          React.createElement("h1", null, "Hermes Achievements"),
-          React.createElement("p", null, "Collectible Hermes badges earned from real session history. Known unfinished achievements are shown as Discovered; Secret achievements stay hidden until the first matching behavior appears.")
+          React.createElement("h1", null, "Gengar Achievements"),
+          React.createElement("p", null, "Collectible Gengar badges earned from real session history. Known unfinished achievements are shown as Discovered; Secret achievements stay hidden until the first matching behavior appears.")
         ),
         React.createElement(C.Button, { onClick: load, className: "ha-refresh" }, "Rescan")
       ),
@@ -306,7 +306,7 @@
         React.createElement(StatCard, { label: "Discovered", value: discovered.length, hint: "known, not earned yet" }),
         React.createElement(StatCard, { label: "Secrets", value: secret.length, hint: "hidden until first signal" }),
         React.createElement(StatCard, { label: "Highest tier", value: highest, hint: "Copper → Silver → Gold → Diamond → Olympian" }),
-        React.createElement(StatCard, { label: "Latest", value: latest[0] ? latest[0].name : "None yet", hint: latest[0] ? latest[0].category : "run Hermes more" })
+        React.createElement(StatCard, { label: "Latest", value: latest[0] ? latest[0].name : "None yet", hint: latest[0] ? latest[0].category : "run Gengar more" })
       ),
       React.createElement("section", { className: "ha-guide" },
         React.createElement("div", null,
@@ -315,7 +315,7 @@
         ),
         React.createElement("div", null,
           React.createElement("strong", null, "Secret achievements"),
-          React.createElement("p", null, "Secrets hide their exact trigger. Once Hermes sees a related signal, the card becomes Discovered and shows its requirement.")
+          React.createElement("p", null, "Secrets hide their exact trigger. Once Gengar sees a related signal, the card becomes Discovered and shows its requirement.")
         )
       ),
       React.createElement("div", { className: "ha-toolbar" },
@@ -347,5 +347,5 @@
     );
   }
 
-  window.__HERMES_PLUGINS__.register("hermes-achievements", AchievementsPage);
+  window.__GENGAR_PLUGINS__.register("gengar-achievements", AchievementsPage);
 })();

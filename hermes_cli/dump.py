@@ -1,7 +1,7 @@
 """
-Dump command for hermes CLI.
+Dump command for gengar CLI.
 
-Outputs a compact, plain-text summary of the user's Hermes setup
+Outputs a compact, plain-text summary of the user's Gengar setup
 that can be copy-pasted into Discord/GitHub/Telegram for support context.
 No ANSI colors, no checkmarks — just data.
 """
@@ -37,7 +37,7 @@ def _redact(value: str) -> str:
 
     Thin wrapper over :func:`agent.redact.mask_secret`. Returns ``""`` for
     an empty value (matches the historical behavior of this helper —
-    ``hermes dump`` formats empty values as blank, not as ``"(not set)"``).
+    ``gengar dump`` formats empty values as blank, not as ``"(not set)"``).
     """
     from agent.redact import mask_secret
     return mask_secret(value)
@@ -245,7 +245,7 @@ def run_dump(args):
     os_info = f"{platform.system()} {platform.release()} {platform.machine()}"
 
     lines = []
-    lines.append("--- hermes dump ---")
+    lines.append("--- gengar dump ---")
     ver_str = f"{__version__}"
     if __release_date__:
         ver_str += f" ({__release_date__})"
@@ -303,7 +303,7 @@ def run_dump(args):
     lines.append("")
     lines.append("features:")
 
-    toolsets = config.get("toolsets", ["hermes-cli"])
+    toolsets = config.get("toolsets", ["gengar-cli"])
     lines.append(f"  toolsets:           {', '.join(toolsets) if toolsets else '(default)'}")
     lines.append(f"  mcp_servers:        {_count_mcp_servers(config)}")
     lines.append(f"  memory_provider:    {_memory_provider(config)}")

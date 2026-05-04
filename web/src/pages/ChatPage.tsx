@@ -1,5 +1,5 @@
 /**
- * ChatPage — embeds `hermes --tui` inside the dashboard.
+ * ChatPage — embeds `gengar --tui` inside the dashboard.
  *
  *   <div host> (dashboard chrome)                                         .
  *     └─ <div wrapper> (rounded, dark bg, padded — the "terminal window"  .
@@ -115,8 +115,8 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
   // Lazy-init: the missing-token check happens at construction so the effect
   // body doesn't have to setState (React 19's set-state-in-effect rule).
   const [banner, setBanner] = useState<string | null>(() =>
-    typeof window !== "undefined" && !window.__HERMES_SESSION_TOKEN__
-      ? "Session token unavailable. Open this page through `hermes dashboard`, not directly."
+    typeof window !== "undefined" && !window.__GENGAR_SESSION_TOKEN__
+      ? "Session token unavailable. Open this page through `gengar dashboard`, not directly."
       : null,
   );
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
@@ -236,7 +236,7 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
     const host = hostRef.current;
     if (!host) return;
 
-    const token = window.__HERMES_SESSION_TOKEN__;
+    const token = window.__GENGAR_SESSION_TOKEN__;
     // Banner already initialised above; just bail before wiring xterm/WS.
     if (!token) {
       return;
@@ -268,7 +268,7 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
     //      terminal has a selection, then emits an OSC 52 escape.  Our
     //      OSC 52 handler below decodes that escape and writes to the
     //      browser clipboard — so the flow works just like it does in
-    //      `hermes --tui`.
+    //      `gengar --tui`.
     //
     //   2. **Ctrl/Cmd+Shift+C.**  Belt-and-suspenders shortcut that
     //      operates directly on xterm's selection, useful if the TUI
@@ -378,7 +378,7 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
         term.loadAddon(webgl);
       } catch (err) {
         console.warn(
-          "[hermes-chat] WebGL renderer unavailable; falling back to default",
+          "[gengar-chat] WebGL renderer unavailable; falling back to default",
           err,
         );
       }
@@ -781,7 +781,7 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
         >
           <div
             ref={hostRef}
-            className="hermes-chat-xterm-host min-h-0 min-w-0 flex-1"
+            className="gengar-chat-xterm-host min-h-0 min-w-0 flex-1"
           />
 
           <Button
@@ -829,6 +829,6 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
 
 declare global {
   interface Window {
-    __HERMES_SESSION_TOKEN__?: string;
+    __GENGAR_SESSION_TOKEN__?: string;
   }
 }

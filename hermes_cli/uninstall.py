@@ -1,9 +1,9 @@
 """
-Hermes Agent Uninstaller.
+Gengar Uninstaller.
 
 Provides options for:
 - Full uninstall: Remove everything including configs and data
-- Keep data: Remove code but keep ~/.hermes/ (configs, sessions, logs)
+- Keep data: Remove code but keep ~/.gengar/ (configs, sessions, logs)
 """
 
 import os
@@ -50,7 +50,7 @@ def find_shell_configs() -> list:
 
 
 def remove_path_from_shell_configs():
-    """Remove Hermes PATH entries from shell configuration files."""
+    """Remove Gengar PATH entries from shell configuration files."""
     configs = find_shell_configs()
     removed_from = []
     
@@ -59,22 +59,22 @@ def remove_path_from_shell_configs():
             content = config_path.read_text()
             original_content = content
             
-            # Remove lines containing hermes-agent or hermes PATH entries
+            # Remove lines containing gengar or gengar PATH entries
             new_lines = []
             skip_next = False
             
             for line in content.split('\n'):
-                # Skip the "# Hermes Agent" comment and following line
-                if '# Hermes Agent' in line or '# hermes-agent' in line:
+                # Skip the "# Gengar" comment and following line
+                if '# Gengar' in line or '# gengar' in line:
                     skip_next = True
                     continue
-                if skip_next and ('hermes' in line.lower() and 'PATH' in line):
+                if skip_next and ('gengar' in line.lower() and 'PATH' in line):
                     skip_next = False
                     continue
                 skip_next = False
                 
-                # Remove any PATH line containing hermes
-                if 'hermes' in line.lower() and ('PATH=' in line or 'path=' in line.lower()):
+                # Remove any PATH line containing gengar
+                if 'gengar' in line.lower() and ('PATH=' in line or 'path=' in line.lower()):
                     continue
                     
                 new_lines.append(line)
@@ -96,10 +96,10 @@ def remove_path_from_shell_configs():
 
 
 def remove_wrapper_script():
-    """Remove the hermes wrapper script if it exists."""
+    """Remove the gengar wrapper script if it exists."""
     wrapper_paths = [
-        Path.home() / ".local" / "bin" / "hermes",
-        Path("/usr/local/bin/hermes"),
+        Path.home() / ".local" / "bin" / "gengar",
+        Path("/usr/local/bin/gengar"),
     ]
     
     removed = []
@@ -108,7 +108,7 @@ def remove_wrapper_script():
             try:
                 # Check if it's our wrapper (contains hermes_cli reference)
                 content = wrapper.read_text()
-                if 'hermes_cli' in content or 'hermes-agent' in content:
+                if 'hermes_cli' in content or 'gengar' in content:
                     wrapper.unlink()
                     removed.append(wrapper)
             except Exception as e:
@@ -124,7 +124,7 @@ def uninstall_gateway_service():
     Delegates to the gateway module which handles:
     - Linux: user + system systemd services (with proper DBUS env setup)
     - macOS: launchd plists
-    - All platforms: standalone ``hermes gateway run`` processes
+    - All platforms: standalone ``gengar gateway run`` processes
     - Termux/Android: skips systemd (no systemd on Android), still kills standalone processes
     """
     import platform
@@ -230,11 +230,11 @@ def _discover_named_profiles():
 
 def _uninstall_profile(profile) -> None:
     """Fully uninstall a single named profile: stop its gateway service,
-    remove its alias wrapper, and wipe its HERMES_HOME directory.
+    remove its alias wrapper, and wipe its GENGAR_HOME directory.
 
-    We shell out to ``hermes -p <name> gateway stop|uninstall`` because
+    We shell out to ``gengar -p <name> gateway stop|uninstall`` because
     service names, unit paths, and plist paths are all derived from the
-    current HERMES_HOME and can't be easily switched in-process.
+    current GENGAR_HOME and can't be easily switched in-process.
     """
     import sys as _sys
     name = profile.name
@@ -243,7 +243,7 @@ def _uninstall_profile(profile) -> None:
     log_info(f"Uninstalling profile '{name}'...")
 
     # 1. Stop and remove this profile's gateway service.
-    #    Use `python -m hermes_cli.main` so we don't depend on a `hermes`
+    #    Use `python -m hermes_cli.main` so we don't depend on a `gengar`
     #    wrapper that may be half-removed mid-uninstall.
     hermes_invocation = [_sys.executable, "-m", "hermes_cli.main", "--profile", name]
     for subcmd in ("stop", "uninstall"):
@@ -269,7 +269,7 @@ def _uninstall_profile(profile) -> None:
         except Exception as e:
             log_warn(f"  Could not remove alias {alias_path}: {e}")
 
-    # 3. Wipe the profile's HERMES_HOME directory.
+    # 3. Wipe the profile's GENGAR_HOME directory.
     try:
         if profile_home.exists():
             shutil.rmtree(profile_home)
@@ -283,21 +283,21 @@ def run_uninstall(args):
     Run the uninstall process.
     
     Options:
-    - Full uninstall: removes code + ~/.hermes/ (configs, data, logs)
-    - Keep data: removes code but keeps ~/.hermes/ for future reinstall
+    - Full uninstall: removes code + ~/.gengar/ (configs, data, logs)
+    - Keep data: removes code but keeps ~/.gengar/ for future reinstall
     """
     project_root = get_project_root()
     hermes_home = get_hermes_home()
 
     # Detect named profiles when uninstalling from the default root —
-    # offer to clean them up too instead of leaving zombie HERMES_HOMEs
+    # offer to clean them up too instead of leaving zombie GENGAR_HOMEs
     # and systemd units behind.
     is_default_profile = _is_default_hermes_home(hermes_home)
     named_profiles = _discover_named_profiles() if is_default_profile else []
 
     print()
     print(color("┌─────────────────────────────────────────────────────────┐", Colors.MAGENTA, Colors.BOLD))
-    print(color("│            ⚕ Hermes Agent Uninstaller                  │", Colors.MAGENTA, Colors.BOLD))
+    print(color("│            ⚕ Gengar Uninstaller                  │", Colors.MAGENTA, Colors.BOLD))
     print(color("└─────────────────────────────────────────────────────────┘", Colors.MAGENTA, Colors.BOLD))
     print()
     
@@ -344,7 +344,7 @@ def run_uninstall(args):
 
     # When doing a full uninstall from the default profile, also offer to
     # remove any named profiles — stopping their gateway services, unlinking
-    # their alias wrappers, and wiping their HERMES_HOME dirs. Otherwise
+    # their alias wrappers, and wiping their GENGAR_HOME dirs. Otherwise
     # those leave zombie services and data behind.
     remove_profiles = False
     if full_uninstall and named_profiles:
@@ -367,7 +367,7 @@ def run_uninstall(args):
     # Final confirmation
     print()
     if full_uninstall:
-        print(color("⚠️  WARNING: This will permanently delete ALL Hermes data!", Colors.RED, Colors.BOLD))
+        print(color("⚠️  WARNING: This will permanently delete ALL Gengar data!", Colors.RED, Colors.BOLD))
         print(color("   Including: configs, API keys, sessions, scheduled jobs, logs", Colors.RED))
         if remove_profiles:
             print(color(
@@ -376,7 +376,7 @@ def run_uninstall(args):
                 Colors.RED
             ))
     else:
-        print("This will remove the Hermes code but keep your configuration and data.")
+        print("This will remove the Gengar code but keep your configuration and data.")
     
     print()
     try:
@@ -410,7 +410,7 @@ def run_uninstall(args):
         log_info("No PATH entries found to remove")
     
     # 3. Remove wrapper script
-    log_info("Removing hermes command...")
+    log_info("Removing gengar command...")
     removed_wrappers = remove_wrapper_script()
     if removed_wrappers:
         for wrapper in removed_wrappers:
@@ -425,7 +425,7 @@ def run_uninstall(args):
     # We need to be careful here
     try:
         if project_root.exists():
-            # If the install is inside ~/.hermes/, just remove the hermes-agent subdir
+            # If the install is inside ~/.gengar/, just remove the gengar subdir
             if hermes_home in project_root.parents or project_root.parent == hermes_home:
                 shutil.rmtree(project_root)
                 log_success(f"Removed {project_root}")
@@ -437,10 +437,10 @@ def run_uninstall(args):
         log_warn(f"Could not fully remove {project_root}: {e}")
         log_info("You may need to manually remove it")
     
-    # 5. Optionally remove ~/.hermes/ data directory (and named profiles)
+    # 5. Optionally remove ~/.gengar/ data directory (and named profiles)
     if full_uninstall:
         # 5a. Stop and remove each named profile's gateway service and
-        #     alias wrapper. The profile HERMES_HOME dirs live under
+        #     alias wrapper. The profile GENGAR_HOME dirs live under
         #     ``<default>/profiles/<name>/`` and will be swept away by the
         #     rmtree below, but services + alias scripts live OUTSIDE the
         #     default root and have to be cleaned up explicitly.
@@ -471,11 +471,11 @@ def run_uninstall(args):
         print(f"  {hermes_home}/")
         print()
         print("To reinstall later with your existing settings:")
-        print(color("  curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash", Colors.DIM))
+        print(color("  curl -fsSL https://raw.githubusercontent.com/jamesfincher/gengar/main/scripts/install.sh | bash", Colors.DIM))
         print()
     
     print(color("Reload your shell to complete the process:", Colors.YELLOW))
     print("  source ~/.bashrc  # or ~/.zshrc")
     print()
-    print("Thank you for using Hermes Agent! ⚕")
+    print("Thank you for using Gengar! ⚕")
     print()

@@ -1,5 +1,5 @@
 {
-  description = "Hermes Agent - AI agent framework by Nous Research";
+  description = "Gengar - AI agent framework by James Fincher";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";

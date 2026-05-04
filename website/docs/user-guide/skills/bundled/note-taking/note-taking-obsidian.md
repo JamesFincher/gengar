@@ -20,12 +20,12 @@ Read, search, and create notes in the Obsidian vault.
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Gengar loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # Obsidian Vault
 
-**Location:** Set via `OBSIDIAN_VAULT_PATH` environment variable (e.g. in `~/.hermes/.env`).
+**Location:** Set via `OBSIDIAN_VAULT_PATH` environment variable (e.g. in `~/.gengar/.env`).
 
 If unset, defaults to `~/Documents/Obsidian Vault`.
 

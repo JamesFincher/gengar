@@ -1,7 +1,7 @@
 ---
 sidebar_position: 1
 title: "Tools & Toolsets"
-description: "Overview of Hermes Agent's tools — what's available, how toolsets work, and terminal backends"
+description: "Overview of Gengar's tools — what's available, how toolsets work, and terminal backends"
 ---
 
 # Tools & Toolsets
@@ -10,7 +10,7 @@ Tools are functions that extend the agent's capabilities. They're organized into
 
 ## Available Tools
 
-Hermes ships with a broad built-in tool registry covering web search, browser automation, terminal execution, file editing, memory, delegation, RL training, messaging delivery, Home Assistant, and more.
+Gengar ships with a broad built-in tool registry covering web search, browser automation, terminal execution, file editing, memory, delegation, RL training, messaging delivery, Home Assistant, and more.
 
 :::note
 **Honcho cross-session memory** is available as a memory provider plugin (`plugins/memory/honcho/`), not as a built-in toolset. See [Plugins](./plugins.md) for installation.
@@ -32,25 +32,25 @@ High-level categories:
 For the authoritative code-derived registry, see [Built-in Tools Reference](/docs/reference/tools-reference) and [Toolsets Reference](/docs/reference/toolsets-reference).
 
 :::tip Nous Tool Gateway
-Paid [Nous Portal](https://portal.nousresearch.com) subscribers can use web search, image generation, TTS, and browser automation through the **[Tool Gateway](tool-gateway.md)** — no separate API keys needed. Run `hermes model` to enable it, or configure individual tools with `hermes tools`.
+Paid [Nous Portal](https://portal.nousresearch.com) subscribers can use web search, image generation, TTS, and browser automation through the **[Tool Gateway](tool-gateway.md)** — no separate API keys needed. Run `gengar model` to enable it, or configure individual tools with `gengar tools`.
 :::
 
 ## Using Toolsets
 
 ```bash
 # Use specific toolsets
-hermes chat --toolsets "web,terminal"
+gengar chat --toolsets "web,terminal"
 
 # See all available tools
-hermes tools
+gengar tools
 
 # Configure tools per platform (interactive)
-hermes tools
+gengar tools
 ```
 
 Common toolsets include `web`, `search`, `terminal`, `file`, `browser`, `vision`, `image_gen`, `moa`, `skills`, `tts`, `todo`, `memory`, `session_search`, `cronjob`, `code_execution`, `delegation`, `clarify`, `homeassistant`, `messaging`, `spotify`, `discord`, `discord_admin`, `debugging`, `safe`, and `rl`.
 
-See [Toolsets Reference](/docs/reference/toolsets-reference) for the full set, including platform presets such as `hermes-cli`, `hermes-telegram`, and dynamic MCP toolsets like `mcp-<server>`.
+See [Toolsets Reference](/docs/reference/toolsets-reference) for the full set, including platform presets such as `gengar-cli`, `gengar-telegram`, and dynamic MCP toolsets like `mcp-<server>`.
 
 ## Terminal Backends
 
@@ -69,7 +69,7 @@ The terminal tool can execute commands in different environments:
 ### Configuration
 
 ```yaml
-# In ~/.hermes/config.yaml
+# In ~/.gengar/config.yaml
 terminal:
   backend: local    # or: docker, ssh, singularity, modal, daytona, vercel_sandbox
   cwd: "."          # Working directory
@@ -93,7 +93,7 @@ terminal:
   backend: ssh
 ```
 ```bash
-# Set credentials in ~/.hermes/.env
+# Set credentials in ~/.gengar/.env
 TERMINAL_SSH_HOST=my-server.example.com
 TERMINAL_SSH_USER=myuser
 TERMINAL_SSH_KEY=~/.ssh/id_rsa
@@ -106,8 +106,8 @@ TERMINAL_SSH_KEY=~/.ssh/id_rsa
 apptainer build ~/python.sif docker://python:3.11-slim
 
 # Configure
-hermes config set terminal.backend singularity
-hermes config set terminal.singularity_image ~/python.sif
+gengar config set terminal.backend singularity
+gengar config set terminal.singularity_image ~/python.sif
 ```
 
 ### Modal (Serverless Cloud)
@@ -115,34 +115,34 @@ hermes config set terminal.singularity_image ~/python.sif
 ```bash
 uv pip install modal
 modal setup
-hermes config set terminal.backend modal
+gengar config set terminal.backend modal
 ```
 
 ### Vercel Sandbox
 
 ```bash
-pip install 'hermes-agent[vercel]'
-hermes config set terminal.backend vercel_sandbox
-hermes config set terminal.vercel_runtime node24
+pip install 'gengar[vercel]'
+gengar config set terminal.backend vercel_sandbox
+gengar config set terminal.vercel_runtime node24
 ```
 
-Authenticate with all three of `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, and `VERCEL_TEAM_ID`. This access-token setup is the supported path for deployments and normal long-running Hermes processes on Render, Railway, Docker, and similar hosts. Supported runtimes are `node24`, `node22`, and `python3.13`; Hermes defaults to `/vercel/sandbox` as the remote workspace root.
+Authenticate with all three of `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, and `VERCEL_TEAM_ID`. This access-token setup is the supported path for deployments and normal long-running Gengar processes on Render, Railway, Docker, and similar hosts. Supported runtimes are `node24`, `node22`, and `python3.13`; Gengar defaults to `/vercel/sandbox` as the remote workspace root.
 
-For one-off local development, Hermes also accepts short-lived Vercel OIDC tokens:
+For one-off local development, Gengar also accepts short-lived Vercel OIDC tokens:
 
 ```bash
-VERCEL_OIDC_TOKEN="$(vc project token <project-name>)" hermes chat
+VERCEL_OIDC_TOKEN="$(vc project token <project-name>)" gengar chat
 ```
 
 From a linked Vercel project directory:
 
 ```bash
-VERCEL_OIDC_TOKEN="$(vc project token)" hermes chat
+VERCEL_OIDC_TOKEN="$(vc project token)" gengar chat
 ```
 
-With `container_persistent: true`, Hermes uses Vercel snapshots to preserve filesystem state across sandbox recreation for the same task. This can include Hermes-synced credentials, skills, and cache files inside the sandbox. Snapshots do not preserve live processes, PID space, or the same live sandbox identity.
+With `container_persistent: true`, Gengar uses Vercel snapshots to preserve filesystem state across sandbox recreation for the same task. This can include Gengar-synced credentials, skills, and cache files inside the sandbox. Snapshots do not preserve live processes, PID space, or the same live sandbox identity.
 
-Background terminal commands use Hermes' generic non-local process flow: spawn, poll, wait, log, and kill work through the normal process tool while the sandbox is alive, but Hermes does not provide native Vercel detached-process recovery after cleanup or restart.
+Background terminal commands use Gengar' generic non-local process flow: spawn, poll, wait, log, and kill work through the normal process tool while the sandbox is alive, but Gengar does not provide native Vercel detached-process recovery after cleanup or restart.
 
 Leave `container_disk` unset or at the shared default `51200`; custom disk sizing is unsupported for Vercel Sandbox and will fail diagnostics/backend creation.
 
@@ -195,8 +195,8 @@ PTY mode (`pty=true`) enables interactive CLI tools like Codex and Claude Code.
 
 ## Sudo Support
 
-If a command needs sudo, you'll be prompted for your password (cached for the session). Or set `SUDO_PASSWORD` in `~/.hermes/.env`.
+If a command needs sudo, you'll be prompted for your password (cached for the session). Or set `SUDO_PASSWORD` in `~/.gengar/.env`.
 
 :::warning
-On messaging platforms, if sudo fails, the output includes a tip to add `SUDO_PASSWORD` to `~/.hermes/.env`.
+On messaging platforms, if sudo fails, the output includes a tip to add `SUDO_PASSWORD` to `~/.gengar/.env`.
 :::

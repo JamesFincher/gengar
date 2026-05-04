@@ -1,46 +1,46 @@
 #!/usr/bin/env python3
 """
-Hermes CLI - Main entry point.
+Gengar CLI - Main entry point.
 
 Usage:
-    hermes                     # Interactive chat (default)
-    hermes chat                # Interactive chat
-    hermes gateway             # Run gateway in foreground
-    hermes gateway start       # Start gateway as service
-    hermes gateway stop        # Stop gateway service
-    hermes gateway status      # Show gateway status
-    hermes gateway install     # Install gateway service
-    hermes gateway uninstall   # Uninstall gateway service
-    hermes setup               # Interactive setup wizard
-    hermes logout              # Clear stored authentication
-    hermes status              # Show status of all components
-    hermes cron                # Manage cron jobs
-    hermes cron list           # List cron jobs
-    hermes cron status         # Check if cron scheduler is running
-    hermes doctor              # Check configuration and dependencies
-    hermes honcho setup                    # Configure Honcho AI memory integration
-    hermes honcho status                   # Show Honcho config and connection status
-    hermes honcho sessions                 # List directory → session name mappings
-    hermes honcho map <name>               # Map current directory to a session name
-    hermes honcho peer                     # Show peer names and dialectic settings
-    hermes honcho peer --user NAME         # Set user peer name
-    hermes honcho peer --ai NAME           # Set AI peer name
-    hermes honcho peer --reasoning LEVEL   # Set dialectic reasoning level
-    hermes honcho mode                     # Show current memory mode
-    hermes honcho mode [hybrid|honcho|local]  # Set memory mode
-    hermes honcho tokens                   # Show token budget settings
-    hermes honcho tokens --context N       # Set session.context() token cap
-    hermes honcho tokens --dialectic N     # Set dialectic result char cap
-    hermes honcho identity                 # Show AI peer identity representation
-    hermes honcho identity <file>          # Seed AI peer identity from a file (SOUL.md etc.)
-    hermes honcho migrate                  # Step-by-step migration guide: OpenClaw native → Hermes + Honcho
-    hermes version             Show version
-    hermes update              Update to latest version
-    hermes uninstall           Uninstall Hermes Agent
-    hermes acp                 Run as an ACP server for editor integration
-    hermes sessions browse     Interactive session picker with search
+    gengar                     # Interactive chat (default)
+    gengar chat                # Interactive chat
+    gengar gateway             # Run gateway in foreground
+    gengar gateway start       # Start gateway as service
+    gengar gateway stop        # Stop gateway service
+    gengar gateway status      # Show gateway status
+    gengar gateway install     # Install gateway service
+    gengar gateway uninstall   # Uninstall gateway service
+    gengar setup               # Interactive setup wizard
+    gengar logout              # Clear stored authentication
+    gengar status              # Show status of all components
+    gengar cron                # Manage cron jobs
+    gengar cron list           # List cron jobs
+    gengar cron status         # Check if cron scheduler is running
+    gengar doctor              # Check configuration and dependencies
+    gengar honcho setup                    # Configure Honcho AI memory integration
+    gengar honcho status                   # Show Honcho config and connection status
+    gengar honcho sessions                 # List directory → session name mappings
+    gengar honcho map <name>               # Map current directory to a session name
+    gengar honcho peer                     # Show peer names and dialectic settings
+    gengar honcho peer --user NAME         # Set user peer name
+    gengar honcho peer --ai NAME           # Set AI peer name
+    gengar honcho peer --reasoning LEVEL   # Set dialectic reasoning level
+    gengar honcho mode                     # Show current memory mode
+    gengar honcho mode [hybrid|honcho|local]  # Set memory mode
+    gengar honcho tokens                   # Show token budget settings
+    gengar honcho tokens --context N       # Set session.context() token cap
+    gengar honcho tokens --dialectic N     # Set dialectic result char cap
+    gengar honcho identity                 # Show AI peer identity representation
+    gengar honcho identity <file>          # Seed AI peer identity from a file (SOUL.md etc.)
+    gengar honcho migrate                  # Step-by-step migration guide: OpenClaw native → Gengar + Honcho
+    gengar version             Show version
+    gengar update              Update to latest version
+    gengar uninstall           Uninstall Gengar
+    gengar acp                 Run as an ACP server for editor integration
+    gengar sessions browse     Interactive session picker with search
 
-    hermes claw migrate --dry-run  # Preview migration without changes
+    gengar claw migrate --dry-run  # Preview migration without changes
 """
 
 import argparse
@@ -61,7 +61,7 @@ def _add_accept_hooks_flag(parser) -> None:
         default=argparse.SUPPRESS,
         help=(
             "Auto-approve unseen shell hooks without a TTY prompt "
-            "(equivalent to HERMES_ACCEPT_HOOKS=1 / hooks_auto_accept: true)."
+            "(equivalent to GENGAR_ACCEPT_HOOKS=1 / hooks_auto_accept: true)."
         ),
     )
 
@@ -69,13 +69,13 @@ def _add_accept_hooks_flag(parser) -> None:
 def _require_tty(command_name: str) -> None:
     """Exit with a clear error if stdin is not a terminal.
 
-    Interactive TUI commands (hermes tools, hermes setup, hermes model) use
+    Interactive TUI commands (gengar tools, gengar setup, gengar model) use
     curses or input() prompts that spin at 100% CPU when stdin is a pipe.
     This guard prevents accidental non-interactive invocation.
     """
     if not sys.stdin.isatty():
         print(
-            f"Error: 'hermes {command_name}' requires an interactive terminal.\n"
+            f"Error: 'gengar {command_name}' requires an interactive terminal.\n"
             f"It cannot be run through a pipe or non-interactive subprocess.\n"
             f"Run it directly in your terminal instead.",
             file=sys.stderr,
@@ -89,16 +89,16 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 
 # ---------------------------------------------------------------------------
-# Profile override — MUST happen before any hermes module import.
+# Profile override — MUST happen before any gengar module import.
 #
-# Many modules cache HERMES_HOME at import time (module-level constants).
+# Many modules cache GENGAR_HOME at import time (module-level constants).
 # We intercept --profile/-p from sys.argv here and set the env var so that
-# every subsequent ``os.getenv("HERMES_HOME", ...)`` resolves correctly.
+# every subsequent ``os.getenv("GENGAR_HOME", ...)`` resolves correctly.
 # The flag is stripped from sys.argv so argparse never sees it.
-# Falls back to ~/.hermes/active_profile for sticky default.
+# Falls back to ~/.gengar/active_profile for sticky default.
 # ---------------------------------------------------------------------------
 def _apply_profile_override() -> None:
-    """Pre-parse --profile/-p and set HERMES_HOME before module imports."""
+    """Pre-parse --profile/-p and set GENGAR_HOME before module imports."""
     argv = sys.argv[1:]
     profile_name = None
     consume = 0
@@ -114,13 +114,13 @@ def _apply_profile_override() -> None:
             consume = 1
             break
 
-    # 1.5 If HERMES_HOME is already set and no explicit flag was given, trust it.
+    # 1.5 If GENGAR_HOME is already set and no explicit flag was given, trust it.
     # This lets child processes (relaunch, subprocess) inherit the parent's
     # profile choice without having to pass --profile again.
-    if profile_name is None and os.environ.get("HERMES_HOME"):
+    if profile_name is None and os.environ.get("GENGAR_HOME"):
         return
 
-    # 2. If no flag, check active_profile in the hermes root
+    # 2. If no flag, check active_profile in the gengar root
     if profile_name is None:
         try:
             from hermes_constants import get_default_hermes_root
@@ -134,7 +134,7 @@ def _apply_profile_override() -> None:
         except (UnicodeDecodeError, OSError):
             pass  # corrupted file, skip
 
-    # 3. If we found a profile, resolve and set HERMES_HOME
+    # 3. If we found a profile, resolve and set GENGAR_HOME
     if profile_name is not None:
         try:
             from hermes_cli.profiles import resolve_profile_env
@@ -144,13 +144,13 @@ def _apply_profile_override() -> None:
             print(f"Error: {exc}", file=sys.stderr)
             sys.exit(1)
         except Exception as exc:
-            # A bug in profiles.py must NEVER prevent hermes from starting
+            # A bug in profiles.py must NEVER prevent gengar from starting
             print(
                 f"Warning: profile override failed ({exc}), using default",
                 file=sys.stderr,
             )
             return
-        os.environ["HERMES_HOME"] = hermes_home
+        os.environ["GENGAR_HOME"] = hermes_home
         # Strip the flag from argv so argparse doesn't choke
         if consume > 0:
             for i, arg in enumerate(argv):
@@ -166,20 +166,20 @@ def _apply_profile_override() -> None:
 
 _apply_profile_override()
 
-# Load .env from ~/.hermes/.env first, then project root as dev fallback.
+# Load .env from ~/.gengar/.env first, then project root as dev fallback.
 # User-managed env files should override stale shell exports on restart.
 from hermes_cli.config import get_hermes_home
 from hermes_cli.env_loader import load_hermes_dotenv
 
 load_hermes_dotenv(project_env=PROJECT_ROOT / ".env")
 
-# Bridge security.redact_secrets from config.yaml → HERMES_REDACT_SECRETS env
+# Bridge security.redact_secrets from config.yaml → GENGAR_REDACT_SECRETS env
 # var BEFORE hermes_logging imports agent.redact (which snapshots the flag at
 # module-import time). Without this, config.yaml's toggle is ignored because
 # the setup_logging() call below imports agent.redact, which reads the env var
 # exactly once. Env var in .env still wins — this is config.yaml fallback only.
 try:
-    if "HERMES_REDACT_SECRETS" not in os.environ:
+    if "GENGAR_REDACT_SECRETS" not in os.environ:
         import yaml as _yaml_early
         _cfg_path = get_hermes_home() / "config.yaml"
         if _cfg_path.exists():
@@ -188,13 +188,13 @@ try:
             if isinstance(_early_sec_cfg, dict):
                 _early_redact = _early_sec_cfg.get("redact_secrets")
                 if _early_redact is not None:
-                    os.environ["HERMES_REDACT_SECRETS"] = str(_early_redact).lower()
+                    os.environ["GENGAR_REDACT_SECRETS"] = str(_early_redact).lower()
             del _early_sec_cfg
         del _cfg_path
 except Exception:
     pass  # best-effort — redaction stays at default (enabled) on config errors
 
-# Initialize centralized file logging early — all `hermes` subcommands
+# Initialize centralized file logging early — all `gengar` subcommands
 # (chat, setup, gateway, config, etc.) write to agent.log + errors.log.
 try:
     from hermes_logging import setup_logging as _setup_logging
@@ -249,7 +249,7 @@ def _has_any_provider_configured() -> bool:
     from hermes_cli.config import get_env_path, get_hermes_home, load_config
     from hermes_cli.auth import get_auth_status
 
-    # Determine whether Hermes itself has been explicitly configured (model
+    # Determine whether Gengar itself has been explicitly configured (model
     # in config that isn't the hardcoded default). Used below to gate external
     # tool credentials (Claude Code, Codex CLI) that shouldn't silently skip
     # the setup wizard on a fresh install.
@@ -338,8 +338,8 @@ def _has_any_provider_configured() -> bool:
             return True
 
     # Check for Claude Code OAuth credentials (~/.claude/.credentials.json)
-    # Only count these if Hermes has been explicitly configured — Claude Code
-    # being installed doesn't mean the user wants Hermes to use their tokens.
+    # Only count these if Gengar has been explicitly configured — Claude Code
+    # being installed doesn't mean the user wants Gengar to use their tokens.
     if _has_hermes_config:
         try:
             from agent.anthropic_adapter import (
@@ -649,7 +649,7 @@ def _exec_in_container(container_info: dict, cli_args: list):
 
     Args:
         container_info: dict with backend, container_name, exec_user, hermes_bin
-        cli_args: the original CLI arguments (everything after 'hermes')
+        cli_args: the original CLI arguments (everything after 'gengar')
     """
 
     backend = container_info["backend"]
@@ -697,14 +697,14 @@ def _exec_in_container(container_info: dict, cli_args: list):
                     f'    commands = [{{ command = "{runtime}"; options = [ "NOPASSWD" ]; }}];\n'
                     f"  }}];\n"
                     f"\n"
-                    f"Or run: sudo hermes {' '.join(cli_args)}",
+                    f"Or run: sudo gengar {' '.join(cli_args)}",
                     file=sys.stderr,
                 )
                 sys.exit(1)
         else:
             print(
                 f"Error: container '{container_name}' not found via {backend}.\n"
-                f"The container may be running under root. Try: sudo hermes {' '.join(cli_args)}",
+                f"The container may be running under root. Try: sudo gengar {' '.join(cli_args)}",
                 file=sys.stderr,
             )
             sys.exit(1)
@@ -822,9 +822,9 @@ def _print_tui_exit_summary(session_id: Optional[str], active_session_file: Opti
 
     print()
     print("Resume this session with:")
-    print(f"  hermes --tui --resume {target}")
+    print(f"  gengar --tui --resume {target}")
     if title:
-        print(f'  hermes --tui -c "{title}"')
+        print(f'  gengar --tui -c "{title}"')
     print()
     print(f"Session:        {target}")
     if title:
@@ -841,7 +841,7 @@ _NPM_LOCK_RUNTIME_KEYS = frozenset({"ideallyInert"})
 
 
 def _tui_need_npm_install(root: Path) -> bool:
-    """True when @hermes/ink is missing or node_modules is behind package-lock.json.
+    """True when @gengar/ink is missing or node_modules is behind package-lock.json.
 
     Compares ``package-lock.json`` against ``node_modules/.package-lock.json``
     (npm's hidden lockfile) by **content**, not mtime: git checkouts and npm
@@ -860,7 +860,7 @@ def _tui_need_npm_install(root: Path) -> bool:
     we'd rather not force a reinstall for them. Falls back to mtime
     comparison if either lockfile is unparseable.
     """
-    ink = root / "node_modules" / "@hermes" / "ink" / "package.json"
+    ink = root / "node_modules" / "@gengar" / "ink" / "package.json"
     if not ink.is_file():
         return True
     lock = root / "package-lock.json"
@@ -901,8 +901,8 @@ def _tui_need_npm_install(root: Path) -> bool:
 
 
 def _find_bundled_tui(tui_dir: Path) -> Optional[Path]:
-    """Directory whose dist/entry.js we should run: HERMES_TUI_DIR first, else repo ui-tui."""
-    env = os.environ.get("HERMES_TUI_DIR")
+    """Directory whose dist/entry.js we should run: GENGAR_TUI_DIR first, else repo ui-tui."""
+    env = os.environ.get("GENGAR_TUI_DIR")
     if env:
         p = Path(env)
         if (p / "dist" / "entry.js").exists() and not _tui_need_npm_install(p):
@@ -939,7 +939,7 @@ def _tui_build_needed(tui_dir: Path) -> bool:
 
 
 def _hermes_ink_bundle_stale(tui_dir: Path) -> bool:
-    ink_root = tui_dir / "packages" / "hermes-ink"
+    ink_root = tui_dir / "packages" / "gengar-ink"
     bundle = ink_root / "dist" / "ink-bundle.js"
     if not bundle.exists():
         return True
@@ -968,18 +968,18 @@ def _ensure_tui_node() -> None:
     was used (nvm, fnm, proto, brew, or the bundled fallback).
 
     Idempotent no-op when node+npm are already discoverable. Set
-    ``HERMES_SKIP_NODE_BOOTSTRAP=1`` to disable auto-install.
+    ``GENGAR_SKIP_NODE_BOOTSTRAP=1`` to disable auto-install.
     """
     if shutil.which("node") and shutil.which("npm"):
         return
-    if os.environ.get("HERMES_SKIP_NODE_BOOTSTRAP"):
+    if os.environ.get("GENGAR_SKIP_NODE_BOOTSTRAP"):
         return
 
     helper = PROJECT_ROOT / "scripts" / "lib" / "node-bootstrap.sh"
     if not helper.is_file():
         return
 
-    hermes_home = os.environ.get("HERMES_HOME") or str(Path.home() / ".hermes")
+    hermes_home = os.environ.get("GENGAR_HOME") or str(Path.home() / ".gengar")
     try:
         # Helper writes logs to stderr; we ask bash to print `command -v node`
         # on stdout once ensure_node succeeds. Subshell PATH edits don't leak
@@ -990,7 +990,7 @@ def _ensure_tui_node() -> None:
                 "-c",
                 f'source "{helper}" >&2 && ensure_node >&2 && command -v node',
             ],
-            env={**os.environ, "HERMES_HOME": hermes_home},
+            env={**os.environ, "GENGAR_HOME": hermes_home},
             capture_output=True,
             text=True,
             check=False,
@@ -1015,12 +1015,12 @@ def _ensure_tui_node() -> None:
 
 
 def _make_tui_argv(tui_dir: Path, tui_dev: bool) -> tuple[list[str], Path]:
-    """TUI: --dev → tsx src; else node dist (HERMES_TUI_DIR or ui-tui, build when stale)."""
+    """TUI: --dev → tsx src; else node dist (GENGAR_TUI_DIR or ui-tui, build when stale)."""
     _ensure_tui_node()
 
     def _node_bin(bin: str) -> str:
         if bin == "node":
-            env_node = os.environ.get("HERMES_NODE")
+            env_node = os.environ.get("GENGAR_NODE")
             if env_node and os.path.isfile(env_node) and os.access(env_node, os.X_OK):
                 return env_node
         path = shutil.which(bin)
@@ -1029,9 +1029,9 @@ def _make_tui_argv(tui_dir: Path, tui_dev: bool) -> tuple[list[str], Path]:
             sys.exit(1)
         return path
 
-    # pre-built dist + node_modules (nix / full HERMES_TUI_DIR) skips npm.
+    # pre-built dist + node_modules (nix / full GENGAR_TUI_DIR) skips npm.
     if not tui_dev:
-        ext_dir = os.environ.get("HERMES_TUI_DIR")
+        ext_dir = os.environ.get("GENGAR_TUI_DIR")
         if ext_dir:
             p = Path(ext_dir)
             if (p / "dist" / "entry.js").exists() and not _tui_need_npm_install(p):
@@ -1040,7 +1040,7 @@ def _make_tui_argv(tui_dir: Path, tui_dev: bool) -> tuple[list[str], Path]:
 
     npm = _node_bin("npm")
     if _tui_need_npm_install(tui_dir):
-        if not os.environ.get("HERMES_QUIET"):
+        if not os.environ.get("GENGAR_QUIET"):
             print("Installing TUI dependencies…")
         result = subprocess.run(
             [npm, "install", "--silent", "--no-fund", "--no-audit", "--progress=false"],
@@ -1061,7 +1061,7 @@ def _make_tui_argv(tui_dir: Path, tui_dev: bool) -> tuple[list[str], Path]:
     if tui_dev:
         if _hermes_ink_bundle_stale(tui_dir):
             result = subprocess.run(
-                [npm, "run", "build", "--prefix", "packages/hermes-ink"],
+                [npm, "run", "build", "--prefix", "packages/gengar-ink"],
                 cwd=str(tui_dir),
                 capture_output=True,
                 text=True,
@@ -1069,7 +1069,7 @@ def _make_tui_argv(tui_dir: Path, tui_dev: bool) -> tuple[list[str], Path]:
             if result.returncode != 0:
                 combined = f"{result.stdout or ''}{result.stderr or ''}".strip()
                 preview = "\n".join(combined.splitlines()[-30:])
-                print("@hermes/ink build failed.")
+                print("@gengar/ink build failed.")
                 if preview:
                     print(preview)
                 sys.exit(1)
@@ -1140,25 +1140,25 @@ def _launch_tui(
 
     env = os.environ.copy()
     active_session_fd, active_session_file = tempfile.mkstemp(
-        prefix="hermes-tui-active-session-", suffix=".json"
+        prefix="gengar-tui-active-session-", suffix=".json"
     )
     os.close(active_session_fd)
-    env["HERMES_TUI_ACTIVE_SESSION_FILE"] = active_session_file
-    env["HERMES_PYTHON_SRC_ROOT"] = os.environ.get(
-        "HERMES_PYTHON_SRC_ROOT", str(PROJECT_ROOT)
+    env["GENGAR_TUI_ACTIVE_SESSION_FILE"] = active_session_file
+    env["GENGAR_PYTHON_SRC_ROOT"] = os.environ.get(
+        "GENGAR_PYTHON_SRC_ROOT", str(PROJECT_ROOT)
     )
-    env.setdefault("HERMES_PYTHON", sys.executable)
-    env.setdefault("HERMES_CWD", os.getcwd())
+    env.setdefault("GENGAR_PYTHON", sys.executable)
+    env.setdefault("GENGAR_CWD", os.getcwd())
     env.setdefault("NODE_ENV", "development" if tui_dev else "production")
     if model:
-        env["HERMES_MODEL"] = model
-        env["HERMES_INFERENCE_MODEL"] = model
+        env["GENGAR_MODEL"] = model
+        env["GENGAR_INFERENCE_MODEL"] = model
     if provider:
-        env["HERMES_TUI_PROVIDER"] = provider
-        env["HERMES_INFERENCE_PROVIDER"] = provider
+        env["GENGAR_TUI_PROVIDER"] = provider
+        env["GENGAR_INFERENCE_PROVIDER"] = provider
     tui_toolsets = _normalize_tui_toolsets(toolsets)
     if tui_toolsets:
-        env["HERMES_TUI_TOOLSETS"] = ",".join(tui_toolsets)
+        env["GENGAR_TUI_TOOLSETS"] = ",".join(tui_toolsets)
     # Guarantee an 8GB V8 heap + exposed GC for the TUI. Default node cap is
     # ~1.5–4GB depending on version and can fatal-OOM on long sessions with
     # large transcripts / reasoning blobs. Token-level merge: respect any
@@ -1171,7 +1171,7 @@ def _launch_tui(
         _tokens.append("--expose-gc")
     env["NODE_OPTIONS"] = " ".join(_tokens)
     if resume_session_id:
-        env["HERMES_TUI_RESUME"] = resume_session_id
+        env["GENGAR_TUI_RESUME"] = resume_session_id
 
     argv, cwd = _make_tui_argv(tui_dir, tui_dev)
     code: Optional[int] = None
@@ -1194,7 +1194,7 @@ def _launch_tui(
 
 def cmd_chat(args):
     """Run interactive chat CLI."""
-    use_tui = getattr(args, "tui", False) or os.environ.get("HERMES_TUI") == "1"
+    use_tui = getattr(args, "tui", False) or os.environ.get("GENGAR_TUI") == "1"
 
     # Resolve --continue into --resume with the latest session or by name
     continue_val = getattr(args, "continue_last", None)
@@ -1206,7 +1206,7 @@ def cmd_chat(args):
                 args.resume = resolved
             else:
                 print(f"No session found matching '{continue_val}'.")
-                print("Use 'hermes sessions list' to see available sessions.")
+                print("Use 'gengar sessions list' to see available sessions.")
                 sys.exit(1)
         else:
             # -c with no argument — continue the most recent session
@@ -1234,10 +1234,10 @@ def cmd_chat(args):
     if not _has_any_provider_configured():
         print()
         print(
-            "It looks like Hermes isn't configured yet -- no API keys or providers found."
+            "It looks like Gengar isn't configured yet -- no API keys or providers found."
         )
         print()
-        print("  Run:  hermes setup")
+        print("  Run:  gengar setup")
         print()
 
         from hermes_cli.setup import (
@@ -1259,7 +1259,7 @@ def cmd_chat(args):
             cmd_setup(args)
             return
         print()
-        print("You can run 'hermes setup' at any time to configure.")
+        print("You can run 'gengar setup' at any time to configure.")
         sys.exit(1)
 
     # Start update check in background (runs while other init happens)
@@ -1280,25 +1280,25 @@ def cmd_chat(args):
 
     # --yolo: bypass all dangerous command approvals
     if getattr(args, "yolo", False):
-        os.environ["HERMES_YOLO_MODE"] = "1"
+        os.environ["GENGAR_YOLO_MODE"] = "1"
 
     # --ignore-user-config: make load_cli_config() / load_config() skip the
-    # user's ~/.hermes/config.yaml and return built-in defaults. Set BEFORE
+    # user's ~/.gengar/config.yaml and return built-in defaults. Set BEFORE
     # importing cli (which runs `CLI_CONFIG = load_cli_config()` at module
     # import time). Credentials in .env are still loaded — this flag only
     # ignores behavioral/config settings.
     if getattr(args, "ignore_user_config", False):
-        os.environ["HERMES_IGNORE_USER_CONFIG"] = "1"
+        os.environ["GENGAR_IGNORE_USER_CONFIG"] = "1"
 
     # --ignore-rules: skip auto-injection of AGENTS.md/SOUL.md/.cursorrules
     # (rules), memory entries, and any preloaded skills coming from user config.
     # Maps to AIAgent(skip_context_files=True, skip_memory=True).
     if getattr(args, "ignore_rules", False):
-        os.environ["HERMES_IGNORE_RULES"] = "1"
+        os.environ["GENGAR_IGNORE_RULES"] = "1"
 
     # --source: tag session source for filtering (e.g. 'tool' for third-party integrations)
     if getattr(args, "source", None):
-        os.environ["HERMES_SESSION_SOURCE"] = args.source
+        os.environ["GENGAR_SESSION_SOURCE"] = args.source
 
     if use_tui:
         _launch_tui(
@@ -1360,7 +1360,7 @@ def cmd_whatsapp(args):
     current_mode = get_env_value("WHATSAPP_MODE") or ""
     if not current_mode:
         print()
-        print("How will you use WhatsApp with Hermes?")
+        print("How will you use WhatsApp with Gengar?")
         print()
         print("  1. Separate bot number (recommended)")
         print("     People message the bot's number directly — cleanest experience.")
@@ -1502,7 +1502,7 @@ def cmd_whatsapp(args):
             print("  ✓ Session cleared")
         else:
             print("\n✓ WhatsApp is configured and paired!")
-            print("  Start the gateway with: hermes gateway")
+            print("  Start the gateway with: gengar gateway")
             return
 
     # ── Step 6: QR code pairing ──────────────────────────────────────────
@@ -1533,23 +1533,23 @@ def cmd_whatsapp(args):
         print()
         if wa_mode == "bot":
             print("  Next steps:")
-            print("    1. Start the gateway:  hermes gateway")
+            print("    1. Start the gateway:  gengar gateway")
             print("    2. Send a message to the bot's WhatsApp number")
             print("    3. The agent will reply automatically")
             print()
-            print("  Tip: Agent responses are prefixed with '⚕ Hermes Agent'")
+            print("  Tip: Agent responses are prefixed with '⚕ Gengar'")
         else:
             print("  Next steps:")
-            print("    1. Start the gateway:  hermes gateway")
+            print("    1. Start the gateway:  gengar gateway")
             print("    2. Open WhatsApp → Message Yourself")
             print("    3. Type a message — the agent will reply")
             print()
-            print("  Tip: Agent responses are prefixed with '⚕ Hermes Agent'")
+            print("  Tip: Agent responses are prefixed with '⚕ Gengar'")
             print("  so you can tell them apart from your own messages.")
         print()
-        print("  Or install as a service: hermes gateway install")
+        print("  Or install as a service: gengar gateway install")
     else:
-        print("⚠ Pairing may not have completed. Run 'hermes whatsapp' to try again.")
+        print("⚠ Pairing may not have completed. Run 'gengar whatsapp' to try again.")
 
 
 def cmd_setup(args):
@@ -1568,7 +1568,7 @@ def cmd_model(args):
 def select_provider_and_model(args=None):
     """Core provider selection + model picking logic.
 
-    Shared by ``cmd_model`` (``hermes model``) and the setup wizard
+    Shared by ``cmd_model`` (``gengar model``) and the setup wizard
     (``setup_model_provider`` in setup.py).  Handles the full flow:
     provider picker, credential prompting, model selection, and config
     persistence.
@@ -1599,7 +1599,7 @@ def select_provider_and_model(args=None):
         config_provider = model_cfg.get("provider")
 
     effective_provider = (
-        config_provider or os.getenv("HERMES_INFERENCE_PROVIDER") or "auto"
+        config_provider or os.getenv("GENGAR_INFERENCE_PROVIDER") or "auto"
     )
     compatible_custom_providers = get_compatible_custom_providers(config)
     active = None
@@ -1613,8 +1613,8 @@ def select_provider_and_model(args=None):
             active = active_def.id
         else:
             warning = (
-                f"Unknown provider '{effective_provider}'. Check 'hermes model' for "
-                "available providers, or run 'hermes doctor' to diagnose config "
+                f"Unknown provider '{effective_provider}'. Check 'gengar model' for "
+                "available providers, or run 'gengar doctor' to diagnose config "
                 "issues."
             )
             print(f"Warning: {warning} Falling back to auto provider detection.")
@@ -1866,7 +1866,7 @@ def select_provider_and_model(args=None):
 
     # ── Post-switch cleanup: clear stale OPENAI_BASE_URL ──────────────
     # When the user switches to a named provider (anything except "custom"),
-    # a leftover OPENAI_BASE_URL in ~/.hermes/.env can poison auxiliary
+    # a leftover OPENAI_BASE_URL in ~/.gengar/.env can poison auxiliary
     # clients that use provider:auto. Clear it proactively.  (#5161)
     if selected_provider not in (
         "custom",
@@ -1877,7 +1877,7 @@ def select_provider_and_model(args=None):
 
 
 def _clear_stale_openai_base_url():
-    """Remove OPENAI_BASE_URL from ~/.hermes/.env if the active provider is not 'custom'.
+    """Remove OPENAI_BASE_URL from ~/.gengar/.env if the active provider is not 'custom'.
 
     After a provider switch, a leftover OPENAI_BASE_URL causes auxiliary
     clients (compression, vision, delegation) with provider:auto to route
@@ -1909,14 +1909,14 @@ def _clear_stale_openai_base_url():
 # ─────────────────────────────────────────────────────────────────────────────
 # Auxiliary model configuration
 #
-# Hermes uses lightweight "auxiliary" models for side tasks (vision analysis,
+# Gengar uses lightweight "auxiliary" models for side tasks (vision analysis,
 # context compression, web extraction, session search, etc.). Each task has
 # its own provider+model pair in config.yaml under `auxiliary.<task>`.
 #
 # The UI lives behind "Configure auxiliary models..." at the bottom of the
-# `hermes model` provider picker. It does NOT re-run credential setup — it
+# `gengar model` provider picker. It does NOT re-run credential setup — it
 # only routes already-authenticated providers to specific aux tasks. Users
-# configure new providers through the normal `hermes model` flow first.
+# configure new providers through the normal `gengar model` flow first.
 # ─────────────────────────────────────────────────────────────────────────────
 
 # (task_key, display_name, short_description)
@@ -2029,7 +2029,7 @@ def _aux_config_menu() -> None:
         print()
         print("  Side tasks (vision, compression, web extraction, etc.) default")
         print("  to your main chat model.  \"auto\" means \"use my main model\" —")
-        print("  Hermes only falls back to a lightweight backend (OpenRouter,")
+        print("  Gengar only falls back to a lightweight backend (OpenRouter,")
         print("  Nous Portal) if the main model is unavailable.  Override a")
         print("  task below if you want it pinned to a specific provider/model.")
         print()
@@ -2072,7 +2072,7 @@ def _aux_select_for_task(task: str) -> None:
     Uses ``list_authenticated_providers()`` to only show providers the user
     has already configured. This avoids re-running OAuth/credential flows
     inside the aux picker — users set up new providers through the normal
-    ``hermes model`` flow, then route aux tasks to them here.
+    ``gengar model`` flow, then route aux tasks to them here.
     """
     from hermes_cli.config import load_config
     from hermes_cli.model_switch import list_authenticated_providers
@@ -2621,7 +2621,7 @@ def _model_flow_openai_codex(config, current_model=""):
             return
 
     _codex_token = None
-    # Prefer credential pool (where `hermes auth` stores device_code tokens),
+    # Prefer credential pool (where `gengar auth` stores device_code tokens),
     # fall back to legacy provider state.
     try:
         _codex_status = get_codex_auth_status()
@@ -2753,7 +2753,7 @@ def _model_flow_google_gemini_cli(_config, current_model=""):
       2. If creds missing, run PKCE browser OAuth via agent.google_oauth.
       3. Resolve project context (env -> config -> auto-discover -> free tier).
       4. Prompt user to pick a model.
-      5. Save to ~/.hermes/config.yaml.
+      5. Save to ~/.gengar/config.yaml.
     """
     from hermes_cli.auth import (
         DEFAULT_GEMINI_CLOUDCODE_BASE_URL,
@@ -2907,7 +2907,7 @@ def _model_flow_custom(config):
     else:
         print(
             f"Warning: could not verify this endpoint via {probe.get('probed_url')}. "
-            f"Hermes will still save it."
+            f"Gengar will still save it."
         )
         if probe.get("suggested_base_url"):
             suggested = probe["suggested_base_url"]
@@ -3006,7 +3006,7 @@ def _model_flow_custom(config):
             _caller_model["api_key"] = effective_key
         _caller_model.pop("api_mode", None)
         config["model"] = _caller_model
-        print("Endpoint saved. Use `/model` in chat or `hermes model` to set a model.")
+        print("Endpoint saved. Use `/model` in chat or `gengar model` to set a model.")
 
     # Auto-save to custom_providers so it appears in the menu next time
     _save_custom_provider(
@@ -3145,7 +3145,7 @@ def _model_flow_azure_foundry(config, current_model=""):
     print("=" * 50)
     print()
     print("Azure Foundry can host models with either OpenAI-style or")
-    print("Anthropic-style API endpoints.  Hermes will probe your")
+    print("Anthropic-style API endpoints.  Gengar will probe your")
     print("endpoint to auto-detect the transport and the deployed")
     print("models when possible.")
     print()
@@ -3865,9 +3865,9 @@ def _model_flow_copilot_acp(config, current_model=""):
     )
     effective_base = status.get("base_url") or pconfig.inference_base_url
 
-    print("  GitHub Copilot ACP delegates Hermes turns to `copilot --acp`.")
-    print("  Hermes currently starts its own ACP subprocess for each request.")
-    print("  Hermes uses your selected model as a hint for the Copilot ACP session.")
+    print("  GitHub Copilot ACP delegates Gengar turns to `copilot --acp`.")
+    print("  Gengar currently starts its own ACP subprocess for each request.")
+    print("  Gengar uses your selected model as a hint for the Copilot ACP session.")
     print(f"  Command: {resolved_command}")
     print(f"  Backend marker: {effective_base}")
     print()
@@ -3877,7 +3877,7 @@ def _model_flow_copilot_acp(config, current_model=""):
     except Exception as exc:
         print(f"  ⚠ {exc}")
         print(
-            "  Set HERMES_COPILOT_ACP_COMMAND or COPILOT_CLI_PATH if Copilot CLI is installed elsewhere."
+            "  Set GENGAR_COPILOT_ACP_COMMAND or COPILOT_CLI_PATH if Copilot CLI is installed elsewhere."
         )
         return
 
@@ -4270,7 +4270,7 @@ def _model_flow_bedrock_api_key(config, region, current_model=""):
         bedrock_cfg["region"] = region
         cfg["bedrock"] = bedrock_cfg
 
-        # Save the API key env var name so hermes knows where to find it
+        # Save the API key env var name so gengar knows where to find it
         save_env_value("OPENAI_API_KEY", existing_key)
         save_env_value("OPENAI_BASE_URL", mantle_base_url)
 
@@ -4550,7 +4550,7 @@ def _model_flow_api_key_provider(config, provider_id, current_model=""):
                     "(<= 250 requests/day for gemini-2.5-flash)."
                 )
                 print(
-                    "   Hermes typically makes 3-10 API calls per user turn "
+                    "   Gengar typically makes 3-10 API calls per user turn "
                     "(tool iterations + auxiliary tasks),"
                 )
                 print(
@@ -4560,7 +4560,7 @@ def _model_flow_api_key_provider(config, provider_id, current_model=""):
                 print("   an agent session.")
                 print()
                 print(
-                    "   To use Gemini with Hermes, enable billing on your "
+                    "   To use Gemini with Gengar, enable billing on your "
                     "Google Cloud project and regenerate"
                 )
                 print(
@@ -4764,7 +4764,7 @@ def _run_anthropic_oauth_flow(save_env_value):
             from hermes_constants import display_hermes_home as _dhh_fn
 
             print(
-                f"    Hermes will use Claude's credential store directly instead of copying a setup-token into {_dhh_fn()}/.env."
+                f"    Gengar will use Claude's credential store directly instead of copying a setup-token into {_dhh_fn()}/.env."
             )
             return True
         return False
@@ -4813,7 +4813,7 @@ def _run_anthropic_oauth_flow(save_env_value):
         print("    1. Install Claude Code:  npm install -g @anthropic-ai/claude-code")
         print("    2. Run:                  claude setup-token")
         print("    3. Follow the browser prompts to authorize")
-        print("    4. Re-run:               hermes model")
+        print("    4. Re-run:               gengar model")
         print()
         print("  Or paste an existing setup-token now (sk-ant-oat-...):")
         print()
@@ -4954,7 +4954,7 @@ def _model_flow_anthropic(config, current_model=""):
         # Update config with provider — clear base_url since
         # resolve_runtime_provider() always hardcodes Anthropic's URL.
         # Leaving a stale base_url in config can contaminate other
-        # providers if the user switches without running 'hermes model'.
+        # providers if the user switches without running 'gengar model'.
         cfg = load_config()
         model = cfg.get("model")
         if not isinstance(model, dict):
@@ -4971,7 +4971,7 @@ def _model_flow_anthropic(config, current_model=""):
 
 
 def cmd_login(args):
-    """Authenticate Hermes CLI with a provider."""
+    """Authenticate Gengar CLI with a provider."""
     from hermes_cli.auth import login_command
 
     login_command(args)
@@ -5015,7 +5015,7 @@ def cmd_webhook(args):
 def cmd_slack(args):
     """Slack integration helpers.
 
-    Dispatches ``hermes slack <subcommand>``. Currently supports:
+    Dispatches ``gengar slack <subcommand>``. Currently supports:
       manifest — print or write a Slack app manifest with every gateway
                  command registered as a first-class slash.
     """
@@ -5023,13 +5023,13 @@ def cmd_slack(args):
     if sub in (None, ""):
         # No subcommand — print usage hint.
         print(
-            "usage: hermes slack <subcommand>\n"
+            "usage: gengar slack <subcommand>\n"
             "\n"
             "subcommands:\n"
             "  manifest   Generate a Slack app manifest with every gateway\n"
             "             command registered as a native slash\n"
             "\n"
-            "Run `hermes slack manifest -h` for details.",
+            "Run `gengar slack manifest -h` for details.",
             file=sys.stderr,
         )
         return 1
@@ -5085,7 +5085,7 @@ def cmd_config(args):
 
 
 def cmd_backup(args):
-    """Back up Hermes home directory to a zip file."""
+    """Back up Gengar home directory to a zip file."""
     if getattr(args, "quick", False):
         from hermes_cli.backup import run_quick_backup
 
@@ -5097,7 +5097,7 @@ def cmd_backup(args):
 
 
 def cmd_import(args):
-    """Restore a Hermes backup from a zip file."""
+    """Restore a Gengar backup from a zip file."""
     from hermes_cli.backup import run_import
 
     run_import(args)
@@ -5105,7 +5105,7 @@ def cmd_import(args):
 
 def cmd_version(args):
     """Show version."""
-    print(f"Hermes Agent v{__version__} ({__release_date__})")
+    print(f"Gengar v{__version__} ({__release_date__})")
     print(f"Project: {PROJECT_ROOT}")
 
     # Show Python version
@@ -5138,7 +5138,7 @@ def cmd_version(args):
 
 
 def cmd_uninstall(args):
-    """Uninstall Hermes Agent."""
+    """Uninstall Gengar."""
     _require_tty("uninstall")
     from hermes_cli.uninstall import run_uninstall
 
@@ -5179,7 +5179,7 @@ def _gateway_prompt(prompt_text: str, default: str = "", timeout: float = 300.0)
     Writes a prompt marker file so the gateway can forward the question to the
     user, then polls for a response file.  Falls back to *default* on timeout.
 
-    Used by ``hermes update --gateway`` so interactive prompts (stash restore,
+    Used by ``gengar update --gateway`` so interactive prompts (stash restore,
     config migration) are forwarded to the messenger instead of being silently
     skipped.
     """
@@ -5273,7 +5273,7 @@ def _run_npm_install_deterministic(
     falls back to ``npm install`` only if ``npm ci`` fails (e.g. lockfile out of
     sync on a WIP checkout).  Without this, ``npm install`` on npm ≥ 10 silently
     rewrites committed lockfiles (stripping ``"peer": true`` etc.), which leaves
-    the working tree dirty and causes the next ``hermes update`` to stash the
+    the working tree dirty and causes the next ``gengar update`` to stash the
     lockfile — repeatedly.
     """
     lockfile = cwd / "package-lock.json"
@@ -5306,7 +5306,7 @@ def _build_web_ui(web_dir: Path, *, fatal: bool = False) -> bool:
     Args:
         web_dir: Path to the ``web/`` source directory.
         fatal: If True, print error guidance and return False on failure
-               instead of a soft warning (used by ``hermes web``).
+               instead of a soft warning (used by ``gengar web``).
 
     Returns True if the build succeeded or was skipped (no package.json).
     """
@@ -5327,7 +5327,7 @@ def _build_web_ui(web_dir: Path, *, fatal: bool = False) -> bool:
     if r1.returncode != 0:
         print(
             f"  {'✗' if fatal else '⚠'} Web UI npm install failed"
-            + ("" if fatal else " (hermes web will not be available)")
+            + ("" if fatal else " (gengar web will not be available)")
         )
         if fatal:
             print("  Run manually:  cd web && npm install && npm run build")
@@ -5336,7 +5336,7 @@ def _build_web_ui(web_dir: Path, *, fatal: bool = False) -> bool:
     if r2.returncode != 0:
         print(
             f"  {'✗' if fatal else '⚠'} Web UI build failed"
-            + ("" if fatal else " (hermes web will not be available)")
+            + ("" if fatal else " (gengar web will not be available)")
         )
         if fatal:
             print("  Run manually:  cd web && npm install && npm run build")
@@ -5346,10 +5346,10 @@ def _build_web_ui(web_dir: Path, *, fatal: bool = False) -> bool:
 
 
 def _find_stale_dashboard_pids() -> list[int]:
-    """Return PIDs of ``hermes dashboard`` processes other than ourselves.
+    """Return PIDs of ``gengar dashboard`` processes other than ourselves.
 
-    ``hermes dashboard`` is a long-lived server process commonly started and
-    forgotten.  When ``hermes update`` replaces files on disk, the running
+    ``gengar dashboard`` is a long-lived server process commonly started and
+    forgotten.  When ``gengar update`` replaces files on disk, the running
     process keeps the old Python backend in memory while the JS bundle on
     disk is updated, causing a silent frontend/backend mismatch (e.g. new
     auth headers the old backend doesn't recognise → every API call 401s).
@@ -5363,7 +5363,7 @@ def _find_stale_dashboard_pids() -> list[int]:
     Returns an empty list on any scan error (missing ps/wmic, timeout, etc.).
     """
     patterns = [
-        "hermes dashboard",
+        "gengar dashboard",
         "hermes_cli.main dashboard",
         "hermes_cli/main.py dashboard",
     ]
@@ -5403,7 +5403,7 @@ def _find_stale_dashboard_pids() -> list[int]:
         else:
             # Linux / macOS: scan the process table via ps and match against
             # the same explicit patterns list used on Windows.  Using ps
-            # (rather than `pgrep -f "hermes.*dashboard"`) keeps us consistent
+            # (rather than `pgrep -f "gengar.*dashboard"`) keeps us consistent
             # with `hermes_cli.gateway._scan_gateway_pids` and avoids the
             # greedy regex matching unrelated cmdlines that merely contain
             # both words (e.g. a chat session discussing "dashboard").
@@ -5434,7 +5434,7 @@ def _find_stale_dashboard_pids() -> list[int]:
 
 
 def _print_curator_first_run_notice() -> None:
-    """Print a short heads-up about the skill curator after `hermes update`.
+    """Print a short heads-up about the skill curator after `gengar update`.
 
     Only fires when the curator is enabled AND has no recorded run yet, which
     is exactly the window where the gateway ticker used to fire Curator
@@ -5467,18 +5467,18 @@ def _print_curator_first_run_notice() -> None:
         f"~{days}d after installation; only agent-created skills are in "
         f"scope and nothing is ever auto-deleted (archive is recoverable)."
     )
-    print("  Preview now:  hermes curator run --dry-run")
-    print("  Pause it:     hermes curator pause")
-    print("  Docs:         https://hermes-agent.nousresearch.com/docs/user-guide/features/curator")
+    print("  Preview now:  gengar curator run --dry-run")
+    print("  Pause it:     gengar curator pause")
+    print("  Docs:         https://github.com/jamesfincher/gengar/tree/main/website/docs/user-guide/features/curator")
 
 
 def _kill_stale_dashboard_processes(
     reason: str = "the running backend no longer matches the updated frontend",
 ) -> None:
-    """Kill running ``hermes dashboard`` processes.
+    """Kill running ``gengar dashboard`` processes.
 
-    Called at the end of ``hermes update`` (default ``reason``) and also
-    from ``hermes dashboard --stop`` (which overrides ``reason``).  The
+    Called at the end of ``gengar update`` (default ``reason``) and also
+    from ``gengar dashboard --stop`` (which overrides ``reason``).  The
     dashboard has no service manager, so after a code update the running
     process is guaranteed to be serving stale Python against a
     freshly-updated JS bundle.  Leaving it alive produces silent
@@ -5567,7 +5567,7 @@ def _kill_stale_dashboard_processes(
 
     if killed:
         print("  Restart the dashboard when you're ready:")
-        print("    hermes dashboard --port <port>")
+        print("    gengar dashboard --port <port>")
 
 
 # Back-compat alias: some tests and any external callers may import the old
@@ -5576,7 +5576,7 @@ _warn_stale_dashboard_processes = _kill_stale_dashboard_processes
 
 
 def _update_via_zip(args):
-    """Update Hermes Agent by downloading a ZIP archive.
+    """Update Gengar by downloading a ZIP archive.
 
     Used on Windows when git file I/O is broken (antivirus, NTFS filter
     drivers causing 'Invalid argument' errors on file creation).
@@ -5587,13 +5587,13 @@ def _update_via_zip(args):
 
     branch = "main"
     zip_url = (
-        f"https://github.com/NousResearch/hermes-agent/archive/refs/heads/{branch}.zip"
+        f"https://github.com/jamesfincher/gengar/archive/refs/heads/{branch}.zip"
     )
 
     print("→ Downloading latest version...")
     try:
-        tmp_dir = tempfile.mkdtemp(prefix="hermes-update-")
-        zip_path = os.path.join(tmp_dir, f"hermes-agent-{branch}.zip")
+        tmp_dir = tempfile.mkdtemp(prefix="gengar-update-")
+        zip_path = os.path.join(tmp_dir, f"gengar-{branch}.zip")
         urlretrieve(zip_url, zip_path)
 
         print("→ Extracting...")
@@ -5611,8 +5611,8 @@ def _update_via_zip(args):
                     )
             zf.extractall(tmp_dir)
 
-        # GitHub ZIPs extract to hermes-agent-<branch>/
-        extracted = os.path.join(tmp_dir, f"hermes-agent-{branch}")
+        # GitHub ZIPs extract to gengar-<branch>/
+        extracted = os.path.join(tmp_dir, f"gengar-{branch}")
         if not os.path.isdir(extracted):
             # Try to find it
             for d in os.listdir(tmp_dir):
@@ -5744,7 +5744,7 @@ def _stash_local_changes_if_needed(git_cmd: list[str], cwd: Path) -> Optional[st
     from datetime import datetime, timezone
 
     stash_name = datetime.now(timezone.utc).strftime(
-        "hermes-update-autostash-%Y%m%d-%H%M%S"
+        "gengar-update-autostash-%Y%m%d-%H%M%S"
     )
     print("→ Local changes detected — stashing before update...")
     subprocess.run(
@@ -5807,7 +5807,7 @@ def _restore_stashed_changes(
         print(
             "  Restoring them may reapply local customizations onto the updated codebase."
         )
-        print("  Review the result afterward if Hermes behaves unexpectedly.")
+        print("  Review the result afterward if Gengar behaves unexpectedly.")
         print("Restore local changes now? [Y/n]")
         if input_fn is not None:
             response = input_fn("Restore local changes now? [Y/n]", "y")
@@ -5854,7 +5854,7 @@ def _restore_stashed_changes(
         print(f"  Stash ref: {stash_ref}")
 
         # Always reset to clean state — leaving conflict markers in source
-        # files makes hermes completely unrunnable (SyntaxError on import).
+        # files makes gengar completely unrunnable (SyntaxError on import).
         # The user's changes are safe in the stash for manual recovery.
         subprocess.run(
             git_cmd + ["reset", "--hard", "HEAD"],
@@ -5871,7 +5871,7 @@ def _restore_stashed_changes(
     stash_selector = _resolve_stash_selector(git_cmd, cwd, stash_ref)
     if stash_selector is None:
         print(
-            "⚠ Local changes were restored, but Hermes couldn't find the stash entry to drop."
+            "⚠ Local changes were restored, but Gengar couldn't find the stash entry to drop."
         )
         print(
             "  The stash was left in place. You can remove it manually after checking the result."
@@ -5886,7 +5886,7 @@ def _restore_stashed_changes(
         )
         if drop.returncode != 0:
             print(
-                "⚠ Local changes were restored, but Hermes couldn't drop the saved stash entry."
+                "⚠ Local changes were restored, but Gengar couldn't drop the saved stash entry."
             )
             if drop.stdout.strip():
                 print(drop.stdout.strip())
@@ -5898,21 +5898,21 @@ def _restore_stashed_changes(
             _print_stash_cleanup_guidance(stash_ref, stash_selector)
 
     print("⚠ Local changes were restored on top of the updated codebase.")
-    print("  Review `git diff` / `git status` if Hermes behaves unexpectedly.")
+    print("  Review `git diff` / `git status` if Gengar behaves unexpectedly.")
     return True
 
 
 # =========================================================================
-# Fork detection and upstream management for `hermes update`
+# Fork detection and upstream management for `gengar update`
 # =========================================================================
 
 OFFICIAL_REPO_URLS = {
-    "https://github.com/NousResearch/hermes-agent.git",
-    "git@github.com:NousResearch/hermes-agent.git",
-    "https://github.com/NousResearch/hermes-agent",
-    "git@github.com:NousResearch/hermes-agent",
+    "https://github.com/jamesfincher/gengar.git",
+    "git@github.com:jamesfincher/gengar.git",
+    "https://github.com/jamesfincher/gengar",
+    "git@github.com:jamesfincher/gengar",
 }
-OFFICIAL_REPO_URL = "https://github.com/NousResearch/hermes-agent.git"
+OFFICIAL_REPO_URL = "https://github.com/jamesfincher/gengar.git"
 SKIP_UPSTREAM_PROMPT_FILE = ".skip_upstream_prompt"
 
 
@@ -6045,8 +6045,8 @@ def _sync_with_upstream_if_needed(git_cmd: list[str], cwd: Path) -> None:
 
         # Ask user if they want to add upstream
         print()
-        print("ℹ Your fork is not tracking the official Hermes repository.")
-        print("  This means you may miss updates from NousResearch/hermes-agent.")
+        print("ℹ Your fork is not tracking the official Gengar repository.")
+        print("  This means you may miss updates from jamesfincher/gengar.")
         print()
         try:
             response = (
@@ -6060,7 +6060,7 @@ def _sync_with_upstream_if_needed(git_cmd: list[str], cwd: Path) -> None:
             print("→ Adding upstream remote...")
             if _add_upstream_remote(git_cmd, cwd):
                 print(
-                    "  ✓ Added upstream: https://github.com/NousResearch/hermes-agent.git"
+                    "  ✓ Added upstream: https://github.com/jamesfincher/gengar.git"
                 )
                 has_upstream = True
             else:
@@ -6068,7 +6068,7 @@ def _sync_with_upstream_if_needed(git_cmd: list[str], cwd: Path) -> None:
                 return
         else:
             print(
-                "  Skipped. Run 'git remote add upstream https://github.com/NousResearch/hermes-agent.git' to add later."
+                "  Skipped. Run 'git remote add upstream https://github.com/jamesfincher/gengar.git' to add later."
             )
             _mark_skip_upstream_prompt()
             return
@@ -6146,7 +6146,7 @@ def _invalidate_update_cache():
     reports a stale "commits behind" count after a successful update.
 
     The git repo is shared across profiles — when one profile runs
-    ``hermes update``, every profile is now current.
+    ``gengar update``, every profile is now current.
     """
     homes = []
     # Default profile home (Docker-aware — uses /opt/data in Docker)
@@ -6190,7 +6190,7 @@ def _load_installable_optional_extras() -> list[str]:
         return []
 
     # Parse the [all] group to find which extras it references.
-    # Entries look like "hermes-agent[matrix]" or "package-name[extra]".
+    # Entries look like "gengar[matrix]" or "package-name[extra]".
     all_refs = optional_deps.get("all", [])
     referenced: list[str] = []
     for ref in all_refs:
@@ -6285,12 +6285,12 @@ def _update_node_dependencies() -> None:
 
 
 class _UpdateOutputStream:
-    """Stream wrapper used during ``hermes update`` to survive terminal loss.
+    """Stream wrapper used during ``gengar update`` to survive terminal loss.
 
     Wraps the process's original stdout/stderr so that:
 
     * Every write is also mirrored to an append-only log file
-      (``~/.hermes/logs/update.log``) that users can inspect after the
+      (``~/.gengar/logs/update.log``) that users can inspect after the
       terminal disconnects.
     * Writes to the original stream that fail with ``BrokenPipeError`` /
       ``OSError`` / ``ValueError`` (closed file) no longer cascade into
@@ -6298,7 +6298,7 @@ class _UpdateOutputStream:
       stops.
 
     Combined with ``SIGHUP -> SIG_IGN`` installed by
-    ``_install_hangup_protection``, this makes ``hermes update`` safe to
+    ``_install_hangup_protection``, this makes ``gengar update`` safe to
     run in a plain SSH session that might disconnect mid-install.
     """
 
@@ -6360,7 +6360,7 @@ class _UpdateOutputStream:
 def _install_hangup_protection(gateway_mode: bool = False):
     """Protect ``cmd_update`` from SIGHUP and broken terminal pipes.
 
-    Users commonly run ``hermes update`` in an SSH session or a terminal
+    Users commonly run ``gengar update`` in an SSH session or a terminal
     that may close mid-install.  Without protection, ``SIGHUP`` from the
     terminal kills the Python process during ``pip install`` and leaves
     the venv half-installed; the documented workaround ("use screen /
@@ -6372,14 +6372,14 @@ def _install_hangup_protection(gateway_mode: bool = False):
        across ``exec()``, so pip and git subprocesses also stop dying on
        hangup.
     2. ``sys.stdout`` / ``sys.stderr`` are wrapped to mirror output to
-       ``~/.hermes/logs/update.log`` and to silently absorb
+       ``~/.gengar/logs/update.log`` and to silently absorb
        ``BrokenPipeError`` when the terminal vanishes.
 
     ``SIGINT`` (Ctrl-C) and ``SIGTERM`` (systemd shutdown) are
     **intentionally left alone** — those are legitimate cancellation
     signals the user or OS sent on purpose.
 
-    In gateway mode (``hermes update --gateway``) the update is already
+    In gateway mode (``gengar update --gateway``) the update is already
     spawned detached from a terminal, so this function is a no-op.
 
     Returns a dict that ``cmd_update`` can pass to
@@ -6422,7 +6422,7 @@ def _install_hangup_protection(gateway_mode: bool = False):
         import datetime as _dt
 
         log_file.write(
-            f"\n=== hermes update started "
+            f"\n=== gengar update started "
             f"{_dt.datetime.now().isoformat(timespec='seconds')} ===\n"
         )
 
@@ -6461,7 +6461,7 @@ def _finalize_update_output(state):
 
 
 def _cmd_update_check():
-    """Implement ``hermes update --check``: fetch and report without installing."""
+    """Implement ``gengar update --check``: fetch and report without installing."""
     git_dir = PROJECT_ROOT / ".git"
     if not git_dir.exists():
         print("✗ Not a git repository — cannot check for updates.")
@@ -6513,16 +6513,16 @@ def _ensure_fhs_path_guard() -> None:
 
     Mirrors the post-symlink probe added to ``scripts/install.sh`` so that
     existing FHS-layout root installs on RHEL/CentOS/Rocky/Alma 8+ get
-    repaired on ``hermes update`` without requiring a reinstall.  The
+    repaired on ``gengar update`` without requiring a reinstall.  The
     installer's assumption that ``/usr/local/bin`` is on PATH for every
     standard shell breaks on those distros in non-login interactive shells
     (su, sudo -s, tmux panes, some web terminals): /etc/bashrc doesn't
     add /usr/local/bin and /root/.bash_profile doesn't either.  Symptom:
-    ``hermes`` prints ``command not found`` even though the symlink lives
-    at /usr/local/bin/hermes.
+    ``gengar`` prints ``command not found`` even though the symlink lives
+    at /usr/local/bin/gengar.
 
     Silent no-op on: non-Linux, non-root, non-FHS installs, and any system
-    where ``bash -i -c 'command -v hermes'`` already resolves.  Idempotent.
+    where ``bash -i -c 'command -v gengar'`` already resolves.  Idempotent.
     """
     if sys.platform != "linux":
         return
@@ -6532,8 +6532,8 @@ def _ensure_fhs_path_guard() -> None:
     except AttributeError:
         return
     # Only act when this is actually an FHS-layout install (command link at
-    # /usr/local/bin/hermes, code at /usr/local/lib/hermes-agent).
-    fhs_link = Path("/usr/local/bin/hermes")
+    # /usr/local/bin/gengar, code at /usr/local/lib/gengar).
+    fhs_link = Path("/usr/local/bin/gengar")
     if not fhs_link.is_symlink() and not fhs_link.exists():
         return
 
@@ -6546,7 +6546,7 @@ def _ensure_fhs_path_guard() -> None:
             ["env", "-i",
              f"HOME={home}",
              f"TERM={os.environ.get('TERM', 'dumb')}",
-             "bash", "-i", "-c", "command -v hermes"],
+             "bash", "-i", "-c", "command -v gengar"],
             capture_output=True, text=True, timeout=10,
         )
     except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -6556,7 +6556,7 @@ def _ensure_fhs_path_guard() -> None:
 
     path_line = 'export PATH="/usr/local/bin:$PATH"'
     path_comment = (
-        "# Hermes Agent — ensure /usr/local/bin is on PATH "
+        "# Gengar — ensure /usr/local/bin is on PATH "
         "(RHEL non-login shells)"
     )
     wrote_any = False
@@ -6591,11 +6591,11 @@ def _ensure_fhs_path_guard() -> None:
 
 
 def _run_pre_update_backup(args) -> None:
-    """Create a full zip backup of HERMES_HOME before running the update.
+    """Create a full zip backup of GENGAR_HOME before running the update.
 
     Gated on ``updates.pre_update_backup`` in config (default false).  Off
     by default because the zip can add minutes to every update on large
-    HERMES_HOME directories.  The ``--backup`` flag on ``hermes update``
+    GENGAR_HOME directories.  The ``--backup`` flag on ``gengar update``
     opts in for a single run; ``--no-backup`` forces it off when config
     has it enabled.  Never raises — a backup failure should not block the
     update itself.
@@ -6662,7 +6662,7 @@ def _run_pre_update_backup(args) -> None:
         size_bytes /= 1024
         size_str = f"{size_bytes:.1f} {unit}"
 
-    # Render path using display_hermes_home so the user sees ~/.hermes/...
+    # Render path using display_hermes_home so the user sees ~/.gengar/...
     try:
         from hermes_constants import get_hermes_home, display_hermes_home
         home = get_hermes_home()
@@ -6674,14 +6674,14 @@ def _run_pre_update_backup(args) -> None:
         display_path = str(out_path)
 
     print(f"  Saved:    {display_path} ({size_str}, {elapsed:.1f}s)")
-    print(f"  Restore:  hermes import {out_path}")
+    print(f"  Restore:  gengar import {out_path}")
     print(f"  Disable:  omit --backup (backups are off by default)")
     print(f"            set updates.pre_update_backup: false in config.yaml")
     print()
 
 
 def cmd_update(args):
-    """Update Hermes Agent to the latest version.
+    """Update Gengar to the latest version.
 
     Thin wrapper around ``_cmd_update_impl``: installs hangup protection,
     runs the update, then restores stdio on the way out (even on
@@ -6690,7 +6690,7 @@ def cmd_update(args):
     from hermes_cli.config import is_managed, managed_error
 
     if is_managed():
-        managed_error("update Hermes Agent")
+        managed_error("update Gengar")
         return
 
     if getattr(args, "check", False):
@@ -6720,7 +6720,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
     )
     assume_yes = bool(getattr(args, "yes", False))
 
-    print("⚕ Updating Hermes Agent...")
+    print("⚕ Updating Gengar...")
     print()
 
     # Pre-update backup — runs before any git/file mutation so users can
@@ -6738,7 +6738,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
         else:
             print("✗ Not a git repository. Please reinstall:")
             print(
-                "  curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash"
+                "  curl -fsSL https://raw.githubusercontent.com/jamesfincher/gengar/main/scripts/install.sh | bash"
             )
             sys.exit(1)
 
@@ -6881,7 +6881,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
         # Snapshot critical state (state.db, config, pairing JSONs, etc.)
         # before pulling so a user can recover if something goes wrong.
         # Issue #15733 reported missing pairing data after an update; even
-        # though `git pull` can't touch $HERMES_HOME, this is cheap
+        # though `git pull` can't touch $GENGAR_HOME, this is cheap
         # belt-and-suspenders insurance and gives the user something to
         # restore from via `/snapshot list` / `/snapshot restore <id>`.
         try:
@@ -7116,7 +7116,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
             elif not (sys.stdin.isatty() and sys.stdout.isatty()):
                 print("  ℹ Non-interactive session — skipping config migration prompt.")
                 print(
-                    "    Run 'hermes config migrate' later to apply any new config/env options."
+                    "    Run 'gengar config migrate' later to apply any new config/env options."
                 )
                 response = "n"
             else:
@@ -7142,10 +7142,10 @@ def _cmd_update_impl(args, gateway_mode: bool):
                     print()
                     print("✓ Configuration updated!")
                 if (gateway_mode or assume_yes) and missing_env:
-                    print("  ℹ API keys require manual entry: hermes config migrate")
+                    print("  ℹ API keys require manual entry: gengar config migrate")
             else:
                 print()
-                print("Skipped. Run 'hermes config migrate' later to configure.")
+                print("Skipped. Run 'gengar config migrate' later to configure.")
         else:
             print("  ✓ Configuration is up to date")
 
@@ -7169,7 +7169,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
             logger.debug("FHS PATH guard check failed: %s", e)
 
         # Write exit code *before* the gateway restart attempt.
-        # When running as ``hermes update --gateway`` (spawned by the gateway's
+        # When running as ``gengar update --gateway`` (spawned by the gateway's
         # /update command), this process lives inside the gateway's systemd
         # cgroup.  A graceful SIGUSR1 restart keeps the drain loop alive long
         # enough for the exit-code marker to be written below, but the
@@ -7308,7 +7308,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
             relaunched_profiles = []
 
             # --- Systemd services (Linux) ---
-            # Discover all hermes-gateway* units (default + profiles)
+            # Discover all gengar-gateway* units (default + profiles)
             if supports_systemd_services():
                 try:
                     _ensure_user_systemd_env()
@@ -7324,7 +7324,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
                             scope_cmd
                             + [
                                 "list-units",
-                                "hermes-gateway*",
+                                "gengar-gateway*",
                                 "--plain",
                                 "--no-legend",
                                 "--no-pager",
@@ -7339,7 +7339,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
                                 continue
                             unit = parts[
                                 0
-                            ]  # e.g. hermes-gateway.service or hermes-gateway-coder.service
+                            ]  # e.g. gengar-gateway.service or gengar-gateway-coder.service
                             if not unit.endswith(".service"):
                                 continue
                             svc_name = unit.removesuffix(".service")
@@ -7538,10 +7538,10 @@ def _cmd_update_impl(args, gateway_mode: bool):
                 unmapped_count = len(killed_pids) - len(relaunched_profiles)
                 if unmapped_count:
                     print(f"  → Stopped {unmapped_count} manual gateway process(es)")
-                    print("    Restart manually: hermes gateway run")
+                    print("    Restart manually: gengar gateway run")
                     if unmapped_count > 1:
                         print(
-                            "    (or: hermes -p <profile> gateway run  for each profile)"
+                            "    (or: gengar -p <profile> gateway run  for each profile)"
                         )
 
             if not restarted_services and not killed_pids:
@@ -7587,11 +7587,11 @@ def _cmd_update_impl(args, gateway_mode: bool):
         except Exception as e:
             logger.debug("Gateway restart during update failed: %s", e)
 
-        # Warn if legacy Hermes gateway unit files are still installed.
-        # When both hermes.service (from a pre-rename install) and the
-        # current hermes-gateway.service are enabled, they SIGTERM-fight
+        # Warn if legacy Gengar gateway unit files are still installed.
+        # When both gengar.service (from a pre-rename install) and the
+        # current gengar-gateway.service are enabled, they SIGTERM-fight
         # for the same bot token (see PR #11909). Flagging here means
-        # every `hermes update` surfaces the issue until the user migrates.
+        # every `gengar update` surfaces the issue until the user migrates.
         try:
             from hermes_cli.gateway import (
                 has_legacy_hermes_units,
@@ -7601,16 +7601,16 @@ def _cmd_update_impl(args, gateway_mode: bool):
 
             if supports_systemd_services() and has_legacy_hermes_units():
                 print()
-                print("⚠ Legacy Hermes gateway unit(s) detected:")
+                print("⚠ Legacy Gengar gateway unit(s) detected:")
                 for name, path, is_sys in _find_legacy_hermes_units():
                     scope = "system" if is_sys else "user"
                     print(f"    {path}  ({scope} scope)")
                 print()
-                print("  These pre-rename units (hermes.service) fight the current")
-                print("  hermes-gateway.service for the bot token and cause SIGTERM")
+                print("  These pre-rename units (gengar.service) fight the current")
+                print("  gengar-gateway.service for the bot token and cause SIGTERM")
                 print("  flap loops. Remove them with:")
                 print()
-                print("    hermes gateway migrate-legacy")
+                print("    gengar gateway migrate-legacy")
                 print()
                 print("  (add `sudo` if any are in system scope)")
         except Exception as e:
@@ -7625,7 +7625,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
 
         print()
         print("Tip: You can now select a provider and model:")
-        print("  hermes model              # Select provider and model")
+        print("  gengar model              # Select provider and model")
 
     except subprocess.CalledProcessError as e:
         if sys.platform == "win32":
@@ -7641,7 +7641,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
 def _coalesce_session_name_args(argv: list) -> list:
     """Join unquoted multi-word session names after -c/--continue and -r/--resume.
 
-    When a user types ``hermes -c Pokemon Agent Dev`` without quoting the
+    When a user types ``gengar -c Pokemon Agent Dev`` without quoting the
     session name, argparse sees three separate tokens.  This function merges
     them into a single argument so argparse receives
     ``['-c', 'Pokemon Agent Dev']`` instead.
@@ -7732,7 +7732,7 @@ def cmd_profile(args):
     action = getattr(args, "profile_action", None)
 
     if action is None:
-        # Bare `hermes profile` — show current profile status
+        # Bare `gengar profile` — show current profile status
         profile_name = get_active_profile_name()
         dhh = display_hermes_home()
         print(f"\nActive profile: {profile_name}")
@@ -7751,7 +7751,7 @@ def cmd_profile(args):
                 )
                 print(f"Skills:         {p.skill_count} installed")
                 if p.alias_path:
-                    print(f"Alias:          {p.name} → hermes -p {p.name}")
+                    print(f"Alias:          {p.name} → gengar -p {p.name}")
                 break
         print()
         return
@@ -7788,7 +7788,7 @@ def cmd_profile(args):
         try:
             set_active_profile(name)
             if name == "default":
-                print(f"Switched to: default (~/.hermes)")
+                print(f"Switched to: default (~/.gengar)")
             else:
                 print(f"Switched to: {name}")
         except (ValueError, FileNotFoundError) as e:
@@ -7851,9 +7851,9 @@ def cmd_profile(args):
                 if collision:
                     print(f"\n⚠ Cannot create alias '{name}' — {collision}")
                     print(
-                        f"  Choose a custom alias:  hermes profile alias {name} --name <custom>"
+                        f"  Choose a custom alias:  gengar profile alias {name} --name <custom>"
                     )
-                    print(f"  Or access via flag:     hermes -p {name} chat")
+                    print(f"  Or access via flag:     gengar -p {name} chat")
                 else:
                     wrapper_path = create_wrapper_script(name)
                     if wrapper_path:
@@ -7962,7 +7962,7 @@ def cmd_profile(args):
             if wrapper_path:
                 # If custom name, write the profile name into the wrapper
                 if custom_name:
-                    wrapper_path.write_text(f'#!/bin/sh\nexec hermes -p {name} "$@"\n')
+                    wrapper_path.write_text(f'#!/bin/sh\nexec gengar -p {name} "$@"\n')
                 print(f"✓ Alias created: {wrapper_path}")
                 if not _is_wrapper_dir_in_path():
                     print(f"⚠ {_get_wrapper_dir()} is not in your PATH.")
@@ -8013,19 +8013,19 @@ def cmd_profile(args):
 
 
 def _report_dashboard_status() -> int:
-    """Print ``hermes dashboard`` PIDs and return the count.
+    """Print ``gengar dashboard`` PIDs and return the count.
 
     Uses the same detection logic as ``_find_stale_dashboard_pids`` (the
-    current process is excluded, but since ``hermes dashboard --status``
+    current process is excluded, but since ``gengar dashboard --status``
     runs in a short-lived CLI process that never matches the pattern,
     the exclusion is irrelevant here).
     """
     pids = _find_stale_dashboard_pids()
     if not pids:
-        print("No hermes dashboard processes running.")
+        print("No gengar dashboard processes running.")
         return 0
 
-    print(f"{len(pids)} hermes dashboard process(es) running:")
+    print(f"{len(pids)} gengar dashboard process(es) running:")
     for pid in pids:
         # Best-effort: show the full cmdline so users can tell profiles apart.
         cmdline = ""
@@ -8056,9 +8056,9 @@ def cmd_dashboard(args):
     if getattr(args, "stop", False):
         pids = _find_stale_dashboard_pids()
         if not pids:
-            print("No hermes dashboard processes running.")
+            print("No gengar dashboard processes running.")
             sys.exit(0)
-        # Reuse the same SIGTERM-grace-SIGKILL path used after `hermes update`.
+        # Reuse the same SIGTERM-grace-SIGKILL path used after `gengar update`.
         _kill_stale_dashboard_processes(reason="requested via --stop")
         # _kill_stale_dashboard_processes prints outcomes itself.  Exit 0 if
         # we killed at least one, 1 if they were all unkillable.
@@ -8079,13 +8079,13 @@ def cmd_dashboard(args):
         print(f"Import error: {e}")
         sys.exit(1)
 
-    if "HERMES_WEB_DIST" not in os.environ:
+    if "GENGAR_WEB_DIST" not in os.environ:
         if not _build_web_ui(PROJECT_ROOT / "web", fatal=True):
             sys.exit(1)
 
     from hermes_cli.web_server import start_server
 
-    embedded_chat = args.tui or os.environ.get("HERMES_DASHBOARD_TUI") == "1"
+    embedded_chat = args.tui or os.environ.get("GENGAR_DASHBOARD_TUI") == "1"
     start_server(
         host=args.host,
         port=args.port,
@@ -8109,7 +8109,7 @@ def cmd_completion(args, parser=None):
 
 
 def cmd_logs(args):
-    """View and filter Hermes log files."""
+    """View and filter Gengar log files."""
     from hermes_cli.logs import tail_log, list_logs
 
     log_name = getattr(args, "log_name", "agent") or "agent"
@@ -8130,7 +8130,7 @@ def cmd_logs(args):
 
 
 def main():
-    """Main entry point for hermes CLI."""
+    """Main entry point for gengar CLI."""
     from hermes_cli._parser import build_top_level_parser
 
     parser, subparsers, chat_parser = build_top_level_parser()
@@ -8155,7 +8155,7 @@ def main():
     model_parser.add_argument(
         "--client-id",
         default=None,
-        help="OAuth client id to use for Nous login (default: hermes-cli)",
+        help="OAuth client id to use for Nous login (default: gengar-cli)",
     )
     model_parser.add_argument(
         "--scope", default=None, help="OAuth scope to request for Nous login"
@@ -8193,7 +8193,7 @@ def main():
             "Manage the fallback provider chain.  Fallback providers are tried "
             "in order when the primary model fails with rate-limit, overload, or "
             "connection errors.  See: "
-            "https://hermes-agent.nousresearch.com/docs/user-guide/features/fallback-providers"
+            "https://github.com/jamesfincher/gengar/tree/main/website/docs/user-guide/features/fallback-providers"
         ),
     )
     fallback_subparsers = fallback_parser.add_subparsers(dest="fallback_command")
@@ -8204,7 +8204,7 @@ def main():
     )
     fallback_subparsers.add_parser(
         "add",
-        help="Pick a provider + model (same picker as `hermes model`) and append to the chain",
+        help="Pick a provider + model (same picker as `gengar model`) and append to the chain",
     )
     fallback_subparsers.add_parser(
         "remove",
@@ -8339,11 +8339,11 @@ def main():
     # gateway migrate-legacy
     gateway_migrate_legacy = gateway_subparsers.add_parser(
         "migrate-legacy",
-        help="Remove legacy hermes.service units from pre-rename installs",
+        help="Remove legacy gengar.service units from pre-rename installs",
         description=(
-            "Stop, disable, and remove legacy Hermes gateway unit files "
-            "(e.g. hermes.service) left over from older installs. Profile "
-            "units (hermes-gateway-<profile>.service) and unrelated "
+            "Stop, disable, and remove legacy Gengar gateway unit files "
+            "(e.g. gengar.service) left over from older installs. Profile "
+            "units (gengar-gateway-<profile>.service) and unrelated "
             "third-party services are never touched."
         ),
     )
@@ -8369,8 +8369,8 @@ def main():
     setup_parser = subparsers.add_parser(
         "setup",
         help="Interactive setup wizard",
-        description="Configure Hermes Agent with an interactive wizard. "
-        "Run a specific section: hermes setup model|tts|terminal|gateway|tools|agent",
+        description="Configure Gengar with an interactive wizard. "
+        "Run a specific section: gengar setup model|tts|terminal|gateway|tools|agent",
     )
     setup_parser.add_argument(
         "section",
@@ -8392,7 +8392,7 @@ def main():
         action="store_true",
         help="(Default on existing installs.) Re-run the full wizard, "
              "showing current values as defaults. Kept for backwards "
-             "compatibility — a bare 'hermes setup' now does this.",
+             "compatibility — a bare 'gengar setup' now does this.",
     )
     setup_parser.add_argument(
         "--quick",
@@ -8418,7 +8418,7 @@ def main():
     slack_parser = subparsers.add_parser(
         "slack",
         help="Slack integration helpers (manifest generation, etc.)",
-        description="Slack integration helpers for Hermes.",
+        description="Slack integration helpers for Gengar.",
     )
     slack_sub = slack_parser.add_subparsers(dest="slack_command")
     slack_manifest = slack_sub.add_parser(
@@ -8440,12 +8440,12 @@ def main():
         default=None,
         metavar="PATH",
         help="Write manifest to a file instead of stdout. With no PATH "
-             "writes to $HERMES_HOME/slack-manifest.json.",
+             "writes to $GENGAR_HOME/slack-manifest.json.",
     )
     slack_manifest.add_argument(
         "--name",
         default=None,
-        help='Bot display name (default: "Hermes")',
+        help='Bot display name (default: "Gengar")',
     )
     slack_manifest.add_argument(
         "--description",
@@ -8466,7 +8466,7 @@ def main():
     login_parser = subparsers.add_parser(
         "login",
         help="Authenticate with an inference provider",
-        description="Run OAuth device authorization flow for Hermes CLI",
+        description="Run OAuth device authorization flow for Gengar CLI",
     )
     login_parser.add_argument(
         "--provider",
@@ -8482,7 +8482,7 @@ def main():
         help="Inference API base URL (default: production inference API)",
     )
     login_parser.add_argument(
-        "--client-id", default=None, help="OAuth client id to use (default: hermes-cli)"
+        "--client-id", default=None, help="OAuth client id to use (default: gengar-cli)"
     )
     login_parser.add_argument("--scope", default=None, help="OAuth scope to request")
     login_parser.add_argument(
@@ -8577,9 +8577,9 @@ def main():
     auth_status.add_argument("provider", help="Provider id")
     auth_logout = auth_subparsers.add_parser("logout", help="Log out a provider and clear stored auth state")
     auth_logout.add_argument("provider", help="Provider id")
-    auth_spotify = auth_subparsers.add_parser("spotify", help="Authenticate Hermes with Spotify via PKCE")
+    auth_spotify = auth_subparsers.add_parser("spotify", help="Authenticate Gengar with Spotify via PKCE")
     auth_spotify.add_argument("spotify_action", nargs="?", choices=["login", "status", "logout"], default="login")
-    auth_spotify.add_argument("--client-id", help="Spotify app client_id (or set HERMES_SPOTIFY_CLIENT_ID)")
+    auth_spotify.add_argument("--client-id", help="Spotify app client_id (or set GENGAR_SPOTIFY_CLIENT_ID)")
     auth_spotify.add_argument("--redirect-uri", help="Allow-listed localhost redirect URI for your Spotify app")
     auth_spotify.add_argument("--scope", help="Override requested Spotify scopes")
     auth_spotify.add_argument("--no-browser", action="store_true", help="Do not attempt to open the browser automatically")
@@ -8592,7 +8592,7 @@ def main():
     status_parser = subparsers.add_parser(
         "status",
         help="Show status of all components",
-        description="Display status of Hermes Agent components",
+        description="Display status of Gengar components",
     )
     status_parser.add_argument(
         "--all", action="store_true", help="Show all details (redacted for sharing)"
@@ -8792,9 +8792,9 @@ def main():
         "hooks",
         help="Inspect and manage shell-script hooks",
         description=(
-            "Inspect shell-script hooks declared in ~/.hermes/config.yaml, "
+            "Inspect shell-script hooks declared in ~/.gengar/config.yaml, "
             "test them against synthetic payloads, and manage the first-use "
-            "consent allowlist at ~/.hermes/shell-hooks-allowlist.json."
+            "consent allowlist at ~/.gengar/shell-hooks-allowlist.json."
         ),
     )
     hooks_subparsers = hooks_parser.add_subparsers(dest="hooks_action")
@@ -8852,7 +8852,7 @@ def main():
     doctor_parser = subparsers.add_parser(
         "doctor",
         help="Check configuration and dependencies",
-        description="Diagnose issues with Hermes Agent setup",
+        description="Diagnose issues with Gengar setup",
     )
     doctor_parser.add_argument(
         "--fix", action="store_true", help="Attempt to fix issues automatically"
@@ -8865,7 +8865,7 @@ def main():
     dump_parser = subparsers.add_parser(
         "dump",
         help="Dump setup summary for support/debugging",
-        description="Output a compact, plain-text summary of your Hermes setup "
+        description="Output a compact, plain-text summary of your Gengar setup "
         "that can be copy-pasted into Discord/GitHub for support context",
     )
     dump_parser.add_argument(
@@ -8881,18 +8881,18 @@ def main():
     debug_parser = subparsers.add_parser(
         "debug",
         help="Debug tools — upload logs and system info for support",
-        description="Debug utilities for Hermes Agent. Use 'hermes debug share' to "
+        description="Debug utilities for Gengar. Use 'gengar debug share' to "
         "upload a debug report (system info + recent logs) to a paste "
         "service and get a shareable URL.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""\
 Examples:
-    hermes debug share              Upload debug report and print URL
-    hermes debug share --lines 500  Include more log lines
-    hermes debug share --expire 30  Keep paste for 30 days
-    hermes debug share --local      Print report locally (no upload)
-    hermes debug share --no-redact  Disable upload-time secret redaction
-    hermes debug delete <url>       Delete a previously uploaded paste
+    gengar debug share              Upload debug report and print URL
+    gengar debug share --lines 500  Include more log lines
+    gengar debug share --expire 30  Keep paste for 30 days
+    gengar debug share --local      Print report locally (no upload)
+    gengar debug share --no-redact  Disable upload-time secret redaction
+    gengar debug delete <url>       Delete a previously uploaded paste
 """,
     )
     debug_sub = debug_parser.add_subparsers(dest="debug_command")
@@ -8929,7 +8929,7 @@ Examples:
     )
     delete_parser = debug_sub.add_parser(
         "delete",
-        help="Delete a paste uploaded by 'hermes debug share'",
+        help="Delete a paste uploaded by 'gengar debug share'",
     )
     delete_parser.add_argument(
         "urls",
@@ -8944,15 +8944,15 @@ Examples:
     # =========================================================================
     backup_parser = subparsers.add_parser(
         "backup",
-        help="Back up Hermes home directory to a zip file",
-        description="Create a zip archive of your entire Hermes configuration, "
-        "skills, sessions, and data (excludes the hermes-agent codebase). "
+        help="Back up Gengar home directory to a zip file",
+        description="Create a zip archive of your entire Gengar configuration, "
+        "skills, sessions, and data (excludes the gengar codebase). "
         "Use --quick for a fast snapshot of just critical state files.",
     )
     backup_parser.add_argument(
         "-o",
         "--output",
-        help="Output path for the zip file (default: ~/hermes-backup-<timestamp>.zip)",
+        help="Output path for the zip file (default: ~/gengar-backup-<timestamp>.zip)",
     )
     backup_parser.add_argument(
         "-q",
@@ -8970,9 +8970,9 @@ Examples:
     # =========================================================================
     import_parser = subparsers.add_parser(
         "import",
-        help="Restore a Hermes backup from a zip file",
-        description="Extract a previously created Hermes backup into your "
-        "Hermes home directory, restoring configuration, skills, "
+        help="Restore a Gengar backup from a zip file",
+        description="Extract a previously created Gengar backup into your "
+        "Gengar home directory, restoring configuration, skills, "
         "sessions, and data",
     )
     import_parser.add_argument("zipfile", help="Path to the backup zip file")
@@ -8990,7 +8990,7 @@ Examples:
     config_parser = subparsers.add_parser(
         "config",
         help="View and edit configuration",
-        description="Manage Hermes Agent configuration",
+        description="Manage Gengar configuration",
     )
     config_subparsers = config_parser.add_subparsers(dest="config_command")
 
@@ -9178,8 +9178,8 @@ Examples:
         "reset",
         help="Reset a bundled skill — clears 'user-modified' tracking so updates work again",
         description=(
-            "Clear a bundled skill's entry from the sync manifest (~/.hermes/skills/.bundled_manifest) "
-            "so future 'hermes update' runs stop marking it as user-modified. Pass --restore to also "
+            "Clear a bundled skill's entry from the sync manifest (~/.gengar/skills/.bundled_manifest) "
+            "so future 'gengar update' runs stop marking it as user-modified. Pass --restore to also "
             "replace the current copy with the bundled version."
         ),
     )
@@ -9268,7 +9268,7 @@ Examples:
     )
     plugins_install.add_argument(
         "identifier",
-        help="Git URL or owner/repo shorthand (e.g. anpicasso/hermes-plugin-chrome-profiles)",
+        help="Git URL or owner/repo shorthand (e.g. anpicasso/gengar-plugin-chrome-profiles)",
     )
     plugins_install.add_argument(
         "--force",
@@ -9285,7 +9285,7 @@ Examples:
     _install_enable_group.add_argument(
         "--no-enable",
         action="store_true",
-        help="Install disabled (skip confirmation prompt); enable later with `hermes plugins enable <name>`",
+        help="Install disabled (skip confirmation prompt); enable later with `gengar plugins enable <name>`",
     )
 
     plugins_update = plugins_subparsers.add_parser(
@@ -9467,7 +9467,7 @@ Examples:
             "Enable, disable, or list tools for CLI, Telegram, Discord, etc.\n\n"
             "Built-in toolsets use plain names (e.g. web, memory).\n"
             "MCP tools use server:tool notation (e.g. github:create_issue).\n\n"
-            "Run 'hermes tools' with no subcommand for the interactive configuration UI."
+            "Run 'gengar tools' with no subcommand for the interactive configuration UI."
         ),
     )
     tools_parser.add_argument(
@@ -9477,7 +9477,7 @@ Examples:
     )
     tools_sub = tools_parser.add_subparsers(dest="tools_action")
 
-    # hermes tools list [--platform cli]
+    # gengar tools list [--platform cli]
     tools_list_p = tools_sub.add_parser(
         "list",
         help="Show all tools and their enabled/disabled status",
@@ -9488,7 +9488,7 @@ Examples:
         help="Platform to show (default: cli)",
     )
 
-    # hermes tools disable <name...> [--platform cli]
+    # gengar tools disable <name...> [--platform cli]
     tools_disable_p = tools_sub.add_parser(
         "disable",
         help="Disable toolsets or MCP tools",
@@ -9505,7 +9505,7 @@ Examples:
         help="Platform to apply to (default: cli)",
     )
 
-    # hermes tools enable <name...> [--platform cli]
+    # gengar tools enable <name...> [--platform cli]
     tools_enable_p = tools_sub.add_parser(
         "enable",
         help="Enable toolsets or MCP tools",
@@ -9540,19 +9540,19 @@ Examples:
     # =========================================================================
     mcp_parser = subparsers.add_parser(
         "mcp",
-        help="Manage MCP servers and run Hermes as an MCP server",
+        help="Manage MCP servers and run Gengar as an MCP server",
         description=(
-            "Manage MCP server connections and run Hermes as an MCP server.\n\n"
+            "Manage MCP server connections and run Gengar as an MCP server.\n\n"
             "MCP servers provide additional tools via the Model Context Protocol.\n"
-            "Use 'hermes mcp add' to connect to a new server, or\n"
-            "'hermes mcp serve' to expose Hermes conversations over MCP."
+            "Use 'gengar mcp add' to connect to a new server, or\n"
+            "'gengar mcp serve' to expose Gengar conversations over MCP."
         ),
     )
     mcp_sub = mcp_parser.add_subparsers(dest="mcp_action")
 
     mcp_serve_p = mcp_sub.add_parser(
         "serve",
-        help="Run Hermes as an MCP server (expose conversations to other agents)",
+        help="Run Gengar as an MCP server (expose conversations to other agents)",
     )
     mcp_serve_p.add_argument(
         "-v",
@@ -9819,7 +9819,7 @@ Examples:
                 print("Cancelled.")
                 return
 
-            # Launch hermes --resume <id> by replacing the current process
+            # Launch gengar --resume <id> by replacing the current process
             print(f"Resuming session: {selected_id}")
             from hermes_cli.relaunch import relaunch
             relaunch(["--resume", selected_id])
@@ -9882,14 +9882,14 @@ Examples:
     claw_parser = subparsers.add_parser(
         "claw",
         help="OpenClaw migration tools",
-        description="Migrate settings, memories, skills, and API keys from OpenClaw to Hermes",
+        description="Migrate settings, memories, skills, and API keys from OpenClaw to Gengar",
     )
     claw_subparsers = claw_parser.add_subparsers(dest="claw_action")
 
     # claw migrate
     claw_migrate = claw_subparsers.add_parser(
         "migrate",
-        help="Migrate from OpenClaw to Hermes",
+        help="Migrate from OpenClaw to Gengar",
         description="Import settings, memories, skills, and API keys from an OpenClaw installation. "
         "Always shows a preview before making changes.",
     )
@@ -9922,9 +9922,9 @@ Examples:
     claw_migrate.add_argument(
         "--no-backup",
         action="store_true",
-        help="Skip the pre-migration zip snapshot of ~/.hermes/ (by default a "
-        "single restore-point archive is written to ~/.hermes/backups/ "
-        "before apply; restorable with 'hermes import').",
+        help="Skip the pre-migration zip snapshot of ~/.gengar/ (by default a "
+        "single restore-point archive is written to ~/.gengar/backups/ "
+        "before apply; restorable with 'gengar import').",
     )
     claw_migrate.add_argument(
         "--workspace-target", help="Absolute path to copy workspace instructions into"
@@ -9976,7 +9976,7 @@ Examples:
     # =========================================================================
     update_parser = subparsers.add_parser(
         "update",
-        help="Update Hermes Agent to the latest version",
+        help="Update Gengar to the latest version",
         description="Pull the latest changes from git and reinstall dependencies",
     )
     update_parser.add_argument(
@@ -10008,7 +10008,7 @@ Examples:
         "-y",
         action="store_true",
         default=False,
-        help="Assume yes for interactive prompts (config migration, stash restore). API-key entry is skipped; run 'hermes config migrate' separately for those.",
+        help="Assume yes for interactive prompts (config migration, stash restore). API-key entry is skipped; run 'gengar config migrate' separately for those.",
     )
     update_parser.set_defaults(func=cmd_update)
 
@@ -10017,8 +10017,8 @@ Examples:
     # =========================================================================
     uninstall_parser = subparsers.add_parser(
         "uninstall",
-        help="Uninstall Hermes Agent",
-        description="Remove Hermes Agent from your system. Can keep configs/data for reinstall.",
+        help="Uninstall Gengar",
+        description="Remove Gengar from your system. Can keep configs/data for reinstall.",
     )
     uninstall_parser.add_argument(
         "--full",
@@ -10035,13 +10035,13 @@ Examples:
     # =========================================================================
     acp_parser = subparsers.add_parser(
         "acp",
-        help="Run Hermes Agent as an ACP (Agent Client Protocol) server",
-        description="Start Hermes Agent in ACP mode for editor integration (VS Code, Zed, JetBrains)",
+        help="Run Gengar as an ACP (Agent Client Protocol) server",
+        description="Start Gengar in ACP mode for editor integration (VS Code, Zed, JetBrains)",
     )
     _add_accept_hooks_flag(acp_parser)
 
     def cmd_acp(args):
-        """Launch Hermes Agent as an ACP server."""
+        """Launch Gengar as an ACP server."""
         try:
             from acp_adapter.entry import main as acp_main
 
@@ -10058,7 +10058,7 @@ Examples:
     # =========================================================================
     profile_parser = subparsers.add_parser(
         "profile",
-        help="Manage profiles — multiple isolated Hermes instances",
+        help="Manage profiles — multiple isolated Gengar instances",
     )
     profile_subparsers = profile_parser.add_subparsers(dest="profile_action")
 
@@ -10163,7 +10163,7 @@ Examples:
     dashboard_parser = subparsers.add_parser(
         "dashboard",
         help="Start the web UI dashboard",
-        description="Launch the Hermes Agent web dashboard for managing config, API keys, and sessions",
+        description="Launch the Gengar web dashboard for managing config, API keys, and sessions",
     )
     dashboard_parser.add_argument(
         "--port", type=int, default=9119, help="Port (default 9119)"
@@ -10183,25 +10183,25 @@ Examples:
         "--tui",
         action="store_true",
         help=(
-            "Expose the in-browser Chat tab (embedded `hermes --tui` via PTY/WebSocket). "
-            "Alternatively set HERMES_DASHBOARD_TUI=1."
+            "Expose the in-browser Chat tab (embedded `gengar --tui` via PTY/WebSocket). "
+            "Alternatively set GENGAR_DASHBOARD_TUI=1."
         ),
     )
     # Lifecycle flags — mutually exclusive with each other and with the
     # start-a-server flags above (if both are passed, --stop / --status win
     # because they exit before the server is started).  The dashboard has
     # no service manager and no PID file, so these scan the process table
-    # for `hermes dashboard` cmdlines and SIGTERM them directly — the same
-    # path `hermes update` uses to clean up stale dashboards.
+    # for `gengar dashboard` cmdlines and SIGTERM them directly — the same
+    # path `gengar update` uses to clean up stale dashboards.
     dashboard_parser.add_argument(
         "--stop",
         action="store_true",
-        help="Stop all running hermes dashboard processes and exit",
+        help="Stop all running gengar dashboard processes and exit",
     )
     dashboard_parser.add_argument(
         "--status",
         action="store_true",
-        help="List running hermes dashboard processes and exit",
+        help="List running gengar dashboard processes and exit",
     )
     dashboard_parser.set_defaults(func=cmd_dashboard)
 
@@ -10210,21 +10210,21 @@ Examples:
     # =========================================================================
     logs_parser = subparsers.add_parser(
         "logs",
-        help="View and filter Hermes log files",
+        help="View and filter Gengar log files",
         description="View, tail, and filter agent.log / errors.log / gateway.log",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""\
 Examples:
-    hermes logs                    Show last 50 lines of agent.log
-    hermes logs -f                 Follow agent.log in real time
-    hermes logs errors             Show last 50 lines of errors.log
-    hermes logs gateway -n 100     Show last 100 lines of gateway.log
-    hermes logs --level WARNING    Only show WARNING and above
-    hermes logs --session abc123   Filter by session ID
-    hermes logs --component tools  Only show tool-related lines
-    hermes logs --since 1h         Lines from the last hour
-    hermes logs --since 30m -f     Follow, starting from 30 min ago
-    hermes logs list               List available log files with sizes
+    gengar logs                    Show last 50 lines of agent.log
+    gengar logs -f                 Follow agent.log in real time
+    gengar logs errors             Show last 50 lines of errors.log
+    gengar logs gateway -n 100     Show last 100 lines of gateway.log
+    gengar logs --level WARNING    Only show WARNING and above
+    gengar logs --session abc123   Filter by session ID
+    gengar logs --component tools  Only show tool-related lines
+    gengar logs --since 1h         Lines from the last hour
+    gengar logs --since 30m -f     Follow, starting from 30 min ago
+    gengar logs list               List available log files with sizes
 """,
     )
     logs_parser.add_argument(
@@ -10273,7 +10273,7 @@ Examples:
     # =========================================================================
     # Pre-process argv so unquoted multi-word session names after -c / -r
     # are merged into a single token before argparse sees them.
-    # e.g. ``hermes -c Pokemon Agent Dev`` → ``hermes -c 'Pokemon Agent Dev'``
+    # e.g. ``gengar -c Pokemon Agent Dev`` → ``gengar -c 'Pokemon Agent Dev'``
     # ── Container-aware routing ────────────────────────────────────────
     # When NixOS container mode is active, route ALL subcommands into
     # the managed container.  This MUST run before parse_args() so that
@@ -10298,7 +10298,7 @@ Examples:
     #
     # Fix: when argv contains a token matching a known subcommand, set
     # subparsers.required=True to force deterministic routing.  If that
-    # fails (e.g. 'hermes -c model' where 'model' is consumed as the
+    # fails (e.g. 'gengar -c model' where 'model' is consumed as the
     # session name for --continue), fall back to the default behaviour.
     import io as _io
 
@@ -10338,7 +10338,7 @@ Examples:
 
     # Discover Python plugins and register shell hooks once, before any
     # command that can fire lifecycle hooks.  Both are idempotent; gated
-    # so introspection/management commands (hermes hooks list, cron
+    # so introspection/management commands (gengar hooks list, cron
     # list, gateway status, mcp add, ...) don't pay discovery cost or
     # trigger consent prompts for hooks the user is still inspecting.
     # Groups with mixed admin/CRUD vs. agent-running entries narrow via

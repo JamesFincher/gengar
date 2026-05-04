@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "name": "hermes-agent",
-  "display_name": "Hermes Agent",
-  "description": "AI agent by Nous Research with 90+ tools, persistent memory, and multi-platform support",
+  "name": "gengar",
+  "display_name": "Gengar",
+  "description": "AI agent by James Fincher with 90+ tools, persistent memory, and multi-platform support",
   "icon": "icon.svg",
   "distribution": {
     "type": "command",
-    "command": "hermes",
+    "command": "gengar",
     "args": ["acp"]
   }
 }

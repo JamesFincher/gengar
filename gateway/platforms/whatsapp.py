@@ -159,7 +159,7 @@ class WhatsAppAdapter(BasePlatformAdapter):
     # WhatsApp allows ~65K but long messages are unreadable on mobile.
     MAX_MESSAGE_LENGTH = 4096
     
-    # Default bridge location relative to the hermes-agent install
+    # Default bridge location relative to the gengar install
     _DEFAULT_BRIDGE_DIR = Path(__file__).resolve().parents[2] / "scripts" / "whatsapp-bridge"
 
     def __init__(self, config: PlatformConfig):
@@ -523,7 +523,7 @@ class WhatsAppAdapter(BasePlatformAdapter):
                     # auto-reconnect later, e.g. after a code 515 restart).
                     print(f"[{self.name}] ⚠ WhatsApp not connected after 30s")
                     print(f"[{self.name}]   Bridge log: {self._bridge_log}")
-                    print(f"[{self.name}]   If session expired, re-pair: hermes whatsapp")
+                    print(f"[{self.name}]   If session expired, re-pair: gengar whatsapp")
             
             # Create a persistent HTTP session for all bridge communication
             self._http_session = aiohttp.ClientSession()

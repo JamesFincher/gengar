@@ -10,7 +10,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from tools.environments.local import _HERMES_PROVIDER_ENV_FORCE_PREFIX
+from tools.environments.local import _GENGAR_PROVIDER_ENV_FORCE_PREFIX
 from tools.process_registry import (
     ProcessRegistry,
     ProcessSession,
@@ -111,7 +111,7 @@ class TestGetAndPoll:
 class TestOrphanedPipeReconciliation:
     """Regression tests for issue #17327.
 
-    `hermes update` in Feishu spawned a background subprocess that restarted
+    `gengar update` in Feishu spawned a background subprocess that restarted
     the gateway; the direct child exited quickly but a descendant daemon
     held the stdout pipe open. `_reader_loop.finally` never ran, so
     `session.exited` stayed False and the agent polled 74 times over 7
@@ -457,7 +457,7 @@ class TestSpawnEnvSanitization:
                 env_vars={
                     "MY_CUSTOM_VAR": "keep-me",
                     "TELEGRAM_BOT_TOKEN": "drop-me",
-                    f"{_HERMES_PROVIDER_ENV_FORCE_PREFIX}TELEGRAM_BOT_TOKEN": "forced-bot-token",
+                    f"{_GENGAR_PROVIDER_ENV_FORCE_PREFIX}TELEGRAM_BOT_TOKEN": "forced-bot-token",
                 },
             )
 
@@ -465,7 +465,7 @@ class TestSpawnEnvSanitization:
         assert env["MY_CUSTOM_VAR"] == "keep-me"
         assert env["TELEGRAM_BOT_TOKEN"] == "forced-bot-token"
         assert "FIRECRAWL_API_KEY" not in env
-        assert f"{_HERMES_PROVIDER_ENV_FORCE_PREFIX}TELEGRAM_BOT_TOKEN" not in env
+        assert f"{_GENGAR_PROVIDER_ENV_FORCE_PREFIX}TELEGRAM_BOT_TOKEN" not in env
         assert env["PYTHONUNBUFFERED"] == "1"
 
     def test_spawn_via_env_uses_backend_temp_dir_for_artifacts(self, registry):

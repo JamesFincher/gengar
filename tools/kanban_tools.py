@@ -1,16 +1,16 @@
 """Kanban tools — structured tool-call surface for worker + orchestrator agents.
 
 These tools are only registered into the model's schema when the agent is
-running under the dispatcher (env var ``HERMES_KANBAN_TASK`` set). A
-normal ``hermes chat`` session sees **zero** kanban tools in its schema.
+running under the dispatcher (env var ``GENGAR_KANBAN_TASK`` set). A
+normal ``gengar chat`` session sees **zero** kanban tools in its schema.
 
-Why tools instead of just shelling out to ``hermes kanban``?
+Why tools instead of just shelling out to ``gengar kanban``?
 
 1. **Backend portability.** A worker whose terminal tool points at Docker
-   / Modal / Singularity / SSH would run ``hermes kanban complete …``
-   inside the container, where ``hermes`` isn't installed and the DB
+   / Modal / Singularity / SSH would run ``gengar kanban complete …``
+   inside the container, where ``gengar`` isn't installed and the DB
    isn't mounted. Tools run in the agent's Python process, so they
-   always reach ``~/.hermes/kanban.db`` regardless of terminal backend.
+   always reach ``~/.gengar/kanban.db`` regardless of terminal backend.
 
 2. **No shell-quoting footguns.** Passing ``--metadata '{"x": [...]}'``
    through shlex+argparse is fragile. Structured tool args skip it.
@@ -18,8 +18,8 @@ Why tools instead of just shelling out to ``hermes kanban``?
 3. **Better errors.** Tool-call failures return structured JSON the
    model can reason about, not stderr strings it has to parse.
 
-Humans continue to use the CLI (``hermes kanban …``), the dashboard
-(``hermes dashboard``), and the slash command (``/kanban …``) — all
+Humans continue to use the CLI (``gengar kanban …``), the dashboard
+(``gengar dashboard``), and the slash command (``/kanban …``) — all
 three bypass the agent entirely. The tools are ONLY for the worker
 agent's handoff back to the kernel.
 """
@@ -40,13 +40,13 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 def _check_kanban_mode() -> bool:
-    """Tools are available iff the current process has ``HERMES_KANBAN_TASK``
+    """Tools are available iff the current process has ``GENGAR_KANBAN_TASK``
     set in its env, which the dispatcher sets when spawning a worker.
 
-    Humans running ``hermes chat`` see zero kanban tools. Workers spawned
+    Humans running ``gengar chat`` see zero kanban tools. Workers spawned
     by the kanban dispatcher (gateway-embedded by default) see all seven.
     """
-    return bool(os.environ.get("HERMES_KANBAN_TASK"))
+    return bool(os.environ.get("GENGAR_KANBAN_TASK"))
 
 
 # ---------------------------------------------------------------------------
@@ -57,7 +57,7 @@ def _default_task_id(arg: Optional[str]) -> Optional[str]:
     """Resolve ``task_id`` arg or fall back to the env var the dispatcher set."""
     if arg:
         return arg
-    env_tid = os.environ.get("HERMES_KANBAN_TASK")
+    env_tid = os.environ.get("GENGAR_KANBAN_TASK")
     return env_tid or None
 
 
@@ -82,7 +82,7 @@ def _handle_show(args: dict, **kw) -> str:
     tid = _default_task_id(args.get("task_id"))
     if not tid:
         return tool_error(
-            "task_id is required (or set HERMES_KANBAN_TASK in the env)"
+            "task_id is required (or set GENGAR_KANBAN_TASK in the env)"
         )
     try:
         kb, conn = _connect()
@@ -152,7 +152,7 @@ def _handle_complete(args: dict, **kw) -> str:
     tid = _default_task_id(args.get("task_id"))
     if not tid:
         return tool_error(
-            "task_id is required (or set HERMES_KANBAN_TASK in the env)"
+            "task_id is required (or set GENGAR_KANBAN_TASK in the env)"
         )
     summary = args.get("summary")
     metadata = args.get("metadata")
@@ -190,7 +190,7 @@ def _handle_block(args: dict, **kw) -> str:
     tid = _default_task_id(args.get("task_id"))
     if not tid:
         return tool_error(
-            "task_id is required (or set HERMES_KANBAN_TASK in the env)"
+            "task_id is required (or set GENGAR_KANBAN_TASK in the env)"
         )
     reason = args.get("reason")
     if not reason or not str(reason).strip():
@@ -218,7 +218,7 @@ def _handle_heartbeat(args: dict, **kw) -> str:
     tid = _default_task_id(args.get("task_id"))
     if not tid:
         return tool_error(
-            "task_id is required (or set HERMES_KANBAN_TASK in the env)"
+            "task_id is required (or set GENGAR_KANBAN_TASK in the env)"
         )
     note = args.get("note")
     try:
@@ -248,7 +248,7 @@ def _handle_comment(args: dict, **kw) -> str:
     body = args.get("body")
     if not body or not str(body).strip():
         return tool_error("body is required")
-    author = args.get("author") or os.environ.get("HERMES_PROFILE") or "worker"
+    author = args.get("author") or os.environ.get("GENGAR_PROFILE") or "worker"
     try:
         kb, conn = _connect()
         try:
@@ -278,7 +278,7 @@ def _handle_create(args: dict, **kw) -> str:
         )
     body = args.get("body")
     parents = args.get("parents") or []
-    tenant = args.get("tenant") or os.environ.get("HERMES_TENANT")
+    tenant = args.get("tenant") or os.environ.get("GENGAR_TENANT")
     priority = args.get("priority")
     workspace_kind = args.get("workspace_kind") or "scratch"
     workspace_path = args.get("workspace_path")
@@ -319,7 +319,7 @@ def _handle_create(args: dict, **kw) -> str:
                     if max_runtime_seconds is not None else None
                 ),
                 skills=skills,
-                created_by=os.environ.get("HERMES_PROFILE") or "worker",
+                created_by=os.environ.get("GENGAR_PROFILE") or "worker",
             )
             new_task = kb.get_task(conn, new_tid)
             return _ok(
@@ -359,7 +359,7 @@ def _handle_link(args: dict, **kw) -> str:
 # ---------------------------------------------------------------------------
 
 _DESC_TASK_ID_DEFAULT = (
-    "Task id. If omitted, defaults to HERMES_KANBAN_TASK from the env "
+    "Task id. If omitted, defaults to GENGAR_KANBAN_TASK from the env "
     "(the task the dispatcher spawned you to work on)."
 )
 
@@ -515,7 +515,7 @@ KANBAN_COMMENT_SCHEMA = {
                 "type": "string",
                 "description": (
                     "Override author name. Defaults to the current "
-                    "profile (HERMES_PROFILE env)."
+                    "profile (GENGAR_PROFILE env)."
                 ),
             },
         },
@@ -572,7 +572,7 @@ KANBAN_CREATE_SCHEMA = {
                 "type": "string",
                 "description": (
                     "Optional namespace for multi-project isolation. "
-                    "Defaults to HERMES_TENANT env if set."
+                    "Defaults to GENGAR_TENANT env if set."
                 ),
             },
             "priority": {

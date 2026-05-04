@@ -1,7 +1,7 @@
 ---
 sidebar_position: 1
 title: "CLI Commands Reference"
-description: "Authoritative reference for Hermes terminal commands and command families"
+description: "Authoritative reference for Gengar terminal commands and command families"
 ---
 
 # CLI Commands Reference
@@ -13,7 +13,7 @@ For in-chat slash commands, see [Slash Commands Reference](./slash-commands.md).
 ## Global entrypoint
 
 ```bash
-hermes [global-options] <command> [subcommand/options]
+gengar [global-options] <command> [subcommand/options]
 ```
 
 ### Global options
@@ -21,65 +21,65 @@ hermes [global-options] <command> [subcommand/options]
 | Option | Description |
 |--------|-------------|
 | `--version`, `-V` | Show version and exit. |
-| `--profile <name>`, `-p <name>` | Select which Hermes profile to use for this invocation. Overrides the sticky default set by `hermes profile use`. |
+| `--profile <name>`, `-p <name>` | Select which Gengar profile to use for this invocation. Overrides the sticky default set by `gengar profile use`. |
 | `--resume <session>`, `-r <session>` | Resume a previous session by ID or title. |
 | `--continue [name]`, `-c [name]` | Resume the most recent session, or the most recent session matching a title. |
 | `--worktree`, `-w` | Start in an isolated git worktree for parallel-agent workflows. |
 | `--yolo` | Bypass dangerous-command approval prompts. |
 | `--pass-session-id` | Include the session ID in the agent's system prompt. |
-| `--ignore-user-config` | Ignore `~/.hermes/config.yaml` and fall back to built-in defaults. Credentials in `.env` are still loaded. |
+| `--ignore-user-config` | Ignore `~/.gengar/config.yaml` and fall back to built-in defaults. Credentials in `.env` are still loaded. |
 | `--ignore-rules` | Skip auto-injection of `AGENTS.md`, `SOUL.md`, `.cursorrules`, memory, and preloaded skills. |
-| `--tui` | Launch the [TUI](../user-guide/tui.md) instead of the classic CLI. Equivalent to `HERMES_TUI=1`. |
+| `--tui` | Launch the [TUI](../user-guide/tui.md) instead of the classic CLI. Equivalent to `GENGAR_TUI=1`. |
 | `--dev` | With `--tui`: run the TypeScript sources directly via `tsx` instead of the prebuilt bundle (for TUI contributors). |
 
 ## Top-level commands
 
 | Command | Purpose |
 |---------|---------|
-| `hermes chat` | Interactive or one-shot chat with the agent. |
-| `hermes model` | Interactively choose the default provider and model. |
-| `hermes fallback` | Manage fallback providers tried when the primary model errors. |
-| `hermes gateway` | Run or manage the messaging gateway service. |
-| `hermes setup` | Interactive setup wizard for all or part of the configuration. |
-| `hermes whatsapp` | Configure and pair the WhatsApp bridge. |
-| `hermes slack` | Slack helpers (currently: generate the app manifest with every command as a native slash). |
-| `hermes auth` | Manage credentials — add, list, remove, reset, set strategy. Handles OAuth flows for Codex/Nous/Anthropic. |
-| `hermes login` / `logout` | **Deprecated** — use `hermes auth` instead. |
-| `hermes status` | Show agent, auth, and platform status. |
-| `hermes cron` | Inspect and tick the cron scheduler. |
-| `hermes kanban` | Multi-profile collaboration board (tasks, links, dispatcher). |
-| `hermes webhook` | Manage dynamic webhook subscriptions for event-driven activation. |
-| `hermes hooks` | Inspect, approve, or remove shell-script hooks declared in `config.yaml`. |
-| `hermes doctor` | Diagnose config and dependency issues. |
-| `hermes dump` | Copy-pasteable setup summary for support/debugging. |
-| `hermes debug` | Debug tools — upload logs and system info for support. |
-| `hermes backup` | Back up Hermes home directory to a zip file. |
-| `hermes import` | Restore a Hermes backup from a zip file. |
-| `hermes logs` | View, tail, and filter agent/gateway/error log files. |
-| `hermes config` | Show, edit, migrate, and query configuration files. |
-| `hermes pairing` | Approve or revoke messaging pairing codes. |
-| `hermes skills` | Browse, install, publish, audit, and configure skills. |
-| `hermes curator` | Background skill maintenance — status, run, pause, pin. See [Curator](../user-guide/features/curator.md). |
-| `hermes memory` | Configure external memory provider. Plugin-specific subcommands (e.g. `hermes honcho`) register automatically when their provider is active. |
-| `hermes acp` | Run Hermes as an ACP server for editor integration. |
-| `hermes mcp` | Manage MCP server configurations and run Hermes as an MCP server. |
-| `hermes plugins` | Manage Hermes Agent plugins (install, enable, disable, remove). |
-| `hermes tools` | Configure enabled tools per platform. |
-| `hermes sessions` | Browse, export, prune, rename, and delete sessions. |
-| `hermes insights` | Show token/cost/activity analytics. |
-| `hermes fallback` | Interactive manager for the fallback provider chain. |
-| `hermes claw` | OpenClaw migration helpers. |
-| `hermes dashboard` | Launch the web dashboard for managing config, API keys, and sessions. |
-| `hermes profile` | Manage profiles — multiple isolated Hermes instances. |
-| `hermes completion` | Print shell completion scripts (bash/zsh/fish). |
-| `hermes version` | Show version information. |
-| `hermes update` | Pull latest code and reinstall dependencies. `--check` prints commit diff without pulling; `--backup` takes a pre-pull `HERMES_HOME` snapshot. |
-| `hermes uninstall` | Remove Hermes from the system. |
+| `gengar chat` | Interactive or one-shot chat with the agent. |
+| `gengar model` | Interactively choose the default provider and model. |
+| `gengar fallback` | Manage fallback providers tried when the primary model errors. |
+| `gengar gateway` | Run or manage the messaging gateway service. |
+| `gengar setup` | Interactive setup wizard for all or part of the configuration. |
+| `gengar whatsapp` | Configure and pair the WhatsApp bridge. |
+| `gengar slack` | Slack helpers (currently: generate the app manifest with every command as a native slash). |
+| `gengar auth` | Manage credentials — add, list, remove, reset, set strategy. Handles OAuth flows for Codex/Nous/Anthropic. |
+| `gengar login` / `logout` | **Deprecated** — use `gengar auth` instead. |
+| `gengar status` | Show agent, auth, and platform status. |
+| `gengar cron` | Inspect and tick the cron scheduler. |
+| `gengar kanban` | Multi-profile collaboration board (tasks, links, dispatcher). |
+| `gengar webhook` | Manage dynamic webhook subscriptions for event-driven activation. |
+| `gengar hooks` | Inspect, approve, or remove shell-script hooks declared in `config.yaml`. |
+| `gengar doctor` | Diagnose config and dependency issues. |
+| `gengar dump` | Copy-pasteable setup summary for support/debugging. |
+| `gengar debug` | Debug tools — upload logs and system info for support. |
+| `gengar backup` | Back up Gengar home directory to a zip file. |
+| `gengar import` | Restore a Gengar backup from a zip file. |
+| `gengar logs` | View, tail, and filter agent/gateway/error log files. |
+| `gengar config` | Show, edit, migrate, and query configuration files. |
+| `gengar pairing` | Approve or revoke messaging pairing codes. |
+| `gengar skills` | Browse, install, publish, audit, and configure skills. |
+| `gengar curator` | Background skill maintenance — status, run, pause, pin. See [Curator](../user-guide/features/curator.md). |
+| `gengar memory` | Configure external memory provider. Plugin-specific subcommands (e.g. `gengar honcho`) register automatically when their provider is active. |
+| `gengar acp` | Run Gengar as an ACP server for editor integration. |
+| `gengar mcp` | Manage MCP server configurations and run Gengar as an MCP server. |
+| `gengar plugins` | Manage Gengar plugins (install, enable, disable, remove). |
+| `gengar tools` | Configure enabled tools per platform. |
+| `gengar sessions` | Browse, export, prune, rename, and delete sessions. |
+| `gengar insights` | Show token/cost/activity analytics. |
+| `gengar fallback` | Interactive manager for the fallback provider chain. |
+| `gengar claw` | OpenClaw migration helpers. |
+| `gengar dashboard` | Launch the web dashboard for managing config, API keys, and sessions. |
+| `gengar profile` | Manage profiles — multiple isolated Gengar instances. |
+| `gengar completion` | Print shell completion scripts (bash/zsh/fish). |
+| `gengar version` | Show version information. |
+| `gengar update` | Pull latest code and reinstall dependencies. `--check` prints commit diff without pulling; `--backup` takes a pre-pull `GENGAR_HOME` snapshot. |
+| `gengar uninstall` | Remove Gengar from the system. |
 
-## `hermes chat`
+## `gengar chat`
 
 ```bash
-hermes chat [options]
+gengar chat [options]
 ```
 
 Common options:
@@ -99,7 +99,7 @@ Common options:
 | `--checkpoints` | Enable filesystem checkpoints before destructive file changes. |
 | `--yolo` | Skip approval prompts. |
 | `--pass-session-id` | Pass the session ID into the system prompt. |
-| `--ignore-user-config` | Ignore `~/.hermes/config.yaml` and use built-in defaults. Credentials in `.env` are still loaded. Useful for isolated CI runs, reproducible bug reports, and third-party integrations. |
+| `--ignore-user-config` | Ignore `~/.gengar/config.yaml` and use built-in defaults. Credentials in `.env` are still loaded. Useful for isolated CI runs, reproducible bug reports, and third-party integrations. |
 | `--ignore-rules` | Skip auto-injection of `AGENTS.md`, `SOUL.md`, `.cursorrules`, persistent memory, and preloaded skills. Combine with `--ignore-user-config` for a fully isolated run. |
 | `--source <tag>` | Session source tag for filtering (default: `cli`). Use `tool` for third-party integrations that should not appear in user session lists. |
 | `--max-turns <N>` | Maximum tool-calling iterations per conversation turn (default: 90, or `agent.max_turns` in config). |
@@ -107,48 +107,48 @@ Common options:
 Examples:
 
 ```bash
-hermes
-hermes chat -q "Summarize the latest PRs"
-hermes chat --provider openrouter --model anthropic/claude-sonnet-4.6
-hermes chat --toolsets web,terminal,skills
-hermes chat --quiet -q "Return only JSON"
-hermes chat --worktree -q "Review this repo and open a PR"
-hermes chat --ignore-user-config --ignore-rules -q "Repro without my personal setup"
+gengar
+gengar chat -q "Summarize the latest PRs"
+gengar chat --provider openrouter --model anthropic/claude-sonnet-4.6
+gengar chat --toolsets web,terminal,skills
+gengar chat --quiet -q "Return only JSON"
+gengar chat --worktree -q "Review this repo and open a PR"
+gengar chat --ignore-user-config --ignore-rules -q "Repro without my personal setup"
 ```
 
-### `hermes -z <prompt>` — scripted one-shot
+### `gengar -z <prompt>` — scripted one-shot
 
-For programmatic callers (shell scripts, CI, cron, parent processes piping in a prompt), `hermes -z` is the purest one-shot entry point: **single prompt in, final response text out, nothing else on stdout or stderr.** No banner, no spinner, no tool previews, no `Session:` line — just the agent's final reply as plain text.
+For programmatic callers (shell scripts, CI, cron, parent processes piping in a prompt), `gengar -z` is the purest one-shot entry point: **single prompt in, final response text out, nothing else on stdout or stderr.** No banner, no spinner, no tool previews, no `Session:` line — just the agent's final reply as plain text.
 
 ```bash
-hermes -z "What's the capital of France?"
+gengar -z "What's the capital of France?"
 # → Paris.
 
 # Parent scripts can cleanly capture the response:
-answer=$(hermes -z "summarize this" < /path/to/file.txt)
+answer=$(gengar -z "summarize this" < /path/to/file.txt)
 ```
 
-Per-run overrides (no mutation to `~/.hermes/config.yaml`):
+Per-run overrides (no mutation to `~/.gengar/config.yaml`):
 
 | Flag | Equivalent env var | Purpose |
 |---|---|---|
-| `-m` / `--model <model>` | `HERMES_INFERENCE_MODEL` | Override the model for this run |
-| `--provider <provider>` | `HERMES_INFERENCE_PROVIDER` | Override the provider for this run |
+| `-m` / `--model <model>` | `GENGAR_INFERENCE_MODEL` | Override the model for this run |
+| `--provider <provider>` | `GENGAR_INFERENCE_PROVIDER` | Override the provider for this run |
 
 ```bash
-hermes -z "…" --provider openrouter --model openai/gpt-5.5
+gengar -z "…" --provider openrouter --model openai/gpt-5.5
 # or:
-HERMES_INFERENCE_MODEL=anthropic/claude-sonnet-4.6 hermes -z "…"
+GENGAR_INFERENCE_MODEL=anthropic/claude-sonnet-4.6 gengar -z "…"
 ```
 
-Same agent, same tools, same skills — just strips every interactive / cosmetic layer. If you need tool output in the transcript too, use `hermes chat -q` instead; `-z` is explicitly for "I only want the final answer".
+Same agent, same tools, same skills — just strips every interactive / cosmetic layer. If you need tool output in the transcript too, use `gengar chat -q` instead; `-z` is explicitly for "I only want the final answer".
 
-## `hermes model`
+## `gengar model`
 
-Interactive provider + model selector. **This is the command for adding new providers, setting up API keys, and running OAuth flows.** Run it from your terminal — not from inside an active Hermes chat session.
+Interactive provider + model selector. **This is the command for adding new providers, setting up API keys, and running OAuth flows.** Run it from your terminal — not from inside an active Gengar chat session.
 
 ```bash
-hermes model
+gengar model
 ```
 
 Use this when you want to:
@@ -159,12 +159,12 @@ Use this when you want to:
 - configure a custom/self-hosted endpoint
 - save the new default into config
 
-:::warning hermes model vs /model — know the difference
-**`hermes model`** (run from your terminal, outside any Hermes session) is the **full provider setup wizard**. It can add new providers, run OAuth flows, prompt for API keys, and configure endpoints.
+:::warning gengar model vs /model — know the difference
+**`gengar model`** (run from your terminal, outside any Gengar session) is the **full provider setup wizard**. It can add new providers, run OAuth flows, prompt for API keys, and configure endpoints.
 
-**`/model`** (typed inside an active Hermes chat session) can only **switch between providers and models you've already set up**. It cannot add new providers, run OAuth, or prompt for API keys.
+**`/model`** (typed inside an active Gengar chat session) can only **switch between providers and models you've already set up**. It cannot add new providers, run OAuth, or prompt for API keys.
 
-**If you need to add a new provider:** Exit your Hermes session first (`Ctrl+C` or `/quit`), then run `hermes model` from your terminal prompt.
+**If you need to add a new provider:** Exit your Gengar session first (`Ctrl+C` or `/quit`), then run `gengar model` from your terminal prompt.
 :::
 
 ### `/model` slash command (mid-session)
@@ -188,15 +188,15 @@ By default, `/model` changes apply **to the current session only**. Add `--globa
 ```
 
 :::info What if I only see OpenRouter models?
-If you've only configured OpenRouter, `/model` will only show OpenRouter models. To add another provider (Anthropic, DeepSeek, Copilot, etc.), exit your session and run `hermes model` from the terminal.
+If you've only configured OpenRouter, `/model` will only show OpenRouter models. To add another provider (Anthropic, DeepSeek, Copilot, etc.), exit your session and run `gengar model` from the terminal.
 :::
 
 Provider and base URL changes are persisted to `config.yaml` automatically. When switching away from a custom endpoint, the stale base URL is cleared to prevent it leaking into other providers.
 
-## `hermes gateway`
+## `gengar gateway`
 
 ```bash
-hermes gateway <subcommand>
+gengar gateway <subcommand>
 ```
 
 Subcommands:
@@ -216,16 +216,16 @@ Options:
 
 | Option | Description |
 |--------|-------------|
-| `--all` | On `start` / `restart` / `stop`: act on **every profile's** gateway, not just the active `HERMES_HOME`. Useful if you run multiple profiles side-by-side and want to restart them all after `hermes update`. |
+| `--all` | On `start` / `restart` / `stop`: act on **every profile's** gateway, not just the active `GENGAR_HOME`. Useful if you run multiple profiles side-by-side and want to restart them all after `gengar update`. |
 
 :::tip WSL users
-Use `hermes gateway run` instead of `hermes gateway start` — WSL's systemd support is unreliable. Wrap it in tmux for persistence: `tmux new -s hermes 'hermes gateway run'`. See [WSL FAQ](/docs/reference/faq#wsl-gateway-keeps-disconnecting-or-hermes-gateway-start-fails) for details.
+Use `gengar gateway run` instead of `gengar gateway start` — WSL's systemd support is unreliable. Wrap it in tmux for persistence: `tmux new -s gengar 'gengar gateway run'`. See [WSL FAQ](/docs/reference/faq#wsl-gateway-keeps-disconnecting-or-gengar-gateway-start-fails) for details.
 :::
 
-## `hermes setup`
+## `gengar setup`
 
 ```bash
-hermes setup [model|tts|terminal|gateway|tools|agent] [--non-interactive] [--reset] [--quick] [--reconfigure]
+gengar setup [model|tts|terminal|gateway|tools|agent] [--non-interactive] [--reset] [--quick] [--reconfigure]
 ```
 
 **First run:** launches the first-time wizard.
@@ -249,22 +249,22 @@ Options:
 | `--quick` | On returning-user runs: only prompt for items that are missing or unset. Skip items you already have configured. |
 | `--non-interactive` | Use defaults / environment values without prompts. |
 | `--reset` | Reset configuration to defaults before setup. |
-| `--reconfigure` | Backwards-compat alias — bare `hermes setup` on an existing install now does this by default. |
+| `--reconfigure` | Backwards-compat alias — bare `gengar setup` on an existing install now does this by default. |
 
-## `hermes whatsapp`
+## `gengar whatsapp`
 
 ```bash
-hermes whatsapp
+gengar whatsapp
 ```
 
 Runs the WhatsApp pairing/setup flow, including mode selection and QR-code pairing.
 
-## `hermes slack`
+## `gengar slack`
 
 ```bash
-hermes slack manifest              # print manifest to stdout
-hermes slack manifest --write      # write to ~/.hermes/slack-manifest.json
-hermes slack manifest --slashes-only  # just the features.slash_commands array
+gengar slack manifest              # print manifest to stdout
+gengar slack manifest --write      # write to ~/.gengar/slack-manifest.json
+gengar slack manifest --slashes-only  # just the features.slash_commands array
 ```
 
 Generates a Slack app manifest that registers every gateway command in
@@ -277,41 +277,41 @@ reinstall if scopes or slash commands changed.
 
 | Flag | Default | Purpose |
 |------|---------|---------|
-| `--write [PATH]` | stdout | Write to a file instead of stdout. Bare `--write` writes `$HERMES_HOME/slack-manifest.json`. |
-| `--name NAME` | `Hermes` | Bot display name in Slack. |
+| `--write [PATH]` | stdout | Write to a file instead of stdout. Bare `--write` writes `$GENGAR_HOME/slack-manifest.json`. |
+| `--name NAME` | `Gengar` | Bot display name in Slack. |
 | `--description DESC` | default blurb | Bot description shown in the Slack app directory. |
 | `--slashes-only` | off | Emit only `features.slash_commands` for merging into a manually-maintained manifest. |
 
-Run `hermes slack manifest --write` again after `hermes update` to pick
+Run `gengar slack manifest --write` again after `gengar update` to pick
 up any new commands.
 
 
-## `hermes login` / `hermes logout` *(Deprecated)*
+## `gengar login` / `gengar logout` *(Deprecated)*
 
 :::caution
-`hermes login` has been removed. Use `hermes auth` to manage OAuth credentials, `hermes model` to select a provider, or `hermes setup` for full interactive setup.
+`gengar login` has been removed. Use `gengar auth` to manage OAuth credentials, `gengar model` to select a provider, or `gengar setup` for full interactive setup.
 :::
 
-## `hermes auth`
+## `gengar auth`
 
 Manage credential pools for same-provider key rotation. See [Credential Pools](/docs/user-guide/features/credential-pools) for full documentation.
 
 ```bash
-hermes auth                                              # Interactive wizard
-hermes auth list                                         # Show all pools
-hermes auth list openrouter                              # Show specific provider
-hermes auth add openrouter --api-key sk-or-v1-xxx        # Add API key
-hermes auth add anthropic --type oauth                   # Add OAuth credential
-hermes auth remove openrouter 2                          # Remove by index
-hermes auth reset openrouter                             # Clear cooldowns
+gengar auth                                              # Interactive wizard
+gengar auth list                                         # Show all pools
+gengar auth list openrouter                              # Show specific provider
+gengar auth add openrouter --api-key sk-or-v1-xxx        # Add API key
+gengar auth add anthropic --type oauth                   # Add OAuth credential
+gengar auth remove openrouter 2                          # Remove by index
+gengar auth reset openrouter                             # Clear cooldowns
 ```
 
 Subcommands: `add`, `list`, `remove`, `reset`. When called with no subcommand, launches the interactive management wizard.
 
-## `hermes status`
+## `gengar status`
 
 ```bash
-hermes status [--all] [--deep]
+gengar status [--all] [--deep]
 ```
 
 | Option | Description |
@@ -319,10 +319,10 @@ hermes status [--all] [--deep]
 | `--all` | Show all details in a shareable redacted format. |
 | `--deep` | Run deeper checks that may take longer. |
 
-## `hermes cron`
+## `gengar cron`
 
 ```bash
-hermes cron <list|create|edit|pause|resume|run|remove|status|tick>
+gengar cron <list|create|edit|pause|resume|run|remove|status|tick>
 ```
 
 | Subcommand | Description |
@@ -337,13 +337,13 @@ hermes cron <list|create|edit|pause|resume|run|remove|status|tick>
 | `status` | Check whether the cron scheduler is running. |
 | `tick` | Run due jobs once and exit. |
 
-## `hermes kanban`
+## `gengar kanban`
 
 ```bash
-hermes kanban <action> [options]
+gengar kanban <action> [options]
 ```
 
-Multi-profile collaboration board. Tasks live in `~/.hermes/kanban.db` (WAL-mode SQLite); every profile reads and writes the same board. A `cron`-driven dispatcher (`hermes kanban dispatch`) atomically claims ready tasks and spawns the assigned profile as its own process with an isolated workspace.
+Multi-profile collaboration board. Tasks live in `~/.gengar/kanban.db` (WAL-mode SQLite); every profile reads and writes the same board. A `cron`-driven dispatcher (`gengar kanban dispatch`) atomically claims ready tasks and spawns the assigned profile as its own process with an isolated workspace.
 
 | Action | Purpose |
 |--------|---------|
@@ -367,12 +367,12 @@ Multi-profile collaboration board. Tasks live in `~/.hermes/kanban.db` (WAL-mode
 
 All actions are also available as a slash command in the gateway (`/kanban …`), with the same argument surface.
 
-For the full design — comparison with Cline Kanban / Paperclip / NanoClaw / Gemini Enterprise, eight collaboration patterns, four user stories, concurrency correctness proof — see `docs/hermes-kanban-v1-spec.pdf` in the repository or the [Kanban user guide](/docs/user-guide/features/kanban).
+For the full design — comparison with Cline Kanban / Paperclip / NanoClaw / Gemini Enterprise, eight collaboration patterns, four user stories, concurrency correctness proof — see `docs/gengar-kanban-v1-spec.pdf` in the repository or the [Kanban user guide](/docs/user-guide/features/kanban).
 
-## `hermes webhook`
+## `gengar webhook`
 
 ```bash
-hermes webhook <subscribe|list|remove|test>
+gengar webhook <subscribe|list|remove|test>
 ```
 
 Manage dynamic webhook subscriptions for event-driven agent activation. Requires the webhook platform to be enabled in config — if not configured, prints setup instructions.
@@ -384,10 +384,10 @@ Manage dynamic webhook subscriptions for event-driven agent activation. Requires
 | `remove` / `rm` | Delete a dynamic subscription. Static routes from config.yaml are not affected. |
 | `test` | Send a test POST to verify a subscription is working. |
 
-### `hermes webhook subscribe`
+### `gengar webhook subscribe`
 
 ```bash
-hermes webhook subscribe <name> [options]
+gengar webhook subscribe <name> [options]
 ```
 
 | Option | Description |
@@ -400,25 +400,25 @@ hermes webhook subscribe <name> [options]
 | `--deliver-chat-id` | Target chat/channel ID for cross-platform delivery. |
 | `--secret` | Custom HMAC secret. Auto-generated if omitted. |
 
-Subscriptions persist to `~/.hermes/webhook_subscriptions.json` and are hot-reloaded by the webhook adapter without a gateway restart.
+Subscriptions persist to `~/.gengar/webhook_subscriptions.json` and are hot-reloaded by the webhook adapter without a gateway restart.
 
-## `hermes doctor`
+## `gengar doctor`
 
 ```bash
-hermes doctor [--fix]
+gengar doctor [--fix]
 ```
 
 | Option | Description |
 |--------|-------------|
 | `--fix` | Attempt automatic repairs where possible. |
 
-## `hermes dump`
+## `gengar dump`
 
 ```bash
-hermes dump [--show-keys]
+gengar dump [--show-keys]
 ```
 
-Outputs a compact, plain-text summary of your entire Hermes setup. Designed to be copy-pasted into Discord, GitHub issues, or Telegram when asking for support — no ANSI colors, no special formatting, just data.
+Outputs a compact, plain-text summary of your entire Gengar setup. Designed to be copy-pasted into Discord, GitHub issues, or Telegram when asking for support — no ANSI colors, no special formatting, just data.
 
 | Option | Description |
 |--------|-------------|
@@ -428,9 +428,9 @@ Outputs a compact, plain-text summary of your entire Hermes setup. Designed to b
 
 | Section | Details |
 |---------|---------|
-| **Header** | Hermes version, release date, git commit hash |
+| **Header** | Gengar version, release date, git commit hash |
 | **Environment** | OS, Python version, OpenAI SDK version |
-| **Identity** | Active profile name, HERMES_HOME path |
+| **Identity** | Active profile name, GENGAR_HOME path |
 | **Model** | Configured default model and provider |
 | **Terminal** | Backend type (local, docker, ssh, etc.) |
 | **API keys** | Presence check for all 22 provider/tool API keys |
@@ -442,13 +442,13 @@ Outputs a compact, plain-text summary of your entire Hermes setup. Designed to b
 ### Example output
 
 ```
---- hermes dump ---
+--- gengar dump ---
 version:          0.8.0 (2026.4.8) [af4abd2f]
 os:               Linux 6.14.0-37-generic x86_64
 python:           3.11.14
 openai_sdk:       2.24.0
 profile:          default
-hermes_home:      ~/.hermes
+hermes_home:      ~/.gengar
 model:            anthropic/claude-opus-4.6
 provider:         openrouter
 terminal:         local
@@ -485,13 +485,13 @@ config_overrides:
 - Quick sanity check when something isn't working
 
 :::tip
-`hermes dump` is specifically designed for sharing. For interactive diagnostics, use `hermes doctor`. For a visual overview, use `hermes status`.
+`gengar dump` is specifically designed for sharing. For interactive diagnostics, use `gengar doctor`. For a visual overview, use `gengar status`.
 :::
 
-## `hermes debug`
+## `gengar debug`
 
 ```bash
-hermes debug share [options]
+gengar debug share [options]
 ```
 
 Upload a debug report (system info + recent logs) to a paste service and get a shareable URL. Useful for quick support requests — includes everything a helper needs to diagnose your issue.
@@ -502,69 +502,69 @@ Upload a debug report (system info + recent logs) to a paste service and get a s
 | `--expire <days>` | Paste expiry in days (default: 7). |
 | `--local` | Print the report locally instead of uploading. |
 
-The report includes system info (OS, Python version, Hermes version), recent agent and gateway logs (512 KB limit per file), and redacted API key status. Keys are always redacted — no secrets are uploaded.
+The report includes system info (OS, Python version, Gengar version), recent agent and gateway logs (512 KB limit per file), and redacted API key status. Keys are always redacted — no secrets are uploaded.
 
 Paste services tried in order: paste.rs, dpaste.com.
 
 ### Examples
 
 ```bash
-hermes debug share              # Upload debug report, print URL
-hermes debug share --lines 500  # Include more log lines
-hermes debug share --expire 30  # Keep paste for 30 days
-hermes debug share --local      # Print report to terminal (no upload)
+gengar debug share              # Upload debug report, print URL
+gengar debug share --lines 500  # Include more log lines
+gengar debug share --expire 30  # Keep paste for 30 days
+gengar debug share --local      # Print report to terminal (no upload)
 ```
 
-## `hermes backup`
+## `gengar backup`
 
 ```bash
-hermes backup [options]
+gengar backup [options]
 ```
 
-Create a zip archive of your Hermes configuration, skills, sessions, and data. The backup excludes the hermes-agent codebase itself.
+Create a zip archive of your Gengar configuration, skills, sessions, and data. The backup excludes the gengar codebase itself.
 
 | Option | Description |
 |--------|-------------|
-| `-o`, `--output <path>` | Output path for the zip file (default: `~/hermes-backup-<timestamp>.zip`). |
+| `-o`, `--output <path>` | Output path for the zip file (default: `~/gengar-backup-<timestamp>.zip`). |
 | `-q`, `--quick` | Quick snapshot: only critical state files (config.yaml, state.db, .env, auth, cron jobs). Much faster than a full backup. |
 | `-l`, `--label <name>` | Label for the snapshot (only used with `--quick`). |
 
-The backup uses SQLite's `backup()` API for safe copying, so it works correctly even when Hermes is running (WAL-mode safe).
+The backup uses SQLite's `backup()` API for safe copying, so it works correctly even when Gengar is running (WAL-mode safe).
 
 **What's excluded from the zip:**
 
 - `*.db-wal`, `*.db-shm`, `*.db-journal` — SQLite's WAL / shared-memory / journal sidecars. The `*.db` file already got a consistent snapshot via `sqlite3.backup()`; shipping the live sidecars alongside it would let a restore see a half-committed state.
 - `checkpoints/` — per-session trajectory caches. Hash-keyed and regenerated per session; wouldn't port cleanly to another install anyway.
-- The `hermes-agent` code itself (this is a user-data backup, not a repo snapshot).
+- The `gengar` code itself (this is a user-data backup, not a repo snapshot).
 
 ### Examples
 
 ```bash
-hermes backup                           # Full backup to ~/hermes-backup-*.zip
-hermes backup -o /tmp/hermes.zip        # Full backup to specific path
-hermes backup --quick                   # Quick state-only snapshot
-hermes backup --quick --label "pre-upgrade"  # Quick snapshot with label
+gengar backup                           # Full backup to ~/gengar-backup-*.zip
+gengar backup -o /tmp/gengar.zip        # Full backup to specific path
+gengar backup --quick                   # Quick state-only snapshot
+gengar backup --quick --label "pre-upgrade"  # Quick snapshot with label
 ```
 
-## `hermes import`
+## `gengar import`
 
 ```bash
-hermes import <zipfile> [options]
+gengar import <zipfile> [options]
 ```
 
-Restore a previously created Hermes backup into your Hermes home directory.
+Restore a previously created Gengar backup into your Gengar home directory.
 
 | Option | Description |
 |--------|-------------|
 | `-f`, `--force` | Overwrite existing files without confirmation. |
 
-## `hermes logs`
+## `gengar logs`
 
 ```bash
-hermes logs [log_name] [options]
+gengar logs [log_name] [options]
 ```
 
-View, tail, and filter Hermes log files. All logs are stored in `~/.hermes/logs/` (or `<profile>/logs/` for non-default profiles).
+View, tail, and filter Gengar log files. All logs are stored in `~/.gengar/logs/` (or `<profile>/logs/` for non-default profiles).
 
 ### Log files
 
@@ -590,25 +590,25 @@ View, tail, and filter Hermes log files. All logs are stored in `~/.hermes/logs/
 
 ```bash
 # View the last 50 lines of agent.log (default)
-hermes logs
+gengar logs
 
 # Follow agent.log in real time
-hermes logs -f
+gengar logs -f
 
 # View the last 100 lines of gateway.log
-hermes logs gateway -n 100
+gengar logs gateway -n 100
 
 # Show only warnings and errors from the last hour
-hermes logs --level WARNING --since 1h
+gengar logs --level WARNING --since 1h
 
 # Filter by a specific session
-hermes logs --session abc123
+gengar logs --session abc123
 
 # Follow errors.log, starting from 30 minutes ago
-hermes logs errors --since 30m -f
+gengar logs errors --since 30m -f
 
 # List all log files with their sizes
-hermes logs list
+gengar logs list
 ```
 
 ### Filtering
@@ -617,19 +617,19 @@ Filters can be combined. When multiple filters are active, a log line must pass 
 
 ```bash
 # WARNING+ lines from the last 2 hours containing session "tg-12345"
-hermes logs --level WARNING --since 2h --session tg-12345
+gengar logs --level WARNING --since 2h --session tg-12345
 ```
 
 Lines without a parseable timestamp are included when `--since` is active (they may be continuation lines from a multi-line log entry). Lines without a detectable level are included when `--level` is active.
 
 ### Log rotation
 
-Hermes uses Python's `RotatingFileHandler`. Old logs are rotated automatically — look for `agent.log.1`, `agent.log.2`, etc. The `hermes logs list` subcommand shows all log files including rotated ones.
+Gengar uses Python's `RotatingFileHandler`. Old logs are rotated automatically — look for `agent.log.1`, `agent.log.2`, etc. The `gengar logs list` subcommand shows all log files including rotated ones.
 
-## `hermes config`
+## `gengar config`
 
 ```bash
-hermes config <subcommand>
+gengar config <subcommand>
 ```
 
 Subcommands:
@@ -644,10 +644,10 @@ Subcommands:
 | `check` | Check for missing or stale config. |
 | `migrate` | Add newly introduced options interactively. |
 
-## `hermes pairing`
+## `gengar pairing`
 
 ```bash
-hermes pairing <list|approve|revoke|clear-pending>
+gengar pairing <list|approve|revoke|clear-pending>
 ```
 
 | Subcommand | Description |
@@ -657,10 +657,10 @@ hermes pairing <list|approve|revoke|clear-pending>
 | `revoke <platform> <user-id>` | Revoke a user's access. |
 | `clear-pending` | Clear pending pairing codes. |
 
-## `hermes skills`
+## `gengar skills`
 
 ```bash
-hermes skills <subcommand>
+gengar skills <subcommand>
 ```
 
 Subcommands:
@@ -684,32 +684,32 @@ Subcommands:
 Common examples:
 
 ```bash
-hermes skills browse
-hermes skills browse --source official
-hermes skills search react --source skills-sh
-hermes skills search https://mintlify.com/docs --source well-known
-hermes skills inspect official/security/1password
-hermes skills inspect skills-sh/vercel-labs/json-render/json-render-react
-hermes skills install official/migration/openclaw-migration
-hermes skills install skills-sh/anthropics/skills/pdf --force
-hermes skills install https://sharethis.chat/SKILL.md                     # Direct URL (single-file SKILL.md)
-hermes skills install https://example.com/SKILL.md --name my-skill        # Override name when frontmatter has none
-hermes skills check
-hermes skills update
-hermes skills config
+gengar skills browse
+gengar skills browse --source official
+gengar skills search react --source skills-sh
+gengar skills search https://mintlify.com/docs --source well-known
+gengar skills inspect official/security/1password
+gengar skills inspect skills-sh/vercel-labs/json-render/json-render-react
+gengar skills install official/migration/openclaw-migration
+gengar skills install skills-sh/anthropics/skills/pdf --force
+gengar skills install https://sharethis.chat/SKILL.md                     # Direct URL (single-file SKILL.md)
+gengar skills install https://example.com/SKILL.md --name my-skill        # Override name when frontmatter has none
+gengar skills check
+gengar skills update
+gengar skills config
 ```
 
 Notes:
 - `--force` can override non-dangerous policy blocks for third-party/community skills.
 - `--force` does not override a `dangerous` scan verdict.
 - `--source skills-sh` searches the public `skills.sh` directory.
-- `--source well-known` lets you point Hermes at a site exposing `/.well-known/skills/index.json`.
+- `--source well-known` lets you point Gengar at a site exposing `/.well-known/skills/index.json`.
 - Passing an `http(s)://…/*.md` URL installs a single-file SKILL.md directly. When frontmatter has no `name:` and the URL slug isn't a valid identifier, an interactive terminal prompts for a name; non-interactive surfaces (`/skills install` inside the TUI, gateway platforms) require `--name <x>` instead.
 
-## `hermes curator`
+## `gengar curator`
 
 ```bash
-hermes curator <subcommand>
+gengar curator <subcommand>
 ```
 
 The curator is an auxiliary-model background task that periodically reviews agent-created skills, prunes stale ones, consolidates overlaps, and archives obsolete skills. Bundled and hub-installed skills are never touched. Archives are recoverable; auto-deletion never happens.
@@ -720,8 +720,8 @@ The curator is an auxiliary-model background task that periodically reviews agen
 | `run` | Trigger a curator review now |
 | `run --sync` | Block until the LLM pass finishes |
 | `run --dry-run` | Preview only — produce the review report with no mutations |
-| `backup` | Take a manual tar.gz snapshot of `~/.hermes/skills/` (curator also snapshots automatically before every real run) |
-| `rollback` | Restore `~/.hermes/skills/` from a snapshot (defaults to newest) |
+| `backup` | Take a manual tar.gz snapshot of `~/.gengar/skills/` (curator also snapshots automatically before every real run) |
+| `rollback` | Restore `~/.gengar/skills/` from a snapshot (defaults to newest) |
 | `rollback --list` | List available snapshots |
 | `rollback --id <ts>` | Restore a specific snapshot by id |
 | `rollback -y` | Skip the confirmation prompt |
@@ -731,14 +731,14 @@ The curator is an auxiliary-model background task that periodically reviews agen
 | `unpin <skill>` | Unpin a skill |
 | `restore <skill>` | Restore an archived skill |
 
-On a fresh install the first scheduled pass is deferred by one full `interval_hours` (7 days by default) — the gateway will not curate immediately on the first tick after `hermes update`. Use `hermes curator run --dry-run` to preview before that happens.
+On a fresh install the first scheduled pass is deferred by one full `interval_hours` (7 days by default) — the gateway will not curate immediately on the first tick after `gengar update`. Use `gengar curator run --dry-run` to preview before that happens.
 
 See [Curator](../user-guide/features/curator.md) for behavior and config.
 
-## `hermes fallback`
+## `gengar fallback`
 
 ```bash
-hermes fallback <subcommand>
+gengar fallback <subcommand>
 ```
 
 Manage the fallback provider chain. Fallback providers are tried in order when the primary model fails with rate-limit, overload, or connection errors.
@@ -746,19 +746,19 @@ Manage the fallback provider chain. Fallback providers are tried in order when t
 | Subcommand | Description |
 |------------|-------------|
 | `list` (alias: `ls`) | Show the current fallback chain (default when no subcommand) |
-| `add` | Pick a provider + model (same picker as `hermes model`) and append to the chain |
+| `add` | Pick a provider + model (same picker as `gengar model`) and append to the chain |
 | `remove` (alias: `rm`) | Pick an entry to delete from the chain |
 | `clear` | Remove all fallback entries |
 
 See [Fallback Providers](../user-guide/features/fallback-providers.md).
 
-## `hermes hooks`
+## `gengar hooks`
 
 ```bash
-hermes hooks <subcommand>
+gengar hooks <subcommand>
 ```
 
-Inspect shell-script hooks declared in `~/.hermes/config.yaml`, test them against synthetic payloads, and manage the first-use consent allowlist at `~/.hermes/shell-hooks-allowlist.json`.
+Inspect shell-script hooks declared in `~/.gengar/config.yaml`, test them against synthetic payloads, and manage the first-use consent allowlist at `~/.gengar/shell-hooks-allowlist.json`.
 
 | Subcommand | Description |
 |------------|-------------|
@@ -769,10 +769,10 @@ Inspect shell-script hooks declared in `~/.hermes/config.yaml`, test them agains
 
 See [Hooks](../user-guide/features/hooks.md) for event signatures and payload shapes.
 
-## `hermes memory`
+## `gengar memory`
 
 ```bash
-hermes memory <subcommand>
+gengar memory <subcommand>
 ```
 
 Set up and manage external memory provider plugins. Available providers: honcho, openviking, mem0, hindsight, holographic, retaindb, byterover, supermemory. Only one external provider can be active at a time. Built-in memory (MEMORY.md/USER.md) is always active.
@@ -786,21 +786,21 @@ Subcommands:
 | `off` | Disable external provider (built-in only). |
 
 :::info Provider-specific subcommands
-When an external memory provider is active, it may register its own top-level `hermes <provider>` command for provider-specific management (e.g. `hermes honcho` when Honcho is active). Inactive providers do not expose their subcommands. Run `hermes --help` to see what's currently wired in.
+When an external memory provider is active, it may register its own top-level `gengar <provider>` command for provider-specific management (e.g. `gengar honcho` when Honcho is active). Inactive providers do not expose their subcommands. Run `gengar --help` to see what's currently wired in.
 :::
 
-## `hermes acp`
+## `gengar acp`
 
 ```bash
-hermes acp
+gengar acp
 ```
 
-Starts Hermes as an ACP (Agent Client Protocol) stdio server for editor integration.
+Starts Gengar as an ACP (Agent Client Protocol) stdio server for editor integration.
 
 Related entrypoints:
 
 ```bash
-hermes-acp
+gengar-acp
 python -m acp_adapter
 ```
 
@@ -812,32 +812,32 @@ pip install -e '.[acp]'
 
 See [ACP Editor Integration](../user-guide/features/acp.md) and [ACP Internals](../developer-guide/acp-internals.md).
 
-## `hermes mcp`
+## `gengar mcp`
 
 ```bash
-hermes mcp <subcommand>
+gengar mcp <subcommand>
 ```
 
-Manage MCP (Model Context Protocol) server configurations and run Hermes as an MCP server.
+Manage MCP (Model Context Protocol) server configurations and run Gengar as an MCP server.
 
 | Subcommand | Description |
 |------------|-------------|
-| `serve [-v\|--verbose]` | Run Hermes as an MCP server — expose conversations to other agents. |
+| `serve [-v\|--verbose]` | Run Gengar as an MCP server — expose conversations to other agents. |
 | `add <name> [--url URL] [--command CMD] [--args ...] [--auth oauth\|header]` | Add an MCP server with automatic tool discovery. |
 | `remove <name>` (alias: `rm`) | Remove an MCP server from config. |
 | `list` (alias: `ls`) | List configured MCP servers. |
 | `test <name>` | Test connection to an MCP server. |
 | `configure <name>` (alias: `config`) | Toggle tool selection for a server. |
 
-See [MCP Config Reference](./mcp-config-reference.md), [Use MCP with Hermes](../guides/use-mcp-with-hermes.md), and [MCP Server Mode](../user-guide/features/mcp.md#running-hermes-as-an-mcp-server).
+See [MCP Config Reference](./mcp-config-reference.md), [Use MCP with Gengar](../guides/use-mcp-with-gengar.md), and [MCP Server Mode](../user-guide/features/mcp.md#running-gengar-as-an-mcp-server).
 
-## `hermes plugins`
+## `gengar plugins`
 
 ```bash
-hermes plugins [subcommand]
+gengar plugins [subcommand]
 ```
 
-Unified plugin management — general plugins, memory providers, and context engines in one place. Running `hermes plugins` with no subcommand opens a composite interactive screen with two sections:
+Unified plugin management — general plugins, memory providers, and context engines in one place. Running `gengar plugins` with no subcommand opens a composite interactive screen with two sections:
 
 - **General Plugins** — multi-select checkboxes to enable/disable installed plugins
 - **Provider Plugins** — single-select configuration for Memory Provider and Context Engine. Press ENTER on a category to open a radio picker.
@@ -858,12 +858,12 @@ Provider plugin selections are saved to `config.yaml`:
 
 General plugin disabled list is stored in `config.yaml` under `plugins.disabled`.
 
-See [Plugins](../user-guide/features/plugins.md) and [Build a Hermes Plugin](../guides/build-a-hermes-plugin.md).
+See [Plugins](../user-guide/features/plugins.md) and [Build a Gengar Plugin](../guides/build-a-gengar-plugin.md).
 
-## `hermes tools`
+## `gengar tools`
 
 ```bash
-hermes tools [--summary]
+gengar tools [--summary]
 ```
 
 | Option | Description |
@@ -872,10 +872,10 @@ hermes tools [--summary]
 
 Without `--summary`, this launches the interactive per-platform tool configuration UI.
 
-## `hermes sessions`
+## `gengar sessions`
 
 ```bash
-hermes sessions <subcommand>
+gengar sessions <subcommand>
 ```
 
 Subcommands:
@@ -890,10 +890,10 @@ Subcommands:
 | `stats` | Show session-store statistics. |
 | `rename <session-id> <title>` | Set or change a session title. |
 
-## `hermes insights`
+## `gengar insights`
 
 ```bash
-hermes insights [--days N] [--source platform]
+gengar insights [--days N] [--source platform]
 ```
 
 | Option | Description |
@@ -901,21 +901,21 @@ hermes insights [--days N] [--source platform]
 | `--days <n>` | Analyze the last `n` days (default: 30). |
 | `--source <platform>` | Filter by source such as `cli`, `telegram`, or `discord`. |
 
-## `hermes claw`
+## `gengar claw`
 
 ```bash
-hermes claw migrate [options]
+gengar claw migrate [options]
 ```
 
-Migrate your OpenClaw setup to Hermes. Reads from `~/.openclaw` (or a custom path) and writes to `~/.hermes`. Automatically detects legacy directory names (`~/.clawdbot`, `~/.moltbot`) and config filenames (`clawdbot.json`, `moltbot.json`).
+Migrate your OpenClaw setup to Gengar. Reads from `~/.openclaw` (or a custom path) and writes to `~/.gengar`. Automatically detects legacy directory names (`~/.clawdbot`, `~/.moltbot`) and config filenames (`clawdbot.json`, `moltbot.json`).
 
 | Option | Description |
 |--------|-------------|
 | `--dry-run` | Preview what would be migrated without writing anything. |
 | `--preset <name>` | Migration preset: `full` (all compatible settings) or `user-data` (excludes infrastructure config). Neither preset imports secrets — pass `--migrate-secrets` explicitly. |
-| `--overwrite` | Overwrite existing Hermes files on conflicts (default: refuse to apply when the plan has conflicts). |
+| `--overwrite` | Overwrite existing Gengar files on conflicts (default: refuse to apply when the plan has conflicts). |
 | `--migrate-secrets` | Include API keys in migration. Required even under `--preset full`. |
-| `--no-backup` | Skip the pre-migration zip snapshot of `~/.hermes/` (by default a single restore-point archive is written to `~/.hermes/backups/pre-migration-*.zip` before apply; restorable with `hermes import`). |
+| `--no-backup` | Skip the pre-migration zip snapshot of `~/.gengar/` (by default a single restore-point archive is written to `~/.gengar/backups/pre-migration-*.zip` before apply; restorable with `gengar import`). |
 | `--source <path>` | Custom OpenClaw directory (default: `~/.openclaw`). |
 | `--workspace-target <path>` | Target directory for workspace instructions (AGENTS.md). |
 | `--skill-conflict <mode>` | Handle skill name collisions: `skip` (default), `overwrite`, or `rename`. |
@@ -923,7 +923,7 @@ Migrate your OpenClaw setup to Hermes. Reads from `~/.openclaw` (or a custom pat
 
 ### What gets migrated
 
-The migration covers 30+ categories across persona, memory, skills, model providers, messaging platforms, agent behavior, session policies, MCP servers, TTS, and more. Items are either **directly imported** into Hermes equivalents or **archived** for manual review.
+The migration covers 30+ categories across persona, memory, skills, model providers, messaging platforms, agent behavior, session policies, MCP servers, TTS, and more. Items are either **directly imported** into Gengar equivalents or **archived** for manual review.
 
 **Directly imported:** SOUL.md, MEMORY.md, USER.md, AGENTS.md, skills (4 source directories), default model, custom providers, MCP servers, messaging platform tokens and allowlists (Telegram, Discord, Slack, WhatsApp, Signal, Matrix, Mattermost), agent defaults (reasoning effort, compression, human delay, timezone, sandbox), session reset policies, approval rules, TTS config, browser settings, tool settings, exec timeout, command allowlist, gateway config, and API keys from 3 sources.
 
@@ -937,28 +937,28 @@ For the complete config key mapping, SecretRef handling details, and post-migrat
 
 ```bash
 # Preview what would be migrated
-hermes claw migrate --dry-run
+gengar claw migrate --dry-run
 
 # Full migration (all compatible settings, no secrets)
-hermes claw migrate --preset full
+gengar claw migrate --preset full
 
 # Full migration including API keys
-hermes claw migrate --preset full --migrate-secrets
+gengar claw migrate --preset full --migrate-secrets
 
 # Migrate user data only (no secrets), overwrite conflicts
-hermes claw migrate --preset user-data --overwrite
+gengar claw migrate --preset user-data --overwrite
 
 # Migrate from a custom OpenClaw path
-hermes claw migrate --source /home/user/old-openclaw
+gengar claw migrate --source /home/user/old-openclaw
 ```
 
-## `hermes dashboard`
+## `gengar dashboard`
 
 ```bash
-hermes dashboard [options]
+gengar dashboard [options]
 ```
 
-Launch the web dashboard — a browser-based UI for managing configuration, API keys, and monitoring sessions. Requires `pip install hermes-agent[web]` (FastAPI + Uvicorn). See [Web Dashboard](/docs/user-guide/features/web-dashboard) for full documentation.
+Launch the web dashboard — a browser-based UI for managing configuration, API keys, and monitoring sessions. Requires `pip install gengar[web]` (FastAPI + Uvicorn). See [Web Dashboard](/docs/user-guide/features/web-dashboard) for full documentation.
 
 | Option | Default | Description |
 |--------|---------|-------------|
@@ -968,19 +968,19 @@ Launch the web dashboard — a browser-based UI for managing configuration, API 
 
 ```bash
 # Default — opens browser to http://127.0.0.1:9119
-hermes dashboard
+gengar dashboard
 
 # Custom port, no browser
-hermes dashboard --port 8080 --no-open
+gengar dashboard --port 8080 --no-open
 ```
 
-## `hermes profile`
+## `gengar profile`
 
 ```bash
-hermes profile <subcommand>
+gengar profile <subcommand>
 ```
 
-Manage profiles — multiple isolated Hermes instances, each with its own config, sessions, skills, and home directory.
+Manage profiles — multiple isolated Gengar instances, each with its own config, sessions, skills, and home directory.
 
 | Subcommand | Description |
 |------------|-------------|
@@ -997,63 +997,63 @@ Manage profiles — multiple isolated Hermes instances, each with its own config
 Examples:
 
 ```bash
-hermes profile list
-hermes profile create work --clone
-hermes profile use work
-hermes profile alias work --name h-work
-hermes profile export work -o work-backup.tar.gz
-hermes profile import work-backup.tar.gz --name restored
-hermes -p work chat -q "Hello from work profile"
+gengar profile list
+gengar profile create work --clone
+gengar profile use work
+gengar profile alias work --name h-work
+gengar profile export work -o work-backup.tar.gz
+gengar profile import work-backup.tar.gz --name restored
+gengar -p work chat -q "Hello from work profile"
 ```
 
-## `hermes completion`
+## `gengar completion`
 
 ```bash
-hermes completion [bash|zsh|fish]
+gengar completion [bash|zsh|fish]
 ```
 
-Print a shell completion script to stdout. Source the output in your shell profile for tab-completion of Hermes commands, subcommands, and profile names.
+Print a shell completion script to stdout. Source the output in your shell profile for tab-completion of Gengar commands, subcommands, and profile names.
 
 Examples:
 
 ```bash
 # Bash
-hermes completion bash >> ~/.bashrc
+gengar completion bash >> ~/.bashrc
 
 # Zsh
-hermes completion zsh >> ~/.zshrc
+gengar completion zsh >> ~/.zshrc
 
 # Fish
-hermes completion fish > ~/.config/fish/completions/hermes.fish
+gengar completion fish > ~/.config/fish/completions/gengar.fish
 ```
 
-## `hermes update`
+## `gengar update`
 
 ```bash
-hermes update [--check] [--backup] [--restart-gateway]
+gengar update [--check] [--backup] [--restart-gateway]
 ```
 
-Pulls the latest `hermes-agent` code and reinstalls dependencies in your venv, then re-runs the post-install hooks (MCP servers, skills sync, completion install). Safe to run on a live install.
+Pulls the latest `gengar` code and reinstalls dependencies in your venv, then re-runs the post-install hooks (MCP servers, skills sync, completion install). Safe to run on a live install.
 
 | Option | Description |
 |--------|-------------|
 | `--check` | Print the current commit and the latest `origin/main` commit side by side, and exit 0 if in sync or 1 if behind. Does not pull, install, or restart anything. |
-| `--backup` | Create a labeled pre-update snapshot of `HERMES_HOME` (config, auth, sessions, skills, pairing data) before pulling. Default is **off** — the previous always-backup behavior was adding minutes to every update on large homes. Flip it on permanently via `update.backup: true` in `config.yaml`. |
+| `--backup` | Create a labeled pre-update snapshot of `GENGAR_HOME` (config, auth, sessions, skills, pairing data) before pulling. Default is **off** — the previous always-backup behavior was adding minutes to every update on large homes. Flip it on permanently via `update.backup: true` in `config.yaml`. |
 | `--restart-gateway` | After a successful update, restart the running gateway service. Implies `--all` semantics if multiple profiles are installed. |
 
 Additional behavior:
 
-- **Pairing data snapshot.** Even when `--backup` is off, `hermes update` takes a lightweight snapshot of `~/.hermes/pairing/` and the Feishu comment rules before `git pull`. You can roll it back with `hermes backup restore --state pre-update` if a pull rewrites a file you were editing.
-- **Legacy `hermes.service` warning.** If Hermes detects a pre-rename `hermes.service` systemd unit (instead of the current `hermes-gateway.service`), it prints a one-time migration hint so you can avoid flap-loop issues.
+- **Pairing data snapshot.** Even when `--backup` is off, `gengar update` takes a lightweight snapshot of `~/.gengar/pairing/` and the Feishu comment rules before `git pull`. You can roll it back with `gengar backup restore --state pre-update` if a pull rewrites a file you were editing.
+- **Legacy `gengar.service` warning.** If Gengar detects a pre-rename `gengar.service` systemd unit (instead of the current `gengar-gateway.service`), it prints a one-time migration hint so you can avoid flap-loop issues.
 - **Exit codes.** `0` on success, `1` on pull/install/post-install errors, `2` on unexpected working-tree changes that block `git pull`.
 
-## `hermes fallback`
+## `gengar fallback`
 
 ```bash
-hermes fallback           # interactive manager
+gengar fallback           # interactive manager
 ```
 
-Manage the fallback provider chain (used when your primary provider hits a rate limit or returns a fatal error) without hand-editing `config.yaml`. Reuses the provider picker from `hermes model` — same provider list, same credential prompts, same validation.
+Manage the fallback provider chain (used when your primary provider hits a rate limit or returns a fatal error) without hand-editing `config.yaml`. Reuses the provider picker from `gengar model` — same provider list, same credential prompts, same validation.
 
 Typical session:
 
@@ -1069,9 +1069,9 @@ See [Fallback Providers](/docs/user-guide/features/fallback-providers) for behav
 
 | Command | Description |
 |---------|-------------|
-| `hermes version` | Print version information. |
-| `hermes update` | Pull latest changes and reinstall dependencies. |
-| `hermes uninstall [--full] [--yes]` | Remove Hermes, optionally deleting all config/data. |
+| `gengar version` | Print version information. |
+| `gengar update` | Pull latest changes and reinstall dependencies. |
+| `gengar uninstall [--full] [--yes]` | Remove Gengar, optionally deleting all config/data. |
 
 ## See also
 

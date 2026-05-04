@@ -1,6 +1,6 @@
 """Tests for cmd_update gateway auto-restart — systemd + launchd coverage.
 
-Ensures ``hermes update`` correctly detects running gateways managed by
+Ensures ``gengar update`` correctly detects running gateways managed by
 systemd (Linux) or launchd (macOS) and restarts/informs the user properly,
 rather than leaving zombie processes or telling users to manually restart
 when launchd will auto-respawn.
@@ -67,18 +67,18 @@ def _make_run_side_effect(
         if "rev-list" in joined:
             return subprocess.CompletedProcess(cmd, 0, stdout=f"{commit_count}\n", stderr="")
 
-        # systemctl list-units hermes-gateway* — discover all gateway services
+        # systemctl list-units gengar-gateway* — discover all gateway services
         if "systemctl" in joined and "list-units" in joined:
             if "--user" in joined and systemd_active:
                 return subprocess.CompletedProcess(
                     cmd, 0,
-                    stdout="hermes-gateway.service loaded active running Hermes Gateway\n",
+                    stdout="gengar-gateway.service loaded active running Gengar Gateway\n",
                     stderr="",
                 )
             elif "--user" not in joined and system_service_active:
                 return subprocess.CompletedProcess(
                     cmd, 0,
-                    stdout="hermes-gateway.service loaded active running Hermes Gateway\n",
+                    stdout="gengar-gateway.service loaded active running Gengar Gateway\n",
                     stderr="",
                 )
             return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
@@ -102,10 +102,10 @@ def _make_run_side_effect(
                 return subprocess.CompletedProcess(cmd, system_restart_rc, stdout="", stderr=stderr)
             return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
 
-        # launchctl list ai.hermes.gateway
+        # launchctl list ai.gengar.gateway
         if "launchctl" in joined and "list" in joined:
             if launchctl_loaded:
-                return subprocess.CompletedProcess(cmd, 0, stdout="PID\tStatus\tLabel\n123\t0\tai.hermes.gateway\n", stderr="")
+                return subprocess.CompletedProcess(cmd, 0, stdout="PID\tStatus\tLabel\n123\t0\tai.gengar.gateway\n", stderr="")
             return subprocess.CompletedProcess(cmd, 113, stdout="", stderr="Could not find service")
 
         return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
@@ -154,7 +154,7 @@ class TestLaunchdPlistPath:
         assert "<key>EnvironmentVariables</key>" in plist
         assert "<key>PATH</key>" in plist
         assert "<key>VIRTUAL_ENV</key>" in plist
-        assert "<key>HERMES_HOME</key>" in plist
+        assert "<key>GENGAR_HOME</key>" in plist
 
     def test_plist_path_includes_venv_bin(self):
         plist = gateway_cli.generate_launchd_plist()
@@ -213,7 +213,7 @@ class TestLaunchdPlistPath:
 
 class TestLaunchdPlistCurrentness:
     def test_launchd_plist_is_current_ignores_path_drift(self, tmp_path, monkeypatch):
-        plist_path = tmp_path / "ai.hermes.gateway.plist"
+        plist_path = tmp_path / "ai.gengar.gateway.plist"
         monkeypatch.setattr(gateway_cli, "get_launchd_plist_path", lambda: plist_path)
 
         monkeypatch.setenv("PATH", "/custom/bin:/usr/bin:/bin")
@@ -234,7 +234,7 @@ class TestLaunchdPlistRefresh:
     refresh_systemd_unit_if_needed)."""
 
     def test_refresh_rewrites_stale_plist(self, tmp_path, monkeypatch):
-        plist_path = tmp_path / "ai.hermes.gateway.plist"
+        plist_path = tmp_path / "ai.gengar.gateway.plist"
         plist_path.write_text("<plist>old content</plist>")
 
         monkeypatch.setattr(gateway_cli, "get_launchd_plist_path", lambda: plist_path)
@@ -256,7 +256,7 @@ class TestLaunchdPlistRefresh:
         assert any("bootstrap" in str(c) for c in calls)
 
     def test_refresh_skips_when_current(self, tmp_path, monkeypatch):
-        plist_path = tmp_path / "ai.hermes.gateway.plist"
+        plist_path = tmp_path / "ai.gengar.gateway.plist"
         monkeypatch.setattr(gateway_cli, "get_launchd_plist_path", lambda: plist_path)
 
         # Write the current expected content
@@ -282,7 +282,7 @@ class TestLaunchdPlistRefresh:
 
     def test_launchd_start_calls_refresh(self, tmp_path, monkeypatch):
         """launchd_start refreshes the plist before starting."""
-        plist_path = tmp_path / "ai.hermes.gateway.plist"
+        plist_path = tmp_path / "ai.gengar.gateway.plist"
         plist_path.write_text("<plist>old</plist>")
         monkeypatch.setattr(gateway_cli, "get_launchd_plist_path", lambda: plist_path)
 
@@ -302,7 +302,7 @@ class TestLaunchdPlistRefresh:
 
     def test_launchd_start_recreates_missing_plist_and_loads_service(self, tmp_path, monkeypatch):
         """launchd_start self-heals when the plist file is missing entirely."""
-        plist_path = tmp_path / "ai.hermes.gateway.plist"
+        plist_path = tmp_path / "ai.gengar.gateway.plist"
         assert not plist_path.exists()
 
         monkeypatch.setattr(gateway_cli, "get_launchd_plist_path", lambda: plist_path)
@@ -337,9 +337,9 @@ class TestCmdUpdateLaunchdRestart:
         self, mock_run, _mock_which, mock_args, capsys, tmp_path, monkeypatch,
     ):
         """When launchd is running the gateway, update should print
-        'auto-restart via launchd' instead of 'Restart it with: hermes gateway run'."""
+        'auto-restart via launchd' instead of 'Restart it with: gengar gateway run'."""
         # Create a fake launchd plist so is_macos + plist.exists() passes
-        plist_path = tmp_path / "ai.hermes.gateway.plist"
+        plist_path = tmp_path / "ai.gengar.gateway.plist"
         plist_path.write_text("<plist/>")
 
         monkeypatch.setattr(
@@ -361,7 +361,7 @@ class TestCmdUpdateLaunchdRestart:
 
         captured = capsys.readouterr().out
         assert "Restarted" in captured
-        assert "Restart manually: hermes gateway run" not in captured
+        assert "Restart manually: gengar gateway run" not in captured
         mock_launchd_restart.assert_called_once_with()
 
     @patch("shutil.which", return_value=None)
@@ -373,7 +373,7 @@ class TestCmdUpdateLaunchdRestart:
         monkeypatch.setattr(
             gateway_cli, "is_macos", lambda: True,
         )
-        plist_path = tmp_path / "ai.hermes.gateway.plist"
+        plist_path = tmp_path / "ai.gengar.gateway.plist"
         # plist does NOT exist — no launchd service
         monkeypatch.setattr(
             gateway_cli, "get_launchd_plist_path", lambda: plist_path,
@@ -390,7 +390,7 @@ class TestCmdUpdateLaunchdRestart:
             cmd_update(mock_args)
 
         captured = capsys.readouterr().out
-        assert "Restart manually: hermes gateway run" in captured
+        assert "Restart manually: gengar gateway run" in captured
 
     @patch("shutil.which", return_value=None)
     @patch("subprocess.run")
@@ -402,7 +402,7 @@ class TestCmdUpdateLaunchdRestart:
         monkeypatch.setattr(
             gateway_cli,
             "get_launchd_plist_path",
-            lambda: tmp_path / "ai.hermes.gateway.plist",
+            lambda: tmp_path / "ai.gengar.gateway.plist",
         )
 
         mock_run.side_effect = _make_run_side_effect(
@@ -411,7 +411,7 @@ class TestCmdUpdateLaunchdRestart:
         )
         process = gateway_cli.ProfileGatewayProcess(
             profile="coder",
-            path=tmp_path / ".hermes" / "profiles" / "coder",
+            path=tmp_path / ".gengar" / "profiles" / "coder",
             pid=12345,
         )
 
@@ -428,7 +428,7 @@ class TestCmdUpdateLaunchdRestart:
         # Graceful drain succeeded — no SIGTERM fallback needed.
         kill.assert_not_called()
         assert "Restarting manual gateway profile(s): coder" in captured
-        assert "Restart manually: hermes gateway run" not in captured
+        assert "Restart manually: gengar gateway run" not in captured
 
     @patch("shutil.which", return_value=None)
     @patch("subprocess.run")
@@ -440,7 +440,7 @@ class TestCmdUpdateLaunchdRestart:
         monkeypatch.setattr(
             gateway_cli,
             "get_launchd_plist_path",
-            lambda: tmp_path / "ai.hermes.gateway.plist",
+            lambda: tmp_path / "ai.gengar.gateway.plist",
         )
 
         mock_run.side_effect = _make_run_side_effect(
@@ -449,7 +449,7 @@ class TestCmdUpdateLaunchdRestart:
         )
         process = gateway_cli.ProfileGatewayProcess(
             profile="coder",
-            path=tmp_path / ".hermes" / "profiles" / "coder",
+            path=tmp_path / ".gengar" / "profiles" / "coder",
             pid=12345,
         )
 
@@ -488,7 +488,7 @@ class TestCmdUpdateLaunchdRestart:
             cmd_update(mock_args)
 
         captured = capsys.readouterr().out
-        assert "Restarted hermes-gateway" in captured
+        assert "Restarted gengar-gateway" in captured
         # Verify systemctl restart was called
         restart_calls = [
             c for c in mock_run.call_args_list
@@ -529,7 +529,7 @@ class TestCmdUpdateLaunchdRestart:
                 if "--user" in joined:
                     return subprocess.CompletedProcess(
                         cmd, 0,
-                        stdout="hermes-gateway.service loaded active running\n",
+                        stdout="gengar-gateway.service loaded active running\n",
                         stderr="",
                     )
                 return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
@@ -592,7 +592,7 @@ class TestCmdUpdateLaunchdRestart:
 
         captured = capsys.readouterr().out
         assert "draining" in captured.lower()
-        assert "Restarted hermes-gateway" in captured
+        assert "Restarted gengar-gateway" in captured
 
     @patch("shutil.which", return_value=None)
     @patch("subprocess.run")
@@ -695,7 +695,7 @@ class TestCmdUpdateSystemService:
             cmd_update(mock_args)
 
         captured = capsys.readouterr().out
-        assert "Restarted hermes-gateway" in captured
+        assert "Restarted gengar-gateway" in captured
         # Verify systemctl restart (no --user) was called
         restart_calls = [
             c for c in mock_run.call_args_list
@@ -749,7 +749,7 @@ class TestCmdUpdateSystemService:
 
         captured = capsys.readouterr().out
         # Both scopes are discovered and restarted
-        assert "Restarted hermes-gateway" in captured
+        assert "Restarted gengar-gateway" in captured
 
 
 # ---------------------------------------------------------------------------
@@ -760,7 +760,7 @@ class TestCmdUpdateSystemService:
 class TestServicePidExclusion:
     """After restarting a service, the stale-process sweep must NOT kill
     the freshly-spawned service PID.  This was the root cause of the bug
-    where ``hermes update`` would restart the gateway and immediately kill it.
+    where ``gengar update`` would restart the gateway and immediately kill it.
     """
 
     @patch("shutil.which", return_value=None)
@@ -769,7 +769,7 @@ class TestServicePidExclusion:
         self, mock_run, _mock_which, mock_args, capsys, monkeypatch, tmp_path,
     ):
         """After launchd restart, the sweep must exclude the service PID."""
-        plist_path = tmp_path / "ai.hermes.gateway.plist"
+        plist_path = tmp_path / "ai.gengar.gateway.plist"
         plist_path.write_text("<plist/>")
 
         monkeypatch.setattr(gateway_cli, "is_macos", lambda: True)
@@ -841,7 +841,7 @@ class TestServicePidExclusion:
             cmd_update(mock_args)
 
         captured = capsys.readouterr().out
-        assert "Restarted hermes-gateway" in captured
+        assert "Restarted gengar-gateway" in captured
         # Service PID must not be killed
         kill_calls = [
             c for c in mock_kill.call_args_list
@@ -857,7 +857,7 @@ class TestServicePidExclusion:
     ):
         """When both a service PID and a manual PID exist, only the manual one
         is killed."""
-        plist_path = tmp_path / "ai.hermes.gateway.plist"
+        plist_path = tmp_path / "ai.gengar.gateway.plist"
         plist_path.write_text("<plist/>")
 
         monkeypatch.setattr(gateway_cli, "is_macos", lambda: True)
@@ -908,7 +908,7 @@ class TestGetServicePids:
             if "list-units" in joined:
                 return subprocess.CompletedProcess(
                     cmd, 0,
-                    stdout="hermes-gateway.service loaded active running Hermes Gateway\n",
+                    stdout="gengar-gateway.service loaded active running Gengar Gateway\n",
                     stderr="",
                 )
             if "show" in joined and "MainPID" in joined:
@@ -923,14 +923,14 @@ class TestGetServicePids:
     def test_returns_launchd_pid(self, monkeypatch):
         monkeypatch.setattr(gateway_cli, "is_linux", lambda: False)
         monkeypatch.setattr(gateway_cli, "is_macos", lambda: True)
-        monkeypatch.setattr(gateway_cli, "get_launchd_label", lambda: "ai.hermes.gateway")
+        monkeypatch.setattr(gateway_cli, "get_launchd_label", lambda: "ai.gengar.gateway")
 
         def fake_run(cmd, **kwargs):
             joined = " ".join(str(c) for c in cmd)
             if "launchctl" in joined and "list" in joined:
                 return subprocess.CompletedProcess(
                     cmd, 0,
-                    stdout="PID\tStatus\tLabel\n67890\t0\tai.hermes.gateway\n",
+                    stdout="PID\tStatus\tLabel\n67890\t0\tai.gengar.gateway\n",
                     stderr="",
                 )
             return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
@@ -958,7 +958,7 @@ class TestGetServicePids:
             if "list-units" in joined:
                 return subprocess.CompletedProcess(
                     cmd, 0,
-                    stdout="hermes-gateway.service loaded inactive dead Hermes Gateway\n",
+                    stdout="gengar-gateway.service loaded inactive dead Gengar Gateway\n",
                     stderr="",
                 )
             if "show" in joined and "MainPID" in joined:
@@ -1016,7 +1016,7 @@ class TestFindGatewayPidsExclude:
         assert 200 in pids
 
     def test_filters_to_current_profile(self, monkeypatch, tmp_path):
-        profile_dir = tmp_path / ".hermes" / "profiles" / "orcha"
+        profile_dir = tmp_path / ".gengar" / "profiles" / "orcha"
         profile_dir.mkdir(parents=True)
         monkeypatch.setattr(gateway_cli, "is_windows", lambda: False)
         monkeypatch.setattr(gateway_cli, "get_hermes_home", lambda: profile_dir)
@@ -1025,8 +1025,8 @@ class TestFindGatewayPidsExclude:
             return subprocess.CompletedProcess(
                 cmd, 0,
                 stdout=(
-                    "100 /Users/dgrieco/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main --profile orcha gateway run --replace\n"
-                    "200 /Users/dgrieco/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main --profile other gateway run --replace\n"
+                    "100 /Users/dgrieco/.gengar/gengar/venv/bin/python -m hermes_cli.main --profile orcha gateway run --replace\n"
+                    "200 /Users/dgrieco/.gengar/gengar/venv/bin/python -m hermes_cli.main --profile other gateway run --replace\n"
                 ),
                 stderr="",
             )
@@ -1047,7 +1047,7 @@ class TestFindGatewayPidsExclude:
 
 
 class TestGatewayModeWritesExitCodeEarly:
-    """When running as ``hermes update --gateway``, the exit code marker must be
+    """When running as ``gengar update --gateway``, the exit code marker must be
     written *before* the gateway restart attempt.  Without this, systemd's
     ``KillMode=mixed`` kills the update process (and its wrapping shell) during
     the cgroup teardown, so the shell epilogue that normally writes the exit
@@ -1064,10 +1064,10 @@ class TestGatewayModeWritesExitCodeEarly:
         monkeypatch.setattr(gateway_cli, "supports_systemd_services", lambda: False)
         monkeypatch.setattr(gateway_cli, "is_termux", lambda: False)
 
-        # Point HERMES_HOME at a temp dir so the marker file lands there
-        hermes_home = tmp_path / ".hermes"
+        # Point GENGAR_HOME at a temp dir so the marker file lands there
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         import hermes_cli.config as _cfg
         monkeypatch.setattr(_cfg, "get_hermes_home", lambda: hermes_home)
         # Also patch the module-level ref used by cmd_update
@@ -1095,9 +1095,9 @@ class TestGatewayModeWritesExitCodeEarly:
         monkeypatch.setattr(gateway_cli, "supports_systemd_services", lambda: False)
         monkeypatch.setattr(gateway_cli, "is_termux", lambda: False)
 
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         import hermes_cli.config as _cfg
         monkeypatch.setattr(_cfg, "get_hermes_home", lambda: hermes_home)
         import hermes_cli.main as _main_mod
@@ -1123,9 +1123,9 @@ class TestGatewayModeWritesExitCodeEarly:
         monkeypatch.setattr(gateway_cli, "supports_systemd_services", lambda: True)
         monkeypatch.setattr(gateway_cli, "is_termux", lambda: False)
 
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         import hermes_cli.config as _cfg
         monkeypatch.setattr(_cfg, "get_hermes_home", lambda: hermes_home)
         import hermes_cli.main as _main_mod
@@ -1159,17 +1159,17 @@ class TestGatewayModeWritesExitCodeEarly:
 
 
 class TestCmdUpdateLegacyGatewayWarning:
-    """Tests for the legacy hermes.service warning printed by `hermes update`.
+    """Tests for the legacy gengar.service warning printed by `gengar update`.
 
-    Users who installed Hermes before the service rename often have a
-    dormant ``hermes.service`` that starts flap-fighting the current
-    ``hermes-gateway.service`` after PR #5646. Every ``hermes update``
-    should remind them to run ``hermes gateway migrate-legacy`` until
+    Users who installed Gengar before the service rename often have a
+    dormant ``gengar.service`` that starts flap-fighting the current
+    ``gengar-gateway.service`` after PR #5646. Every ``gengar update``
+    should remind them to run ``gengar gateway migrate-legacy`` until
     they do.
     """
 
     _OUR_UNIT_TEXT = (
-        "[Unit]\nDescription=Hermes Gateway\n[Service]\n"
+        "[Unit]\nDescription=Gengar Gateway\n[Service]\n"
         "ExecStart=/usr/bin/python -m hermes_cli.main gateway run --replace\n"
     )
 
@@ -1183,7 +1183,7 @@ class TestCmdUpdateLegacyGatewayWarning:
         system_dir = tmp_path / "system"
         user_dir.mkdir()
         system_dir.mkdir()
-        legacy_path = user_dir / "hermes.service"
+        legacy_path = user_dir / "gengar.service"
         legacy_path.write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
         monkeypatch.setattr(
@@ -1201,9 +1201,9 @@ class TestCmdUpdateLegacyGatewayWarning:
             cmd_update(mock_args)
 
         captured = capsys.readouterr().out
-        assert "Legacy Hermes gateway unit(s) detected" in captured
-        assert "hermes.service" in captured
-        assert "hermes gateway migrate-legacy" in captured
+        assert "Legacy Gengar gateway unit(s) detected" in captured
+        assert "gengar.service" in captured
+        assert "gengar gateway migrate-legacy" in captured
         assert "(user scope)" in captured
 
     @patch("shutil.which", return_value=None)
@@ -1232,7 +1232,7 @@ class TestCmdUpdateLegacyGatewayWarning:
             cmd_update(mock_args)
 
         captured = capsys.readouterr().out
-        assert "Legacy Hermes gateway" not in captured
+        assert "Legacy Gengar gateway" not in captured
         assert "migrate-legacy" not in captured
 
     @patch("shutil.which", return_value=None)
@@ -1240,20 +1240,20 @@ class TestCmdUpdateLegacyGatewayWarning:
     def test_update_does_not_flag_profile_units(
         self, mock_run, _mock_which, mock_args, capsys, tmp_path, monkeypatch,
     ):
-        """Profile units (hermes-gateway-coder.service) must not trigger the warning.
+        """Profile units (gengar-gateway-coder.service) must not trigger the warning.
 
         This is the core safety invariant: the legacy allowlist is
-        ``hermes.service`` only, no globs.
+        ``gengar.service`` only, no globs.
         """
         user_dir = tmp_path / "user"
         system_dir = tmp_path / "system"
         user_dir.mkdir()
         system_dir.mkdir()
         # Drop a profile unit that an over-eager glob would match
-        (user_dir / "hermes-gateway-coder.service").write_text(
+        (user_dir / "gengar-gateway-coder.service").write_text(
             self._OUR_UNIT_TEXT, encoding="utf-8"
         )
-        (user_dir / "hermes-gateway.service").write_text(
+        (user_dir / "gengar-gateway.service").write_text(
             self._OUR_UNIT_TEXT, encoding="utf-8"
         )
 
@@ -1272,8 +1272,8 @@ class TestCmdUpdateLegacyGatewayWarning:
             cmd_update(mock_args)
 
         captured = capsys.readouterr().out
-        assert "Legacy Hermes gateway" not in captured
-        assert "hermes-gateway-coder.service" not in captured  # not flagged
+        assert "Legacy Gengar gateway" not in captured
+        assert "gengar-gateway-coder.service" not in captured  # not flagged
 
     @patch("shutil.which", return_value=None)
     @patch("subprocess.run")
@@ -1285,7 +1285,7 @@ class TestCmdUpdateLegacyGatewayWarning:
         user_dir = tmp_path / "user"
         user_dir.mkdir()
         # Put a file that WOULD match if the check ran
-        (user_dir / "hermes.service").write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
+        (user_dir / "gengar.service").write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
         monkeypatch.setattr(
             gateway_cli,
@@ -1304,7 +1304,7 @@ class TestCmdUpdateLegacyGatewayWarning:
 
         captured = capsys.readouterr().out
         # Must not print the warning on non-systemd platforms
-        assert "Legacy Hermes gateway" not in captured
+        assert "Legacy Gengar gateway" not in captured
 
     @patch("shutil.which", return_value=None)
     @patch("subprocess.run")
@@ -1316,7 +1316,7 @@ class TestCmdUpdateLegacyGatewayWarning:
         system_dir = tmp_path / "system"
         user_dir.mkdir()
         system_dir.mkdir()
-        (system_dir / "hermes.service").write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
+        (system_dir / "gengar.service").write_text(self._OUR_UNIT_TEXT, encoding="utf-8")
 
         monkeypatch.setattr(
             gateway_cli,
@@ -1333,6 +1333,6 @@ class TestCmdUpdateLegacyGatewayWarning:
             cmd_update(mock_args)
 
         captured = capsys.readouterr().out
-        assert "Legacy Hermes gateway" in captured
+        assert "Legacy Gengar gateway" in captured
         assert "(system scope)" in captured
         assert "sudo" in captured

@@ -8,9 +8,9 @@ description: "On-demand knowledge documents — progressive disclosure, agent-ma
 
 Skills are on-demand knowledge documents the agent can load when needed. They follow a **progressive disclosure** pattern to minimize token usage and are compatible with the [agentskills.io](https://agentskills.io/specification) open standard.
 
-All skills live in **`~/.hermes/skills/`** — the primary directory and source of truth. On fresh install, bundled skills are copied from the repo. Hub-installed and agent-created skills also go here. The agent can modify or delete any skill.
+All skills live in **`~/.gengar/skills/`** — the primary directory and source of truth. On fresh install, bundled skills are copied from the repo. Hub-installed and agent-created skills also go here. The agent can modify or delete any skill.
 
-You can also point Hermes at **external skill directories** — additional folders scanned alongside the local one. See [External Skill Directories](#external-skill-directories) below.
+You can also point Gengar at **external skill directories** — additional folders scanned alongside the local one. See [External Skill Directories](#external-skill-directories) below.
 
 See also:
 
@@ -32,13 +32,13 @@ Every installed skill is automatically available as a slash command:
 /excalidraw
 ```
 
-The bundled `plan` skill is a good example. Running `/plan [request]` loads the skill's instructions, telling Hermes to inspect context if needed, write a markdown implementation plan instead of executing the task, and save the result under `.hermes/plans/` relative to the active workspace/backend working directory.
+The bundled `plan` skill is a good example. Running `/plan [request]` loads the skill's instructions, telling Gengar to inspect context if needed, write a markdown implementation plan instead of executing the task, and save the result under `.gengar/plans/` relative to the active workspace/backend working directory.
 
 You can also interact with skills through natural conversation:
 
 ```bash
-hermes chat --toolsets skills -q "What skills do you have?"
-hermes chat --toolsets skills -q "Show me the axolotl skill"
+gengar chat --toolsets skills -q "What skills do you have?"
+gengar chat --toolsets skills -q "Show me the axolotl skill"
 ```
 
 ## Progressive Disclosure
@@ -62,7 +62,7 @@ description: Brief description of what this skill does
 version: 1.0.0
 platforms: [macos, linux]     # Optional — restrict to specific OS platforms
 metadata:
-  hermes:
+  gengar:
     tags: [python, automation]
     category: devops
     fallback_for_toolsets: [web]    # Optional — conditional activation (see below)
@@ -113,7 +113,7 @@ Skills can automatically show or hide themselves based on which tools are availa
 
 ```yaml
 metadata:
-  hermes:
+  gengar:
     fallback_for_toolsets: [web]      # Show ONLY when these toolsets are unavailable
     requires_toolsets: [terminal]     # Show ONLY when these toolsets are available
     fallback_for_tools: [web_search]  # Show ONLY when these specific tools are unavailable
@@ -143,7 +143,7 @@ required_environment_variables:
     required_for: full functionality
 ```
 
-When a missing value is encountered, Hermes asks for it securely only when the skill is actually loaded in the local CLI. You can skip setup and keep using the skill. Messaging surfaces never ask for secrets in chat — they tell you to use `hermes setup` or `~/.hermes/.env` locally instead.
+When a missing value is encountered, Gengar asks for it securely only when the skill is actually loaded in the local CLI. You can skip setup and keep using the skill. Messaging surfaces never ask for secrets in chat — they tell you to use `gengar setup` or `~/.gengar/.env` locally instead.
 
 Once set, declared env vars are **automatically passed through** to `execute_code` and `terminal` sandboxes — the skill's scripts can use `$TENOR_API_KEY` directly. For non-skill env vars, use the `terminal.env_passthrough` config option. See [Environment Variable Passthrough](/docs/user-guide/security#environment-variable-passthrough) for details.
 
@@ -153,7 +153,7 @@ Skills can also declare non-secret config settings (paths, preferences) stored i
 
 ```yaml
 metadata:
-  hermes:
+  gengar:
     config:
       - key: myplugin.path
         description: Path to the plugin data directory
@@ -161,14 +161,14 @@ metadata:
         prompt: Plugin data directory path
 ```
 
-Settings are stored under `skills.config` in your config.yaml. `hermes config migrate` prompts for unconfigured settings, and `hermes config show` displays them. When a skill loads, its resolved config values are injected into the context so the agent knows the configured values automatically.
+Settings are stored under `skills.config` in your config.yaml. `gengar config migrate` prompts for unconfigured settings, and `gengar config show` displays them. When a skill loads, its resolved config values are injected into the context so the agent knows the configured values automatically.
 
 See [Skill Settings](/docs/user-guide/configuration#skill-settings) and [Creating Skills — Config Settings](/docs/developer-guide/creating-skills#config-settings-configyaml) for details.
 
 ## Skill Directory Structure
 
 ```text
-~/.hermes/skills/                  # Single source of truth
+~/.gengar/skills/                  # Single source of truth
 ├── mlops/                         # Category directory
 │   ├── axolotl/
 │   │   ├── SKILL.md               # Main instructions (required)
@@ -191,9 +191,9 @@ See [Skill Settings](/docs/user-guide/configuration#skill-settings) and [Creatin
 
 ## External Skill Directories
 
-If you maintain skills outside of Hermes — for example, a shared `~/.agents/skills/` directory used by multiple AI tools — you can tell Hermes to scan those directories too.
+If you maintain skills outside of Gengar — for example, a shared `~/.agents/skills/` directory used by multiple AI tools — you can tell Gengar to scan those directories too.
 
-Add `external_dirs` under the `skills` section in `~/.hermes/config.yaml`:
+Add `external_dirs` under the `skills` section in `~/.gengar/config.yaml`:
 
 ```yaml
 skills:
@@ -207,15 +207,15 @@ Paths support `~` expansion and `${VAR}` environment variable substitution.
 
 ### How it works
 
-- **Read-only**: External dirs are only scanned for skill discovery. When the agent creates or edits a skill, it always writes to `~/.hermes/skills/`.
+- **Read-only**: External dirs are only scanned for skill discovery. When the agent creates or edits a skill, it always writes to `~/.gengar/skills/`.
 - **Local precedence**: If the same skill name exists in both the local dir and an external dir, the local version wins.
 - **Full integration**: External skills appear in the system prompt index, `skills_list`, `skill_view`, and as `/skill-name` slash commands — no different from local skills.
-- **Non-existent paths are silently skipped**: If a configured directory doesn't exist, Hermes ignores it without errors. Useful for optional shared directories that may not be present on every machine.
+- **Non-existent paths are silently skipped**: If a configured directory doesn't exist, Gengar ignores it without errors. Useful for optional shared directories that may not be present on every machine.
 
 ### Example
 
 ```text
-~/.hermes/skills/               # Local (primary, read-write)
+~/.gengar/skills/               # Local (primary, read-write)
 ├── devops/deploy-k8s/
 │   └── SKILL.md
 └── mlops/axolotl/
@@ -263,36 +263,36 @@ Browse, search, install, and manage skills from online registries, `skills.sh`, 
 ### Common commands
 
 ```bash
-hermes skills browse                              # Browse all hub skills (official first)
-hermes skills browse --source official            # Browse only official optional skills
-hermes skills search kubernetes                   # Search all sources
-hermes skills search react --source skills-sh     # Search the skills.sh directory
-hermes skills search https://mintlify.com/docs --source well-known
-hermes skills inspect openai/skills/k8s           # Preview before installing
-hermes skills install openai/skills/k8s           # Install with security scan
-hermes skills install official/security/1password
-hermes skills install skills-sh/vercel-labs/json-render/json-render-react --force
-hermes skills install well-known:https://mintlify.com/docs/.well-known/skills/mintlify
-hermes skills install https://sharethis.chat/SKILL.md              # Direct URL (single-file SKILL.md)
-hermes skills install https://example.com/SKILL.md --name my-skill # Override name when frontmatter has none
-hermes skills list --source hub                   # List hub-installed skills
-hermes skills check                               # Check installed hub skills for upstream updates
-hermes skills update                              # Reinstall hub skills with upstream changes when needed
-hermes skills audit                               # Re-scan all hub skills for security
-hermes skills uninstall k8s                       # Remove a hub skill
-hermes skills reset google-workspace              # Un-stick a bundled skill from "user-modified" (see below)
-hermes skills reset google-workspace --restore    # Also restore the bundled version, deleting your local edits
-hermes skills publish skills/my-skill --to github --repo owner/repo
-hermes skills snapshot export setup.json          # Export skill config
-hermes skills tap add myorg/skills-repo           # Add a custom GitHub source
+gengar skills browse                              # Browse all hub skills (official first)
+gengar skills browse --source official            # Browse only official optional skills
+gengar skills search kubernetes                   # Search all sources
+gengar skills search react --source skills-sh     # Search the skills.sh directory
+gengar skills search https://mintlify.com/docs --source well-known
+gengar skills inspect openai/skills/k8s           # Preview before installing
+gengar skills install openai/skills/k8s           # Install with security scan
+gengar skills install official/security/1password
+gengar skills install skills-sh/vercel-labs/json-render/json-render-react --force
+gengar skills install well-known:https://mintlify.com/docs/.well-known/skills/mintlify
+gengar skills install https://sharethis.chat/SKILL.md              # Direct URL (single-file SKILL.md)
+gengar skills install https://example.com/SKILL.md --name my-skill # Override name when frontmatter has none
+gengar skills list --source hub                   # List hub-installed skills
+gengar skills check                               # Check installed hub skills for upstream updates
+gengar skills update                              # Reinstall hub skills with upstream changes when needed
+gengar skills audit                               # Re-scan all hub skills for security
+gengar skills uninstall k8s                       # Remove a hub skill
+gengar skills reset google-workspace              # Un-stick a bundled skill from "user-modified" (see below)
+gengar skills reset google-workspace --restore    # Also restore the bundled version, deleting your local edits
+gengar skills publish skills/my-skill --to github --repo owner/repo
+gengar skills snapshot export setup.json          # Export skill config
+gengar skills tap add myorg/skills-repo           # Add a custom GitHub source
 ```
 
 ### Supported hub sources
 
 | Source | Example | Notes |
 |--------|---------|-------|
-| `official` | `official/security/1password` | Optional skills shipped with Hermes. |
-| `skills-sh` | `skills-sh/vercel-labs/agent-skills/vercel-react-best-practices` | Searchable via `hermes skills search <query> --source skills-sh`. Hermes resolves alias-style skills when the skills.sh slug differs from the repo folder. |
+| `official` | `official/security/1password` | Optional skills shipped with Gengar. |
+| `skills-sh` | `skills-sh/vercel-labs/agent-skills/vercel-react-best-practices` | Searchable via `gengar skills search <query> --source skills-sh`. Gengar resolves alias-style skills when the skills.sh slug differs from the repo folder. |
 | `well-known` | `well-known:https://mintlify.com/docs/.well-known/skills/mintlify` | Skills served directly from `/.well-known/skills/index.json` on a website. Search using the site or docs URL. |
 | `url` | `https://sharethis.chat/SKILL.md` | Direct HTTP(S) URL to a single-file `SKILL.md`. Name resolution: frontmatter → URL slug → interactive prompt → `--name` flag. |
 | `github` | `openai/skills/k8s` | Direct GitHub repo/path installs and custom taps. |
@@ -300,24 +300,24 @@ hermes skills tap add myorg/skills-repo           # Add a custom GitHub source
 
 ### Integrated hubs and registries
 
-Hermes currently integrates with these skills ecosystems and discovery sources:
+Gengar currently integrates with these skills ecosystems and discovery sources:
 
 #### 1. Official optional skills (`official`)
 
-These are maintained in the Hermes repository itself and install with builtin trust.
+These are maintained in the Gengar repository itself and install with builtin trust.
 
 - Catalog: [Official Optional Skills Catalog](../../reference/optional-skills-catalog)
 - Source in repo: `optional-skills/`
 - Example:
 
 ```bash
-hermes skills browse --source official
-hermes skills install official/security/1password
+gengar skills browse --source official
+gengar skills install official/security/1password
 ```
 
 #### 2. skills.sh (`skills-sh`)
 
-This is Vercel's public skills directory. Hermes can search it directly, inspect skill detail pages, resolve alias-style slugs, and install from the underlying source repo.
+This is Vercel's public skills directory. Gengar can search it directly, inspect skill detail pages, resolve alias-style slugs, and install from the underlying source repo.
 
 - Directory: [skills.sh](https://skills.sh/)
 - CLI/tooling repo: [vercel-labs/skills](https://github.com/vercel-labs/skills)
@@ -325,9 +325,9 @@ This is Vercel's public skills directory. Hermes can search it directly, inspect
 - Example:
 
 ```bash
-hermes skills search react --source skills-sh
-hermes skills inspect skills-sh/vercel-labs/json-render/json-render-react
-hermes skills install skills-sh/vercel-labs/json-render/json-render-react --force
+gengar skills search react --source skills-sh
+gengar skills inspect skills-sh/vercel-labs/json-render/json-render-react
+gengar skills install skills-sh/vercel-labs/json-render/json-render-react --force
 ```
 
 #### 3. Well-known skill endpoints (`well-known`)
@@ -339,14 +339,14 @@ This is URL-based discovery from sites that publish `/.well-known/skills/index.j
 - Example:
 
 ```bash
-hermes skills search https://mintlify.com/docs --source well-known
-hermes skills inspect well-known:https://mintlify.com/docs/.well-known/skills/mintlify
-hermes skills install well-known:https://mintlify.com/docs/.well-known/skills/mintlify
+gengar skills search https://mintlify.com/docs --source well-known
+gengar skills inspect well-known:https://mintlify.com/docs/.well-known/skills/mintlify
+gengar skills install well-known:https://mintlify.com/docs/.well-known/skills/mintlify
 ```
 
 #### 4. Direct GitHub skills (`github`)
 
-Hermes can install directly from GitHub repositories and GitHub-based taps. This is useful when you already know the repo/path or want to add your own custom source repo.
+Gengar can install directly from GitHub repositories and GitHub-based taps. This is useful when you already know the repo/path or want to add your own custom source repo.
 
 Default taps (browsable without any setup):
 - [openai/skills](https://github.com/openai/skills)
@@ -357,8 +357,8 @@ Default taps (browsable without any setup):
 - Example:
 
 ```bash
-hermes skills install openai/skills/k8s
-hermes skills tap add myorg/skills-repo
+gengar skills install openai/skills/k8s
+gengar skills tap add myorg/skills-repo
 ```
 
 #### 5. ClawHub (`clawhub`)
@@ -366,38 +366,38 @@ hermes skills tap add myorg/skills-repo
 A third-party skills marketplace integrated as a community source.
 
 - Site: [clawhub.ai](https://clawhub.ai/)
-- Hermes source id: `clawhub`
+- Gengar source id: `clawhub`
 
 #### 6. Claude marketplace-style repos (`claude-marketplace`)
 
-Hermes supports marketplace repos that publish Claude-compatible plugin/marketplace manifests.
+Gengar supports marketplace repos that publish Claude-compatible plugin/marketplace manifests.
 
 Known integrated sources include:
 - [anthropics/skills](https://github.com/anthropics/skills)
 - [aiskillstore/marketplace](https://github.com/aiskillstore/marketplace)
 
-Hermes source id: `claude-marketplace`
+Gengar source id: `claude-marketplace`
 
 #### 7. LobeHub (`lobehub`)
 
-Hermes can search and convert agent entries from LobeHub's public catalog into installable Hermes skills.
+Gengar can search and convert agent entries from LobeHub's public catalog into installable Gengar skills.
 
 - Site: [LobeHub](https://lobehub.com/)
 - Public agents index: [chat-agents.lobehub.com](https://chat-agents.lobehub.com/)
 - Backing repo: [lobehub/lobe-chat-agents](https://github.com/lobehub/lobe-chat-agents)
-- Hermes source id: `lobehub`
+- Gengar source id: `lobehub`
 
 #### 8. Direct URL (`url`)
 
-Install a single-file `SKILL.md` directly from any HTTP(S) URL — useful when an author hosts a skill on their own site (no hub listing, no GitHub path to type). Hermes fetches the URL, parses the YAML frontmatter, security-scans it, and installs.
+Install a single-file `SKILL.md` directly from any HTTP(S) URL — useful when an author hosts a skill on their own site (no hub listing, no GitHub path to type). Gengar fetches the URL, parses the YAML frontmatter, security-scans it, and installs.
 
-- Hermes source id: `url`
+- Gengar source id: `url`
 - Identifier: the URL itself (no prefix needed)
 - Scope: **single-file `SKILL.md`** only. Multi-file skills with `references/` or `scripts/` need a manifest and should be published via one of the other sources above.
 
 ```bash
-hermes skills install https://sharethis.chat/SKILL.md
-hermes skills install https://example.com/my-skill/SKILL.md --category productivity
+gengar skills install https://sharethis.chat/SKILL.md
+gengar skills install https://example.com/my-skill/SKILL.md --category productivity
 ```
 
 Name resolution, in order:
@@ -408,19 +408,19 @@ Name resolution, in order:
 
 ```bash
 # Frontmatter has no name and the URL slug is unhelpful — supply one:
-hermes skills install https://example.com/SKILL.md --name sharethis-chat
+gengar skills install https://example.com/SKILL.md --name sharethis-chat
 
 # Or inside a chat session:
 /skills install https://example.com/SKILL.md --name sharethis-chat
 ```
 
-Trust level is always `community` — the same security scan runs as for every other source. The URL is stored as the install identifier, so `hermes skills update` re-fetches from the same URL automatically when you want to refresh.
+Trust level is always `community` — the same security scan runs as for every other source. The URL is stored as the install identifier, so `gengar skills update` re-fetches from the same URL automatically when you want to refresh.
 
 ### Security scanning and `--force`
 
 All hub-installed skills go through a **security scanner** that checks for data exfiltration, prompt injection, destructive commands, supply-chain signals, and other threats.
 
-`hermes skills inspect ...` now also surfaces upstream metadata when available:
+`gengar skills inspect ...` now also surfaces upstream metadata when available:
 - repo URL
 - skills.sh detail page URL
 - install command
@@ -431,7 +431,7 @@ All hub-installed skills go through a **security scanner** that checks for data 
 Use `--force` when you have reviewed a third-party skill and want to override a non-dangerous policy block:
 
 ```bash
-hermes skills install skills-sh/anthropics/skills/pdf --force
+gengar skills install skills-sh/anthropics/skills/pdf --force
 ```
 
 Important behavior:
@@ -443,7 +443,7 @@ Important behavior:
 
 | Level | Source | Policy |
 |-------|--------|--------|
-| `builtin` | Ships with Hermes | Always trusted |
+| `builtin` | Ships with Gengar | Always trusted |
 | `official` | `optional-skills/` in the repo | Builtin trust, no third-party warning |
 | `trusted` | Trusted registries/repos such as `openai/skills`, `anthropics/skills` | More permissive policy than community sources |
 | `community` | Everything else (`skills.sh`, well-known endpoints, custom GitHub repos, most marketplaces) | Non-dangerous findings can be overridden with `--force`; `dangerous` verdicts stay blocked |
@@ -453,9 +453,9 @@ Important behavior:
 The hub now tracks enough provenance to re-check upstream copies of installed skills:
 
 ```bash
-hermes skills check          # Report which installed hub skills changed upstream
-hermes skills update         # Reinstall only the skills with updates available
-hermes skills update react   # Update one specific installed hub skill
+gengar skills check          # Report which installed hub skills changed upstream
+gengar skills update         # Reinstall only the skills with updates available
+gengar skills update react   # Update one specific installed hub skill
 ```
 
 This uses the stored source identifier plus the current upstream bundle content hash to detect drift.
@@ -464,30 +464,30 @@ This uses the stored source identifier plus the current upstream bundle content 
 Skills hub operations use the GitHub API, which has a rate limit of 60 requests/hour for unauthenticated users. If you see rate-limit errors during install or search, set `GITHUB_TOKEN` in your `.env` file to increase the limit to 5,000 requests/hour. The error message includes an actionable hint when this happens.
 :::
 
-## Bundled skill updates (`hermes skills reset`)
+## Bundled skill updates (`gengar skills reset`)
 
-Hermes ships with a set of bundled skills in `skills/` inside the repo. On install and on every `hermes update`, a sync pass copies those into `~/.hermes/skills/` and records a manifest at `~/.hermes/skills/.bundled_manifest` mapping each skill name to the content hash at the time it was synced (the **origin hash**).
+Gengar ships with a set of bundled skills in `skills/` inside the repo. On install and on every `gengar update`, a sync pass copies those into `~/.gengar/skills/` and records a manifest at `~/.gengar/skills/.bundled_manifest` mapping each skill name to the content hash at the time it was synced (the **origin hash**).
 
-On each sync, Hermes recomputes the hash of your local copy and compares it to the origin hash:
+On each sync, Gengar recomputes the hash of your local copy and compares it to the origin hash:
 
 - **Unchanged** → safe to pull upstream changes, copy the new bundled version in, record the new origin hash.
 - **Changed** → treated as **user-modified** and skipped forever, so your edits never get stomped.
 
-The protection is good, but it has one sharp edge. If you edit a bundled skill and then later want to abandon your changes and go back to the bundled version by just copy-pasting from `~/.hermes/hermes-agent/skills/`, the manifest still holds the *old* origin hash from whenever the last successful sync ran. Your fresh copy-paste contents (current bundled hash) won't match that stale origin hash, so sync keeps flagging it as user-modified.
+The protection is good, but it has one sharp edge. If you edit a bundled skill and then later want to abandon your changes and go back to the bundled version by just copy-pasting from `~/.gengar/gengar/skills/`, the manifest still holds the *old* origin hash from whenever the last successful sync ran. Your fresh copy-paste contents (current bundled hash) won't match that stale origin hash, so sync keeps flagging it as user-modified.
 
-`hermes skills reset` is the escape hatch:
+`gengar skills reset` is the escape hatch:
 
 ```bash
 # Safe: clears the manifest entry for this skill. Your current copy is preserved,
 # but the next sync re-baselines against it so future updates work normally.
-hermes skills reset google-workspace
+gengar skills reset google-workspace
 
 # Full restore: also deletes your local copy and re-copies the current bundled
 # version. Use this when you want the pristine upstream skill back.
-hermes skills reset google-workspace --restore
+gengar skills reset google-workspace --restore
 
 # Non-interactive (e.g. in scripts or TUI mode) — skip the --restore confirmation.
-hermes skills reset google-workspace --restore --yes
+gengar skills reset google-workspace --restore --yes
 ```
 
 The same command works in chat as a slash command:
@@ -498,7 +498,7 @@ The same command works in chat as a slash command:
 ```
 
 :::note Profiles
-Each profile has its own `.bundled_manifest` under its own `HERMES_HOME`, so `hermes -p coder skills reset <name>` only affects that profile.
+Each profile has its own `.bundled_manifest` under its own `GENGAR_HOME`, so `gengar -p coder skills reset <name>` only affects that profile.
 :::
 
 ### Slash commands (inside chat)

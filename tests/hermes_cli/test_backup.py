@@ -1,4 +1,4 @@
-"""Tests for hermes backup and import commands."""
+"""Tests for gengar backup and import commands."""
 
 import json
 import os
@@ -16,7 +16,7 @@ import pytest
 # ---------------------------------------------------------------------------
 
 def _make_hermes_tree(root: Path) -> None:
-    """Create a realistic ~/.hermes directory structure for testing."""
+    """Create a realistic ~/.gengar directory structure for testing."""
     (root / "config.yaml").write_text("model:\n  provider: openrouter\n")
     (root / ".env").write_text("OPENROUTER_API_KEY=sk-test-123\n")
     (root / "memory_store.db").write_bytes(b"fake-sqlite")
@@ -49,11 +49,11 @@ def _make_hermes_tree(root: Path) -> None:
     (root / "profiles" / "coder" / "config.yaml").write_text("model:\n  provider: anthropic\n")
     (root / "profiles" / "coder" / ".env").write_text("ANTHROPIC_API_KEY=sk-ant-123\n")
 
-    # hermes-agent repo (should be EXCLUDED)
-    (root / "hermes-agent").mkdir(exist_ok=True)
-    (root / "hermes-agent" / "run_agent.py").write_text("# big file\n")
-    (root / "hermes-agent" / ".git").mkdir()
-    (root / "hermes-agent" / ".git" / "HEAD").write_text("ref: refs/heads/main\n")
+    # gengar repo (should be EXCLUDED)
+    (root / "gengar").mkdir(exist_ok=True)
+    (root / "gengar" / "run_agent.py").write_text("# big file\n")
+    (root / "gengar" / ".git").mkdir()
+    (root / "gengar" / ".git" / "HEAD").write_text("ref: refs/heads/main\n")
 
     # __pycache__ (should be EXCLUDED)
     (root / "plugins").mkdir(exist_ok=True)
@@ -75,8 +75,8 @@ def _make_hermes_tree(root: Path) -> None:
 class TestShouldExclude:
     def test_excludes_hermes_agent(self):
         from hermes_cli.backup import _should_exclude
-        assert _should_exclude(Path("hermes-agent/run_agent.py"))
-        assert _should_exclude(Path("hermes-agent/.git/HEAD"))
+        assert _should_exclude(Path("gengar/run_agent.py"))
+        assert _should_exclude(Path("gengar/.git/HEAD"))
 
     def test_excludes_pycache(self):
         from hermes_cli.backup import _should_exclude
@@ -147,11 +147,11 @@ class TestShouldExclude:
 class TestBackup:
     def test_creates_zip(self, tmp_path, monkeypatch):
         """Backup creates a valid zip containing expected files."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         _make_hermes_tree(hermes_home)
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         # get_default_hermes_root needs this
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
@@ -180,12 +180,12 @@ class TestBackup:
             assert "skins/cyber.yaml" in names
 
     def test_excludes_hermes_agent(self, tmp_path, monkeypatch):
-        """Backup does NOT include hermes-agent/ directory."""
-        hermes_home = tmp_path / ".hermes"
+        """Backup does NOT include gengar/ directory."""
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         _make_hermes_tree(hermes_home)
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         out_zip = tmp_path / "backup.zip"
@@ -196,16 +196,16 @@ class TestBackup:
 
         with zipfile.ZipFile(out_zip, "r") as zf:
             names = zf.namelist()
-            agent_files = [n for n in names if "hermes-agent" in n]
-            assert agent_files == [], f"hermes-agent files leaked into backup: {agent_files}"
+            agent_files = [n for n in names if "gengar" in n]
+            assert agent_files == [], f"gengar files leaked into backup: {agent_files}"
 
     def test_excludes_pycache(self, tmp_path, monkeypatch):
         """Backup does NOT include __pycache__ dirs."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         _make_hermes_tree(hermes_home)
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         out_zip = tmp_path / "backup.zip"
@@ -221,11 +221,11 @@ class TestBackup:
 
     def test_excludes_pid_files(self, tmp_path, monkeypatch):
         """Backup does NOT include PID files."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         _make_hermes_tree(hermes_home)
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         out_zip = tmp_path / "backup.zip"
@@ -240,12 +240,12 @@ class TestBackup:
             assert pid_files == []
 
     def test_default_output_path(self, tmp_path, monkeypatch):
-        """When no output path given, zip goes to ~/hermes-backup-*.zip."""
-        hermes_home = tmp_path / ".hermes"
+        """When no output path given, zip goes to ~/gengar-backup-*.zip."""
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         (hermes_home / "config.yaml").write_text("model: test\n")
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         args = Namespace(output=None)
@@ -254,7 +254,7 @@ class TestBackup:
         run_backup(args)
 
         # Should exist in home dir
-        zips = list(tmp_path.glob("hermes-backup-*.zip"))
+        zips = list(tmp_path.glob("gengar-backup-*.zip"))
         assert len(zips) == 1
 
 
@@ -269,7 +269,7 @@ class TestValidateBackupZip:
                 zf.writestr(name, "dummy")
 
     def test_state_db_passes(self, tmp_path):
-        """A zip containing state.db is accepted as a valid Hermes backup."""
+        """A zip containing state.db is accepted as a valid Gengar backup."""
         from hermes_cli.backup import _validate_backup_zip
         zip_path = tmp_path / "backup.zip"
         self._make_zip(zip_path, ["state.db", "sessions/abc.json"])
@@ -311,10 +311,10 @@ class TestImport:
                     zf.writestr(name, content)
 
     def test_restores_files(self, tmp_path, monkeypatch):
-        """Import extracts files into hermes home."""
-        hermes_home = tmp_path / ".hermes"
+        """Import extracts files into gengar home."""
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -336,16 +336,16 @@ class TestImport:
         assert (hermes_home / "profiles" / "coder" / "config.yaml").exists()
 
     def test_strips_hermes_prefix(self, tmp_path, monkeypatch):
-        """Import strips .hermes/ prefix if all entries share it."""
-        hermes_home = tmp_path / ".hermes"
+        """Import strips .gengar/ prefix if all entries share it."""
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
         self._make_backup_zip(zip_path, {
-            ".hermes/config.yaml": "model: test\n",
-            ".hermes/skills/a/SKILL.md": "# A\n",
+            ".gengar/config.yaml": "model: test\n",
+            ".gengar/skills/a/SKILL.md": "# A\n",
         })
 
         args = Namespace(zipfile=str(zip_path), force=True)
@@ -358,9 +358,9 @@ class TestImport:
 
     def test_rejects_empty_zip(self, tmp_path, monkeypatch):
         """Import rejects an empty zip."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "empty.zip"
@@ -374,10 +374,10 @@ class TestImport:
             run_import(args)
 
     def test_rejects_non_hermes_zip(self, tmp_path, monkeypatch):
-        """Import rejects a zip that doesn't look like a hermes backup."""
-        hermes_home = tmp_path / ".hermes"
+        """Import rejects a zip that doesn't look like a gengar backup."""
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "random.zip"
@@ -394,9 +394,9 @@ class TestImport:
 
     def test_blocks_path_traversal(self, tmp_path, monkeypatch):
         """Import blocks zip entries with path traversal."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "evil.zip"
@@ -413,16 +413,16 @@ class TestImport:
 
         # config.yaml should be restored
         assert (hermes_home / "config.yaml").exists()
-        # traversal file should NOT exist outside hermes home
+        # traversal file should NOT exist outside gengar home
         assert not (tmp_path / "etc" / "passwd").exists()
 
     def test_confirmation_prompt_abort(self, tmp_path, monkeypatch):
         """Import aborts when user says no to confirmation."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         # Pre-existing config triggers the confirmation
         (hermes_home / "config.yaml").write_text("existing: true\n")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -441,10 +441,10 @@ class TestImport:
 
     def test_force_skips_confirmation(self, tmp_path, monkeypatch):
         """Import with --force skips confirmation and overwrites."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         (hermes_home / "config.yaml").write_text("existing: true\n")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -461,9 +461,9 @@ class TestImport:
 
     def test_missing_file_exits(self, tmp_path, monkeypatch):
         """Import exits with error for nonexistent file."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
 
         args = Namespace(zipfile=str(tmp_path / "nonexistent.zip"), force=True)
 
@@ -480,11 +480,11 @@ class TestRoundTrip:
     def test_backup_then_import(self, tmp_path, monkeypatch):
         """Full round-trip: backup -> import to a new location -> verify."""
         # Source
-        src_home = tmp_path / "source" / ".hermes"
+        src_home = tmp_path / "source" / ".gengar"
         src_home.mkdir(parents=True)
         _make_hermes_tree(src_home)
 
-        monkeypatch.setenv("HERMES_HOME", str(src_home))
+        monkeypatch.setenv("GENGAR_HOME", str(src_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "source")
 
         # Backup
@@ -495,9 +495,9 @@ class TestRoundTrip:
         assert out_zip.exists()
 
         # Import into a different location
-        dst_home = tmp_path / "dest" / ".hermes"
+        dst_home = tmp_path / "dest" / ".gengar"
         dst_home.mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(dst_home))
+        monkeypatch.setenv("GENGAR_HOME", str(dst_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "dest")
 
         run_import(Namespace(zipfile=str(out_zip), force=True))
@@ -510,8 +510,8 @@ class TestRoundTrip:
         assert (dst_home / "sessions" / "abc123.json").exists()
         assert (dst_home / "logs" / "agent.log").exists()
 
-        # hermes-agent should NOT be present
-        assert not (dst_home / "hermes-agent").exists()
+        # gengar should NOT be present
+        assert not (dst_home / "gengar").exists()
         # __pycache__ should NOT be present
         assert not (dst_home / "plugins" / "__pycache__").exists()
         # PID files should NOT be present
@@ -572,7 +572,7 @@ class TestValidation:
         assert ok
 
     def test_validate_rejects_random(self):
-        """Zip without hermes markers fails validation."""
+        """Zip without gengar markers fails validation."""
         import io
         from hermes_cli.backup import _validate_backup_zip
 
@@ -585,17 +585,17 @@ class TestValidation:
         assert not ok
 
     def test_detect_prefix_hermes(self):
-        """Detects .hermes/ prefix wrapping all entries."""
+        """Detects .gengar/ prefix wrapping all entries."""
         import io
         from hermes_cli.backup import _detect_prefix
 
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w") as zf:
-            zf.writestr(".hermes/config.yaml", "test")
-            zf.writestr(".hermes/skills/a/SKILL.md", "skill")
+            zf.writestr(".gengar/config.yaml", "test")
+            zf.writestr(".gengar/skills/a/SKILL.md", "skill")
         buf.seek(0)
         with zipfile.ZipFile(buf, "r") as zf:
-            assert _detect_prefix(zf) == ".hermes/"
+            assert _detect_prefix(zf) == ".gengar/"
 
     def test_detect_prefix_none(self):
         """No prefix when entries are at root."""
@@ -618,8 +618,8 @@ class TestValidation:
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w") as zf:
             # Only directory entries (trailing slash)
-            zf.writestr(".hermes/", "")
-            zf.writestr(".hermes/skills/", "")
+            zf.writestr(".gengar/", "")
+            zf.writestr(".gengar/skills/", "")
         buf.seek(0)
         with zipfile.ZipFile(buf, "r") as zf:
             assert _detect_prefix(zf) == ""
@@ -631,9 +631,9 @@ class TestValidation:
 
 class TestBackupEdgeCases:
     def test_nonexistent_hermes_home(self, tmp_path, monkeypatch):
-        """Backup exits when hermes home doesn't exist."""
-        fake_home = tmp_path / "nonexistent" / ".hermes"
-        monkeypatch.setenv("HERMES_HOME", str(fake_home))
+        """Backup exits when gengar home doesn't exist."""
+        fake_home = tmp_path / "nonexistent" / ".gengar"
+        monkeypatch.setenv("GENGAR_HOME", str(fake_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "nonexistent")
 
         args = Namespace(output=str(tmp_path / "out.zip"))
@@ -644,11 +644,11 @@ class TestBackupEdgeCases:
 
     def test_output_is_directory(self, tmp_path, monkeypatch):
         """When output path is a directory, zip is created inside it."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         (hermes_home / "config.yaml").write_text("model: test\n")
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         out_dir = tmp_path / "backups"
@@ -659,16 +659,16 @@ class TestBackupEdgeCases:
         from hermes_cli.backup import run_backup
         run_backup(args)
 
-        zips = list(out_dir.glob("hermes-backup-*.zip"))
+        zips = list(out_dir.glob("gengar-backup-*.zip"))
         assert len(zips) == 1
 
     def test_output_without_zip_suffix(self, tmp_path, monkeypatch):
         """Output path without .zip gets suffix appended."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         (hermes_home / "config.yaml").write_text("model: test\n")
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         out_path = tmp_path / "mybackup.tar"
@@ -681,14 +681,14 @@ class TestBackupEdgeCases:
         assert (tmp_path / "mybackup.tar.zip").exists()
 
     def test_empty_hermes_home(self, tmp_path, monkeypatch):
-        """Backup handles empty hermes home (no files to back up)."""
-        hermes_home = tmp_path / ".hermes"
+        """Backup handles empty gengar home (no files to back up)."""
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         # Only excluded dirs, no actual files
         (hermes_home / "__pycache__").mkdir()
         (hermes_home / "__pycache__" / "foo.pyc").write_bytes(b"\x00")
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         args = Namespace(output=str(tmp_path / "out.zip"))
@@ -701,7 +701,7 @@ class TestBackupEdgeCases:
 
     def test_permission_error_during_backup(self, tmp_path, monkeypatch):
         """Backup handles permission errors gracefully."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         (hermes_home / "config.yaml").write_text("model: test\n")
 
@@ -710,7 +710,7 @@ class TestBackupEdgeCases:
         bad_file.write_text("data")
         bad_file.chmod(0o000)
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         out_zip = tmp_path / "out.zip"
@@ -728,7 +728,7 @@ class TestBackupEdgeCases:
 
     def test_pre1980_timestamp_skipped(self, tmp_path, monkeypatch):
         """Backup skips files with pre-1980 timestamps (ZIP limitation)."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         (hermes_home / "config.yaml").write_text("model: test\n")
 
@@ -737,7 +737,7 @@ class TestBackupEdgeCases:
         old_file.write_text("old data")
         os.utime(old_file, (0, 0))
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         out_zip = tmp_path / "out.zip"
@@ -755,15 +755,15 @@ class TestBackupEdgeCases:
             assert "ancient.txt" not in names
 
     def test_skips_output_zip_inside_hermes(self, tmp_path, monkeypatch):
-        """Backup skips its own output zip if it's inside hermes root."""
-        hermes_home = tmp_path / ".hermes"
+        """Backup skips its own output zip if it's inside gengar root."""
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         (hermes_home / "config.yaml").write_text("model: test\n")
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
-        # Output inside hermes home
+        # Output inside gengar home
         out_zip = hermes_home / "backup.zip"
         args = Namespace(output=str(out_zip))
 
@@ -784,9 +784,9 @@ class TestImportEdgeCases:
 
     def test_not_a_zip(self, tmp_path, monkeypatch):
         """Import rejects a non-zip file."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
 
         not_zip = tmp_path / "fake.zip"
         not_zip.write_text("this is not a zip")
@@ -799,10 +799,10 @@ class TestImportEdgeCases:
 
     def test_eof_during_confirmation(self, tmp_path, monkeypatch):
         """Import handles EOFError during confirmation prompt."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         (hermes_home / "config.yaml").write_text("existing\n")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -817,10 +817,10 @@ class TestImportEdgeCases:
 
     def test_keyboard_interrupt_during_confirmation(self, tmp_path, monkeypatch):
         """Import handles KeyboardInterrupt during confirmation prompt."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         (hermes_home / ".env").write_text("KEY=val\n")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -835,9 +835,9 @@ class TestImportEdgeCases:
 
     def test_permission_error_during_import(self, tmp_path, monkeypatch):
         """Import handles permission errors during extraction."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         # Create a read-only directory so extraction fails
@@ -864,9 +864,9 @@ class TestImportEdgeCases:
 
     def test_progress_with_many_files(self, tmp_path, monkeypatch):
         """Import shows progress with 500+ files."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "big.zip"
@@ -897,9 +897,9 @@ class TestProfileRestoration:
 
     def test_import_creates_profile_wrappers(self, tmp_path, monkeypatch):
         """Import auto-creates wrapper scripts for restored profiles."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         # Mock the wrapper dir to be inside tmp_path
@@ -929,13 +929,13 @@ class TestProfileRestoration:
 
         # Wrappers should contain the right content
         coder_wrapper = (wrapper_dir / "coder").read_text()
-        assert "hermes -p coder" in coder_wrapper
+        assert "gengar -p coder" in coder_wrapper
 
     def test_import_skips_profile_dirs_without_config(self, tmp_path, monkeypatch):
         """Import doesn't create wrappers for profile dirs without config."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         wrapper_dir = tmp_path / ".local" / "bin"
@@ -959,9 +959,9 @@ class TestProfileRestoration:
 
     def test_import_without_profiles_module(self, tmp_path, monkeypatch):
         """Import gracefully handles missing profiles module (fresh install)."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("GENGAR_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -1041,8 +1041,8 @@ class TestSafeCopyDb:
 class TestQuickSnapshot:
     @pytest.fixture
     def hermes_home(self, tmp_path):
-        """Create a fake HERMES_HOME with critical state files."""
-        home = tmp_path / ".hermes"
+        """Create a fake GENGAR_HOME with critical state files."""
+        home = tmp_path / ".gengar"
         home.mkdir()
         (home / "config.yaml").write_text("model:\n  provider: openrouter\n")
         (home / ".env").write_text("OPENROUTER_API_KEY=test-key-123\n")
@@ -1244,16 +1244,16 @@ class TestQuickSnapshot:
         assert snap_id is not None
 
 # ---------------------------------------------------------------------------
-# Pre-update backup (hermes update safety net)
+# Pre-update backup (gengar update safety net)
 # ---------------------------------------------------------------------------
 
 class TestPreUpdateBackup:
-    """Tests for create_pre_update_backup — the auto-backup ``hermes update``
+    """Tests for create_pre_update_backup — the auto-backup ``gengar update``
     runs before touching anything."""
 
     @pytest.fixture
     def hermes_home(self, tmp_path):
-        root = tmp_path / ".hermes"
+        root = tmp_path / ".gengar"
         root.mkdir()
         _make_hermes_tree(root)
         return root
@@ -1269,7 +1269,7 @@ class TestPreUpdateBackup:
 
     def test_backup_contents_match_full_backup(self, hermes_home):
         """Pre-update backup should include the same user data that
-        ``hermes backup`` would, and should exclude the same directories."""
+        ``gengar backup`` would, and should exclude the same directories."""
         from hermes_cli.backup import create_pre_update_backup
         out = create_pre_update_backup(hermes_home=hermes_home)
         assert out is not None
@@ -1281,8 +1281,8 @@ class TestPreUpdateBackup:
         assert "sessions/abc123.json" in names
         assert "skills/my-skill/SKILL.md" in names
         assert "profiles/coder/config.yaml" in names
-        # hermes-agent repo excluded
-        assert not any(n.startswith("hermes-agent/") for n in names)
+        # gengar repo excluded
+        assert not any(n.startswith("gengar/") for n in names)
         # __pycache__ excluded
         assert not any("__pycache__" in n for n in names)
         # pid files excluded
@@ -1355,14 +1355,14 @@ class TestRunPreUpdateBackup:
 
     @pytest.fixture
     def hermes_home(self, tmp_path, monkeypatch):
-        root = tmp_path / ".hermes"
+        root = tmp_path / ".gengar"
         root.mkdir()
         _make_hermes_tree(root)
-        # Point HERMES_HOME at the temp dir so config + backup paths resolve here
-        monkeypatch.setenv("HERMES_HOME", str(root))
+        # Point GENGAR_HOME at the temp dir so config + backup paths resolve here
+        monkeypatch.setenv("GENGAR_HOME", str(root))
         # Make Path.home() point at tmp_path for anything that uses it
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        # Bust caches for hermes_cli.config + hermes_constants so they pick up HERMES_HOME
+        # Bust caches for hermes_cli.config + hermes_constants so they pick up GENGAR_HOME
         for mod in list(__import__("sys").modules.keys()):
             if mod.startswith("hermes_cli.config") or mod == "hermes_constants":
                 del __import__("sys").modules[mod]
@@ -1376,7 +1376,7 @@ class TestRunPreUpdateBackup:
         assert "Creating pre-update backup" in out
         assert "Saved:" in out
         assert "Restore:" in out
-        assert "hermes import" in out
+        assert "gengar import" in out
         assert "Disable:" in out
         # Actual backup was created
         backups = list((hermes_home / "backups").glob("pre-update-*.zip"))
@@ -1465,16 +1465,16 @@ class TestRunPreUpdateBackup:
 
 
 # ---------------------------------------------------------------------------
-# Pre-migration backup (hermes claw migrate safety net)
+# Pre-migration backup (gengar claw migrate safety net)
 # ---------------------------------------------------------------------------
 
 class TestPreMigrationBackup:
     """Tests for create_pre_migration_backup — the auto-backup
-    ``hermes claw migrate`` runs before mutating ~/.hermes/."""
+    ``gengar claw migrate`` runs before mutating ~/.gengar/."""
 
     @pytest.fixture
     def hermes_home(self, tmp_path):
-        root = tmp_path / ".hermes"
+        root = tmp_path / ".gengar"
         root.mkdir()
         _make_hermes_tree(root)
         return root
@@ -1484,7 +1484,7 @@ class TestPreMigrationBackup:
         out = create_pre_migration_backup(hermes_home=hermes_home)
         assert out is not None
         assert out.exists()
-        # Shares the backups/ directory with pre-update backups so `hermes
+        # Shares the backups/ directory with pre-update backups so `gengar
         # import` and the update-backup listing both pick them up.
         assert out.parent == hermes_home / "backups"
         assert out.name.startswith("pre-migration-")
@@ -1492,7 +1492,7 @@ class TestPreMigrationBackup:
 
     def test_backup_uses_shared_exclusion_rules(self, hermes_home):
         """Pre-migration backup reuses the same exclusion rules as
-        ``hermes backup`` / ``create_pre_update_backup`` — no drift."""
+        ``gengar backup`` / ``create_pre_update_backup`` — no drift."""
         from hermes_cli.backup import create_pre_migration_backup
         out = create_pre_migration_backup(hermes_home=hermes_home)
         assert out is not None
@@ -1503,13 +1503,13 @@ class TestPreMigrationBackup:
         assert ".env" in names
         assert "skills/my-skill/SKILL.md" in names
         # Same exclusions as the shared helper
-        assert not any(n.startswith("hermes-agent/") for n in names)
+        assert not any(n.startswith("gengar/") for n in names)
         assert not any("__pycache__" in n for n in names)
         assert "gateway.pid" not in names
 
     def test_restorable_with_hermes_import(self, hermes_home, tmp_path):
-        """The zip produced by pre-migration backup must be a valid Hermes
-        backup — `hermes import` should accept it."""
+        """The zip produced by pre-migration backup must be a valid Gengar
+        backup — `gengar import` should accept it."""
         from hermes_cli.backup import create_pre_migration_backup, _validate_backup_zip
         out = create_pre_migration_backup(hermes_home=hermes_home)
         assert out is not None
@@ -1542,7 +1542,7 @@ class TestPreMigrationBackup:
         assert len(remaining) <= 3, f"expected <=3 backups retained, got {len(remaining)}"
 
     def test_missing_hermes_home_returns_none(self, tmp_path):
-        """Fresh install with no ~/.hermes yet — nothing to back up."""
+        """Fresh install with no ~/.gengar yet — nothing to back up."""
         from hermes_cli.backup import create_pre_migration_backup
         missing = tmp_path / "does-not-exist"
         out = create_pre_migration_backup(hermes_home=missing)

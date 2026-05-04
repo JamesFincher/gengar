@@ -1,4 +1,4 @@
-# nix/tui.nix — Hermes TUI (Ink/React) compiled with tsc and bundled
+# nix/tui.nix — Gengar TUI (Ink/React) compiled with tsc and bundled
 { pkgs, hermesNpmLib, ... }:
 let
   src = ../ui-tui;
@@ -7,13 +7,13 @@ let
     hash = "sha256-a/HGI9OgVcTnZrMXA7xFMGnFoVxyHe95fulVz+WNYB0=";
   };
 
-  npm = hermesNpmLib.mkNpmPassthru { folder = "ui-tui"; attr = "tui"; pname = "hermes-tui"; };
+  npm = hermesNpmLib.mkNpmPassthru { folder = "ui-tui"; attr = "tui"; pname = "gengar-tui"; };
 
   packageJson = builtins.fromJSON (builtins.readFile (src + "/package.json"));
   version = packageJson.version;
 in
 pkgs.buildNpmPackage (npm // {
-  pname = "hermes-tui";
+  pname = "gengar-tui";
   inherit src npmDeps version;
 
   doCheck = false;
@@ -22,19 +22,19 @@ pkgs.buildNpmPackage (npm // {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/lib/hermes-tui
+    mkdir -p $out/lib/gengar-tui
 
-    cp -r dist $out/lib/hermes-tui/dist
+    cp -r dist $out/lib/gengar-tui/dist
 
     # runtime node_modules
-    cp -r node_modules $out/lib/hermes-tui/node_modules
+    cp -r node_modules $out/lib/gengar-tui/node_modules
 
-    # @hermes/ink is a file: dependency, we need to copy it in fr
-    rm -f $out/lib/hermes-tui/node_modules/@hermes/ink
-    cp -r packages/hermes-ink $out/lib/hermes-tui/node_modules/@hermes/ink
+    # @gengar/ink is a file: dependency, we need to copy it in fr
+    rm -f $out/lib/gengar-tui/node_modules/@gengar/ink
+    cp -r packages/gengar-ink $out/lib/gengar-tui/node_modules/@gengar/ink
 
     # package.json needed for "type": "module" resolution
-    cp package.json $out/lib/hermes-tui/
+    cp package.json $out/lib/gengar-tui/
 
     runHook postInstall
   '';

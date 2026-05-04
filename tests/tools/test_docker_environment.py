@@ -248,9 +248,9 @@ def _make_execute_only_env(forward_env=None):
     env._docker_exe = "/usr/bin/docker"
     # Base class attributes needed by unified execute()
     env._session_id = "test123"
-    env._snapshot_path = "/tmp/hermes-snap-test123.sh"
-    env._cwd_file = "/tmp/hermes-cwd-test123.txt"
-    env._cwd_marker = "__HERMES_CWD_test123__"
+    env._snapshot_path = "/tmp/gengar-snap-test123.sh"
+    env._cwd_file = "/tmp/gengar-cwd-test123.txt"
+    env._cwd_marker = "__GENGAR_CWD_test123__"
     env._snapshot_ready = True
     env._last_sync_time = None
     env._init_env_args = []
@@ -259,7 +259,7 @@ def _make_execute_only_env(forward_env=None):
 
 def test_init_env_args_uses_hermes_dotenv_for_allowlisted_env(monkeypatch):
     """_build_init_env_args picks up forwarded env vars from .env file at init time."""
-    # Use a var that is NOT in _HERMES_PROVIDER_ENV_BLOCKLIST (GITHUB_TOKEN
+    # Use a var that is NOT in _GENGAR_PROVIDER_ENV_BLOCKLIST (GITHUB_TOKEN
     # is in the copilot provider's api_key_env_vars and gets stripped).
     env = _make_execute_only_env(["DATABASE_URL"])
 
@@ -388,10 +388,10 @@ def test_normalize_env_dict_rejects_complex_values():
 def test_security_args_include_setuid_setgid_for_gosu_drop(monkeypatch):
     """The default (run_as_host_user=False) invocation must include SETUID and
     SETGID caps so the image entrypoint can drop from root to the non-root
-    `hermes` user via gosu.
+    `gengar` user via gosu.
 
     Without these caps gosu exits with
-    ``error: failed switching to 'hermes': operation not permitted``
+    ``error: failed switching to 'gengar': operation not permitted``
     and the container exits immediately (exit 1) before running any work.
 
     `no-new-privileges` is kept, so gosu still cannot escalate back to root

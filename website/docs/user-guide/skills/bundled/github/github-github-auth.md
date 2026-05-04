@@ -17,7 +17,7 @@ GitHub auth setup: HTTPS tokens, SSH keys, gh CLI login.
 | Source | Bundled (installed by default) |
 | Path | `skills/github/github-auth` |
 | Version | `1.1.0` |
-| Author | Hermes Agent |
+| Author | Gengar |
 | License | MIT |
 | Tags | `GitHub`, `Authentication`, `Git`, `gh-cli`, `SSH`, `Setup` |
 | Related skills | [`github-pr-workflow`](/docs/user-guide/skills/bundled/github/github-github-pr-workflow), [`github-code-review`](/docs/user-guide/skills/bundled/github/github-github-code-review), [`github-issues`](/docs/user-guide/skills/bundled/github/github-github-issues), [`github-repo-management`](/docs/user-guide/skills/bundled/github/github-github-repo-management) |
@@ -25,7 +25,7 @@ GitHub auth setup: HTTPS tokens, SSH keys, gh CLI login.
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Gengar loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # GitHub Authentication Setup
@@ -69,7 +69,7 @@ This is the most portable method — works everywhere, no SSH config needed.
 Tell the user to go to: **https://github.com/settings/tokens**
 
 - Click "Generate new token (classic)"
-- Give it a name like "hermes-agent"
+- Give it a name like "gengar"
 - Select scopes:
   - `repo` (full repository access — read, write, push, PRs)
   - `workflow` (trigger and manage GitHub Actions)
@@ -148,7 +148,7 @@ cat ~/.ssh/id_ed25519.pub
 Tell the user to add the public key at: **https://github.com/settings/keys**
 - Click "New SSH key"
 - Paste the public key content
-- Give it a title like "hermes-agent-&lt;machine-name>"
+- Give it a title like "gengar-&lt;machine-name>"
 
 **Step 3: Test the connection**
 
@@ -237,8 +237,8 @@ if command -v gh &>/dev/null && gh auth status &>/dev/null; then
   echo "AUTH_METHOD=gh"
 elif [ -n "$GITHUB_TOKEN" ]; then
   echo "AUTH_METHOD=curl"
-elif [ -f ~/.hermes/.env ] && grep -q "^GITHUB_TOKEN=" ~/.hermes/.env; then
-  export GITHUB_TOKEN=$(grep "^GITHUB_TOKEN=" ~/.hermes/.env | head -1 | cut -d= -f2 | tr -d '\n\r')
+elif [ -f ~/.gengar/.env ] && grep -q "^GITHUB_TOKEN=" ~/.gengar/.env; then
+  export GITHUB_TOKEN=$(grep "^GITHUB_TOKEN=" ~/.gengar/.env | head -1 | cut -d= -f2 | tr -d '\n\r')
   echo "AUTH_METHOD=curl"
 elif grep -q "github.com" ~/.git-credentials 2>/dev/null; then
   export GITHUB_TOKEN=$(grep "github.com" ~/.git-credentials | head -1 | sed 's|https://[^:]*:\([^@]*\)@.*|\1|')

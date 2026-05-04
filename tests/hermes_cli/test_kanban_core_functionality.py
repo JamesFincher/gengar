@@ -30,9 +30,9 @@ from hermes_cli.kanban import run_slash
 
 @pytest.fixture
 def kanban_home(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     kb.init_db()
     return home
@@ -860,9 +860,9 @@ def test_spawned_event_emitted_with_pid(kanban_home):
 def test_migration_renames_legacy_event_kinds(tmp_path, monkeypatch):
     """A DB created with the old vocab must have its event rows renamed
     in place on init_db()."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     # Init fresh.
     kb.init_db()
@@ -899,10 +899,10 @@ def test_migration_renames_legacy_event_kinds(tmp_path, monkeypatch):
 # ---------------------------------------------------------------------------
 
 def test_list_profiles_on_disk(tmp_path, monkeypatch):
-    """list_profiles_on_disk returns directories under ~/.hermes/profiles/
+    """list_profiles_on_disk returns directories under ~/.gengar/profiles/
     that contain a config.yaml."""
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    profiles = tmp_path / ".hermes" / "profiles"
+    profiles = tmp_path / ".gengar" / "profiles"
     profiles.mkdir(parents=True)
     (profiles / "researcher").mkdir()
     (profiles / "researcher" / "config.yaml").write_text("model: {}\n")
@@ -920,9 +920,9 @@ def test_known_assignees_merges_disk_and_board(tmp_path, monkeypatch):
     """known_assignees unions profiles on disk with currently-assigned
     names, and reports per-status counts."""
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    profiles = tmp_path / ".hermes" / "profiles"
+    profiles = tmp_path / ".gengar" / "profiles"
     profiles.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("GENGAR_HOME", str(tmp_path / ".gengar"))
 
     for name in ("researcher", "writer"):
         d = profiles / name
@@ -986,7 +986,7 @@ def test_parse_duration_rejects_garbage():
 
 
 def test_cli_create_max_runtime_via_duration(kanban_home):
-    """`hermes kanban create --max-runtime 2h` should persist 7200 seconds."""
+    """`gengar kanban create --max-runtime 2h` should persist 7200 seconds."""
     out = run_slash("create 'long task' --max-runtime 2h --json")
     data = json.loads(out)
     tid = data["id"]
@@ -1688,17 +1688,17 @@ def test_claim_task_recovers_from_invariant_leak(kanban_home):
 # -------------------------------------------------------------------------
 
 def test_cli_create_on_fresh_home_auto_inits(tmp_path, monkeypatch):
-    """First CLI action on an empty HERMES_HOME must not error with
+    """First CLI action on an empty GENGAR_HOME must not error with
     'no such table: tasks' — init_db auto-runs now."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     # Sanity: kanban.db does NOT exist yet.
     import subprocess as _sp
     import sys as _sys
     worktree_root = Path(__file__).resolve().parents[2]
-    env = {**os.environ, "HERMES_HOME": str(home),
+    env = {**os.environ, "GENGAR_HOME": str(home),
            "PYTHONPATH": str(worktree_root)}
     r = _sp.run(
         [_sys.executable, "-m", "hermes_cli.main", "kanban",
@@ -1714,11 +1714,11 @@ def test_cli_create_on_fresh_home_auto_inits(tmp_path, monkeypatch):
 
 
 def test_connect_auto_inits_fresh_db(tmp_path, monkeypatch):
-    """Calling connect() on a fresh HERMES_HOME must create the
+    """Calling connect() on a fresh GENGAR_HOME must create the
     schema. Previously callers had to remember kb.init_db() first."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     # Flush the module-level cache so this path looks fresh.
     kb._INITIALIZED_PATHS.clear()
@@ -1734,7 +1734,7 @@ def test_connect_auto_inits_fresh_db(tmp_path, monkeypatch):
 
 
 def test_cli_show_json_carries_runs(kanban_home):
-    """hermes kanban show --json must include runs[] so scripts that
+    """gengar kanban show --json must include runs[] so scripts that
     inspect attempt history don't need a separate 'runs' call."""
     conn = kb.connect()
     try:
@@ -1826,9 +1826,9 @@ def test_migration_backfill_idempotent_under_re_run(tmp_path, monkeypatch):
     """init_db must be safe to re-run repeatedly. Each call should leave
     at most one run row per in-flight task, even if called while a
     dispatcher is simultaneously claiming."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".gengar"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
     # Fresh DB, one task left in 'running' with a claim but no run row.
@@ -2178,7 +2178,7 @@ def test_default_spawn_auto_loads_kanban_worker_skill(kanban_home, monkeypatch):
     the profile hasn't wired it into its default skills config.
 
     We intercept Popen to capture the argv without actually spawning a
-    hermes subprocess (which would hang trying to call an LLM).
+    gengar subprocess (which would hang trying to call an LLM).
     """
     captured = {}
 
@@ -2213,8 +2213,8 @@ def test_default_spawn_auto_loads_kanban_worker_skill(kanban_home, monkeypatch):
     # Assignee + task env are still present
     assert "some-profile" in cmd
     env = captured["env"]
-    assert env.get("HERMES_KANBAN_TASK") == tid
-    assert env.get("HERMES_PROFILE") == "some-profile"
+    assert env.get("GENGAR_KANBAN_TASK") == tid
+    assert env.get("GENGAR_PROFILE") == "some-profile"
 
 
 
@@ -2368,7 +2368,7 @@ def test_default_spawn_dedupes_kanban_worker_from_task_skills(kanban_home, monke
 
 
 def test_cli_create_skill_flag_repeatable(kanban_home):
-    """`hermes kanban create --skill a --skill b` persists the list."""
+    """`gengar kanban create --skill a --skill b` persists the list."""
     out = run_slash(
         "create 'multi-skill' --assignee linguist "
         "--skill translation --skill github-code-review --json"
@@ -2390,7 +2390,7 @@ def test_cli_create_without_skill_flag_leaves_none(kanban_home):
 
 
 def test_cli_show_renders_skills(kanban_home):
-    """`hermes kanban show <id>` prints a skills row when present."""
+    """`gengar kanban show <id>` prints a skills row when present."""
     out = run_slash(
         "create 'show-test' --assignee x "
         "--skill translation --json"
@@ -2500,7 +2500,7 @@ def test_check_dispatcher_presence_warns_when_no_gateway(monkeypatch):
     )
     running, msg = kb_cli._check_dispatcher_presence()
     assert running is False
-    assert "hermes gateway start" in msg
+    assert "gengar gateway start" in msg
 
 
 def test_check_dispatcher_presence_warns_when_flag_off(monkeypatch):
@@ -2553,7 +2553,7 @@ def test_cli_create_warns_when_no_gateway(kanban_home, monkeypatch, capsys):
     assert kb_cli._cmd_create(ns) == 0
     captured = capsys.readouterr()
     # Stderr has the warning prefix + guidance.
-    assert "hermes gateway start" in captured.err
+    assert "gengar gateway start" in captured.err
 
 
 def test_cli_create_silent_when_gateway_up(kanban_home, monkeypatch, capsys):
@@ -2567,7 +2567,7 @@ def test_cli_create_silent_when_gateway_up(kanban_home, monkeypatch, capsys):
     ns = _make_create_ns(title="silent", assignee="worker")
     assert kb_cli._cmd_create(ns) == 0
     captured = capsys.readouterr()
-    assert "hermes gateway start" not in captured.err
+    assert "gengar gateway start" not in captured.err
 
 
 def test_cli_create_no_warn_on_triage(kanban_home, monkeypatch, capsys):
@@ -2581,7 +2581,7 @@ def test_cli_create_no_warn_on_triage(kanban_home, monkeypatch, capsys):
     ns = _make_create_ns(title="triage-task", assignee=None, triage=True)
     assert kb_cli._cmd_create(ns) == 0
     err = capsys.readouterr().err
-    assert "hermes gateway start" not in err
+    assert "gengar gateway start" not in err
 
 
 def test_cli_create_no_warn_unassigned(kanban_home, monkeypatch, capsys):
@@ -2595,11 +2595,11 @@ def test_cli_create_no_warn_unassigned(kanban_home, monkeypatch, capsys):
     ns = _make_create_ns(title="nobody", assignee=None)
     assert kb_cli._cmd_create(ns) == 0
     err = capsys.readouterr().err
-    assert "hermes gateway start" not in err
+    assert "gengar gateway start" not in err
 
 
 def test_cli_daemon_without_force_prints_deprecation_exits_2(kanban_home, capsys):
-    """`hermes kanban daemon` (no --force) is a deprecation stub."""
+    """`gengar kanban daemon` (no --force) is a deprecation stub."""
     from hermes_cli import kanban as kb_cli
     ns = argparse.Namespace(
         force=False, interval=60.0, max=None, failure_limit=3,
@@ -2609,7 +2609,7 @@ def test_cli_daemon_without_force_prints_deprecation_exits_2(kanban_home, capsys
     assert rc == 2
     err = capsys.readouterr().err
     assert "DEPRECATED" in err
-    assert "hermes gateway start" in err
+    assert "gengar gateway start" in err
 
 
 def test_cli_daemon_help_marks_deprecated():
@@ -2642,7 +2642,7 @@ def test_cli_daemon_help_marks_deprecated():
                     break
     assert found_deprecation, (
         "daemon subparser help should be marked DEPRECATED so users see "
-        "the migration guidance in `hermes kanban --help` output"
+        "the migration guidance in `gengar kanban --help` output"
     )
 
 
@@ -2672,10 +2672,10 @@ def test_gateway_dispatcher_watcher_respects_config_flag_off(monkeypatch):
 
 
 def test_gateway_dispatcher_watcher_respects_env_override(monkeypatch):
-    """HERMES_KANBAN_DISPATCH_IN_GATEWAY=0 disables without touching config."""
+    """GENGAR_KANBAN_DISPATCH_IN_GATEWAY=0 disables without touching config."""
     import asyncio
     from gateway.run import GatewayRunner
-    monkeypatch.setenv("HERMES_KANBAN_DISPATCH_IN_GATEWAY", "0")
+    monkeypatch.setenv("GENGAR_KANBAN_DISPATCH_IN_GATEWAY", "0")
 
     runner = object.__new__(GatewayRunner)
     runner._running = True
@@ -2695,7 +2695,7 @@ def test_gateway_dispatcher_watcher_env_truthy_uses_config(monkeypatch):
     from gateway.run import GatewayRunner
     import hermes_cli.config as _cfg_mod
 
-    monkeypatch.setenv("HERMES_KANBAN_DISPATCH_IN_GATEWAY", "yes")
+    monkeypatch.setenv("GENGAR_KANBAN_DISPATCH_IN_GATEWAY", "yes")
     monkeypatch.setattr(
         _cfg_mod, "load_config",
         lambda: {"kanban": {"dispatch_in_gateway": False}},

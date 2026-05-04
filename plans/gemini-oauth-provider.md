@@ -19,12 +19,12 @@ Add a first-class `gemini` provider that authenticates via Google OAuth, using t
 - **PKCE:** S256 code challenge, 32-byte random verifier
 
 ## Client ID
-- Need to register a "Desktop app" OAuth client on a Nous Research GCP project
+- Need to register a "Desktop app" OAuth client on a James Fincher GCP project
 - Ship client_id + client_secret in code (Google considers installed app secrets non-confidential)
 - Alternatively: accept user-provided client_id via env vars as override
 
 ## Token Lifecycle
-- Store at `~/.hermes/gemini_oauth.json` (NOT sharing with `~/.gemini/oauth_creds.json`)
+- Store at `~/.gengar/gemini_oauth.json` (NOT sharing with `~/.gemini/oauth_creds.json`)
 - Fields: `client_id`, `client_secret`, `refresh_token`, `access_token`, `expires_at`, `email`
 - File permissions: 0o600
 - Before each API call: check expiry, refresh if within 5 min of expiration
@@ -71,10 +71,10 @@ Add a first-class `gemini` provider that authenticates via Google OAuth, using t
 ~400 lines new code, ~150 lines modifications, ~100 lines tests, ~50 lines docs = ~700 lines total
 
 ## Prerequisites
-- Nous Research GCP project with Desktop OAuth client registered
-- OR: accept user-provided client_id via HERMES_GEMINI_CLIENT_ID env var
+- James Fincher GCP project with Desktop OAuth client registered
+- OR: accept user-provided client_id via GENGAR_GEMINI_CLIENT_ID env var
 
 ## Reference implementations
 - clawdbot: `extensions/google/oauth.flow.ts` (PKCE + localhost server)
 - pi-mono: `packages/ai/src/utils/oauth/google-gemini-cli.ts` (same flow)
-- hermes-agent Copilot OAuth: `hermes_cli/main.py` `_copilot_device_flow()` (different flow type but same lifecycle pattern)
+- gengar Copilot OAuth: `hermes_cli/main.py` `_copilot_device_flow()` (different flow type but same lifecycle pattern)

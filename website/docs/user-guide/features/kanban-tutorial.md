@@ -1,16 +1,16 @@
 # Kanban tutorial
 
-A walkthrough of the four use-cases the Hermes Kanban system was designed for, with the dashboard open in a browser. If you haven't read the [Kanban overview](./kanban) yet, start there — this assumes you know what a task, run, assignee, and dispatcher are.
+A walkthrough of the four use-cases the Gengar Kanban system was designed for, with the dashboard open in a browser. If you haven't read the [Kanban overview](./kanban) yet, start there — this assumes you know what a task, run, assignee, and dispatcher are.
 
 ## Setup
 
 ```bash
-hermes kanban init           # optional; first `hermes kanban <anything>` auto-inits
-hermes dashboard             # opens http://127.0.0.1:9119 in your browser
+gengar kanban init           # optional; first `gengar kanban <anything>` auto-inits
+gengar dashboard             # opens http://127.0.0.1:9119 in your browser
 # click Kanban in the left nav
 ```
 
-The dashboard is the most comfortable place to learn the system. Everything you see here is also available via `hermes kanban <verb>` on the CLI — the two surfaces share the same SQLite database at `~/.hermes/kanban.db`.
+The dashboard is the most comfortable place to learn the system. Everything you see here is also available via `gengar kanban <verb>` on the CLI — the two surfaces share the same SQLite database at `~/.gengar/kanban.db`.
 
 ## The board at a glance
 
@@ -38,18 +38,18 @@ If the profile lanes are noisy, toggle "Lanes by profile" off and the In Progres
 You're building a feature. Classic flow: design a schema, implement the API, write the tests. Three tasks with parent→child dependencies.
 
 ```bash
-SCHEMA=$(hermes kanban create "Design auth schema" \
+SCHEMA=$(gengar kanban create "Design auth schema" \
     --assignee backend-dev --tenant auth-project --priority 2 \
     --body "Design the user/session/token schema for the auth module." \
     --json | jq -r .id)
 
-API=$(hermes kanban create "Implement auth API endpoints" \
+API=$(gengar kanban create "Implement auth API endpoints" \
     --assignee backend-dev --tenant auth-project --priority 2 \
     --parent $SCHEMA \
     --body "POST /register, POST /login, POST /refresh, POST /logout." \
     --json | jq -r .id)
 
-hermes kanban create "Write auth integration tests" \
+gengar kanban create "Write auth integration tests" \
     --assignee qa-dev --tenant auth-project --priority 2 \
     --parent $API \
     --body "Cover happy path, wrong password, expired token, concurrent refresh."
@@ -60,11 +60,11 @@ Because `API` has `SCHEMA` as its parent, and `tests` has `API` as its parent, o
 Claim the schema task, do the work, hand off:
 
 ```bash
-hermes kanban claim $SCHEMA
+gengar kanban claim $SCHEMA
 
 # (you design the schema, commit, etc.)
 
-hermes kanban complete $SCHEMA \
+gengar kanban complete $SCHEMA \
     --summary "users(id, email, pw_hash), sessions(id, user_id, jti, expires_at); refresh tokens stored as sessions with type='refresh'" \
     --metadata '{
         "changed_files": ["migrations/001_users.sql", "migrations/002_sessions.sql"],
@@ -83,8 +83,8 @@ The Run History section at the bottom is the key addition. One attempt: outcome 
 On the CLI:
 
 ```bash
-hermes kanban show $SCHEMA
-hermes kanban runs $SCHEMA
+gengar kanban show $SCHEMA
+gengar kanban runs $SCHEMA
 # #  OUTCOME       PROFILE       ELAPSED  STARTED
 # 1  completed     backend-dev        0s  2026-04-27 19:34
 #     → users(id, email, pw_hash), sessions(id, user_id, jti, expires_at); refresh tokens ...
@@ -98,15 +98,15 @@ Create the work:
 
 ```bash
 for lang in Spanish French German; do
-    hermes kanban create "Translate homepage to $lang" \
+    gengar kanban create "Translate homepage to $lang" \
         --assignee translator --tenant content-ops
 done
 for i in 1 2 3 4 5; do
-    hermes kanban create "Transcribe Q3 customer call #$i" \
+    gengar kanban create "Transcribe Q3 customer call #$i" \
         --assignee transcriber --tenant content-ops
 done
 for sku in 1001 1002 1003 1004; do
-    hermes kanban create "Generate product description: SKU-$sku" \
+    gengar kanban create "Generate product description: SKU-$sku" \
         --assignee copywriter --tenant content-ops
 done
 ```
@@ -116,7 +116,7 @@ that picks up all three specialist profiles' tasks on the same
 kanban.db:
 
 ```bash
-hermes gateway start
+gengar gateway start
 ```
 
 Now filter the board to `content-ops` (or just search for "Transcribe") and you get this:
@@ -141,7 +141,7 @@ The interesting one is the implementation task, because it was blocked and retri
 
 ```bash
 # PM completes the spec with acceptance criteria in metadata
-hermes kanban complete $SPEC \
+gengar kanban complete $SPEC \
     --summary "spec approved; POST /forgot-password sends email, GET /reset/:token renders form, POST /reset applies new password" \
     --metadata '{"acceptance": [
         "expired token returns 410",
@@ -150,13 +150,13 @@ hermes kanban complete $SPEC \
     ]}'
 
 # Engineer claims + implements, but review blocks it for missing strength check
-hermes kanban claim $IMPL
-hermes kanban block $IMPL "Review: password strength check missing, reset link isn't single-use (can be replayed within 30min)"
+gengar kanban claim $IMPL
+gengar kanban block $IMPL "Review: password strength check missing, reset link isn't single-use (can be replayed within 30min)"
 
 # Engineer iterates, resolves, completes
-hermes kanban unblock $IMPL
-hermes kanban claim $IMPL
-hermes kanban complete $IMPL \
+gengar kanban unblock $IMPL
+gengar kanban claim $IMPL
+gengar kanban complete $IMPL \
     --summary "added zxcvbn strength check, reset tokens are now single-use (stored + deleted on success)" \
     --metadata '{
         "changed_files": ["auth/reset.py", "auth/tests/test_reset.py", "migrations/003_single_use_reset_tokens.sql"],
@@ -189,7 +189,7 @@ Real workers fail. Missing credentials, OOM kills, transient network errors. The
 A deploy task that can't spawn its worker because `AWS_ACCESS_KEY_ID` isn't set in the profile's environment:
 
 ```bash
-hermes kanban create "Deploy to staging (missing creds)" \
+gengar kanban create "Deploy to staging (missing creds)" \
     --assignee deploy-bot --tenant ops
 ```
 
@@ -204,7 +204,7 @@ Three runs, all with the same error on the `error` field. The first two are `spa
 On the terminal:
 
 ```bash
-hermes kanban runs t_ef5d
+gengar kanban runs t_ef5d
 # #   OUTCOME        PROFILE        ELAPSED  STARTED
 # 1   spawn_failed   deploy-bot          0s  2026-04-27 19:34
 #       ! AWS_ACCESS_KEY_ID not set in deploy-bot env
@@ -245,7 +245,7 @@ When a worker on task B reads its context, it gets:
 
 This replaces the "dig through comments and the work output" dance that plagues flat kanban systems. A PM writes acceptance criteria in the spec's metadata, and the engineer's worker sees them structurally. An engineer records which tests they ran and how many passed, and the reviewer's worker has that list in hand before opening a diff.
 
-The bulk-close guard exists because this data is per-run. `hermes kanban complete a b c --summary X` is refused — copy-pasting the same summary to three tasks is almost always wrong. Bulk close without the handoff flags still works for the common "I finished a pile of admin tasks" case.
+The bulk-close guard exists because this data is per-run. `gengar kanban complete a b c --summary X` is refused — copy-pasting the same summary to three tasks is almost always wrong. Bulk close without the handoff flags still works for the common "I finished a pile of admin tasks" case.
 
 ## Inspecting a task currently running
 
@@ -258,6 +258,6 @@ Status is `Running`. The active run appears in the Run History section with outc
 ## Next steps
 
 - [Kanban overview](./kanban) — the full data model, event vocabulary, and CLI reference.
-- `hermes kanban --help` — every subcommand, every flag.
-- `hermes kanban watch --kinds completed,gave_up,timed_out` — live stream terminal events across the whole board.
-- `hermes kanban notify-subscribe <task> --platform telegram --chat-id <id>` — get a gateway ping when a specific task finishes.
+- `gengar kanban --help` — every subcommand, every flag.
+- `gengar kanban watch --kinds completed,gave_up,timed_out` — live stream terminal events across the whole board.
+- `gengar kanban notify-subscribe <task> --platform telegram --chat-id <id>` — get a gateway ping when a specific task finishes.

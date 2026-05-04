@@ -1,6 +1,6 @@
 """Tests for /update live streaming, prompt forwarding, and gateway IPC.
 
-Tests the new --gateway mode for hermes update, including:
+Tests the new --gateway mode for gengar update, including:
 - _gateway_prompt() file-based IPC
 - _watch_update_progress() output streaming and prompt detection
 - Message interception for update prompt responses
@@ -59,7 +59,7 @@ class TestGatewayPrompt:
     def test_writes_prompt_file_and_reads_response(self, tmp_path):
         """Writes .update_prompt.json, reads .update_response, returns answer."""
         import threading
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
 
         # Simulate the response arriving after a short delay
@@ -70,7 +70,7 @@ class TestGatewayPrompt:
         thread = threading.Thread(target=write_response)
         thread.start()
 
-        with patch.dict(os.environ, {"HERMES_HOME": str(hermes_home)}):
+        with patch.dict(os.environ, {"GENGAR_HOME": str(hermes_home)}):
             from hermes_cli.main import _gateway_prompt
             result = _gateway_prompt("Restore? [Y/n]", "y", timeout=5.0)
 
@@ -83,7 +83,7 @@ class TestGatewayPrompt:
     def test_prompt_file_content(self, tmp_path):
         """Verifies the prompt JSON structure."""
         import threading
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
 
         prompt_data = None
@@ -101,7 +101,7 @@ class TestGatewayPrompt:
         thread = threading.Thread(target=capture_and_respond)
         thread.start()
 
-        with patch.dict(os.environ, {"HERMES_HOME": str(hermes_home)}):
+        with patch.dict(os.environ, {"GENGAR_HOME": str(hermes_home)}):
             from hermes_cli.main import _gateway_prompt
             _gateway_prompt("Configure now? [Y/n]", "n", timeout=5.0)
 
@@ -113,10 +113,10 @@ class TestGatewayPrompt:
 
     def test_timeout_returns_default(self, tmp_path):
         """Returns default when no response within timeout."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
 
-        with patch.dict(os.environ, {"HERMES_HOME": str(hermes_home)}):
+        with patch.dict(os.environ, {"GENGAR_HOME": str(hermes_home)}):
             from hermes_cli.main import _gateway_prompt
             result = _gateway_prompt("test?", "default_val", timeout=0.5)
 
@@ -124,12 +124,12 @@ class TestGatewayPrompt:
 
     def test_empty_response_returns_default(self, tmp_path):
         """Empty response file returns default."""
-        hermes_home = tmp_path / ".hermes"
+        hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()
         (hermes_home / ".update_response").write_text("")
 
         # Write prompt file so the function starts polling
-        with patch.dict(os.environ, {"HERMES_HOME": str(hermes_home)}):
+        with patch.dict(os.environ, {"GENGAR_HOME": str(hermes_home)}):
             from hermes_cli.main import _gateway_prompt
             # Pre-create the response
             result = _gateway_prompt("test?", "default_val", timeout=2.0)
@@ -200,7 +200,7 @@ class TestRestoreStashWithInputFn:
 
 
 class TestUpdateCommandGatewayFlag:
-    """Verify the gateway spawns hermes update --gateway."""
+    """Verify the gateway spawns gengar update --gateway."""
 
     @pytest.mark.asyncio
     async def test_spawns_with_gateway_flag(self, tmp_path):
@@ -214,7 +214,7 @@ class TestUpdateCommandGatewayFlag:
         (fake_root / "gateway").mkdir()
         (fake_root / "gateway" / "run.py").touch()
         fake_file = str(fake_root / "gateway" / "run.py")
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         mock_popen = MagicMock()
@@ -244,7 +244,7 @@ class TestWatchUpdateProgress:
     async def test_streams_output_to_adapter(self, tmp_path):
         """New output is sent to the adapter periodically."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending = {"platform": "telegram", "chat_id": "111", "user_id": "222",
@@ -282,7 +282,7 @@ class TestWatchUpdateProgress:
     async def test_detects_and_forwards_prompt(self, tmp_path):
         """Detects .update_prompt.json and sends it to the user."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending = {"platform": "telegram", "chat_id": "111", "user_id": "222",
@@ -325,7 +325,7 @@ class TestWatchUpdateProgress:
     async def test_prompt_forwarding_preserves_thread_metadata(self, tmp_path):
         """Forwarded update prompts keep the originating thread/topic metadata."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending = {
@@ -377,7 +377,7 @@ class TestWatchUpdateProgress:
     async def test_cleans_up_on_completion(self, tmp_path):
         """All marker files are cleaned up when update finishes."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending = {"platform": "telegram", "chat_id": "111", "user_id": "222",
@@ -407,7 +407,7 @@ class TestWatchUpdateProgress:
     async def test_failure_exit_code(self, tmp_path):
         """Non-zero exit code sends failure message."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending = {"platform": "telegram", "chat_id": "111", "user_id": "222",
@@ -433,7 +433,7 @@ class TestWatchUpdateProgress:
     async def test_falls_back_when_adapter_unavailable(self, tmp_path):
         """Falls back to legacy notification when adapter can't be resolved."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         # Platform doesn't match any adapter
@@ -463,7 +463,7 @@ class TestWatchUpdateProgress:
         forwarding, causing the same prompt to be sent every poll_interval.
         """
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         pending = {"platform": "telegram", "chat_id": "111", "user_id": "222",
@@ -518,7 +518,7 @@ class TestUpdatePromptInterception:
     async def test_intercepts_response_when_prompt_pending(self, tmp_path):
         """When _update_prompt_pending is set, the next message writes .update_response."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         event = _make_event(text="y", chat_id="67890")
@@ -551,7 +551,7 @@ class TestUpdatePromptInterception:
         empty) before falling through to normal command dispatch.
         """
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         event = _make_event(text="/new", chat_id="67890")
@@ -580,7 +580,7 @@ class TestUpdatePromptInterception:
     async def test_unrecognized_slash_command_still_consumed_as_response(self, tmp_path):
         """Unknown /foo is written verbatim to .update_response (legacy behavior)."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         event = _make_event(text="/foobarbaz", chat_id="67890")
@@ -602,7 +602,7 @@ class TestUpdatePromptInterception:
     async def test_normal_message_when_no_prompt_pending(self, tmp_path):
         """Messages pass through normally when no prompt is pending."""
         runner = _make_runner()
-        hermes_home = tmp_path / "hermes"
+        hermes_home = tmp_path / "gengar"
         hermes_home.mkdir()
 
         event = _make_event(text="hello", chat_id="67890")

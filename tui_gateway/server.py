@@ -39,7 +39,7 @@ load_hermes_dotenv(
 # JSON-RPC pipe (TUI side parses it, doesn't log raw), the root logger
 # only catches handled warnings, and the subprocess exits before stderr
 # flushes through the stderr->gateway.stderr event pump. This hook
-# appends every unhandled exception to ~/.hermes/logs/tui_gateway_crash.log
+# appends every unhandled exception to ~/.gengar/logs/tui_gateway_crash.log
 # AND re-emits a one-line summary to stderr so the TUI can surface it in
 # Activity — exactly what was missing when the voice-mode turns started
 # exiting the gateway mid-TTS.
@@ -127,7 +127,7 @@ _cfg_cache: dict | None = None
 _cfg_mtime: float | None = None
 _cfg_path = None
 try:
-    _slash_timeout = float(os.environ.get("HERMES_TUI_SLASH_TIMEOUT_S") or "45")
+    _slash_timeout = float(os.environ.get("GENGAR_TUI_SLASH_TIMEOUT_S") or "45")
 except (ValueError, TypeError):
     _slash_timeout = 45.0
 _SLASH_WORKER_TIMEOUT_S = max(5.0, _slash_timeout)
@@ -157,7 +157,7 @@ _LONG_HANDLERS = frozenset(
 )
 
 try:
-    _rpc_pool_workers = max(2, int(os.environ.get("HERMES_TUI_RPC_POOL_WORKERS") or "4"))
+    _rpc_pool_workers = max(2, int(os.environ.get("GENGAR_TUI_RPC_POOL_WORKERS") or "4"))
 except (ValueError, TypeError):
     _rpc_pool_workers = 4
 _pool = concurrent.futures.ThreadPoolExecutor(
@@ -179,7 +179,7 @@ _stdio_transport = StdioTransport(lambda: _real_stdout, _stdout_lock)
 
 
 class _SlashWorker:
-    """Persistent HermesCLI subprocess for slash commands."""
+    """Persistent GengarCLI subprocess for slash commands."""
 
     def __init__(self, session_key: str, model: str):
         self._lock = threading.Lock()
@@ -518,7 +518,7 @@ def _wait_agent(session: dict, rid: str, timeout: float = 30.0) -> dict | None:
 def _start_agent_build(sid: str, session: dict) -> None:
     """Start building the real AIAgent for a TUI session, once.
 
-    Classic `hermes` shows the prompt before constructing AIAgent; the TUI used
+    Classic `gengar` shows the prompt before constructing AIAgent; the TUI used
     to eagerly build it during session.create, making startup feel blocked on
     tool discovery/model metadata even though the composer was visible.  Keep
     the shell responsive by deferring this work until the first prompt (or any
@@ -704,9 +704,9 @@ def _clear_session_context(tokens: list) -> None:
 
 def _enable_gateway_prompts() -> None:
     """Route approvals through gateway callbacks instead of CLI input()."""
-    os.environ["HERMES_GATEWAY_SESSION"] = "1"
-    os.environ["HERMES_EXEC_ASK"] = "1"
-    os.environ["HERMES_INTERACTIVE"] = "1"
+    os.environ["GENGAR_GATEWAY_SESSION"] = "1"
+    os.environ["GENGAR_EXEC_ASK"] = "1"
+    os.environ["GENGAR_INTERACTIVE"] = "1"
 
 
 # ── Blocking prompt factory ──────────────────────────────────────────
@@ -762,8 +762,8 @@ def resolve_skin() -> dict:
 
 def _resolve_model() -> str:
     env = (
-        os.environ.get("HERMES_MODEL", "")
-        or os.environ.get("HERMES_INFERENCE_MODEL", "")
+        os.environ.get("GENGAR_MODEL", "")
+        or os.environ.get("GENGAR_INFERENCE_MODEL", "")
     ).strip()
     if env:
         return env
@@ -777,13 +777,13 @@ def _resolve_model() -> str:
 
 def _resolve_startup_runtime() -> tuple[str, str | None]:
     model = _resolve_model()
-    explicit_provider = os.environ.get("HERMES_TUI_PROVIDER", "").strip()
+    explicit_provider = os.environ.get("GENGAR_TUI_PROVIDER", "").strip()
     if explicit_provider:
         return model, explicit_provider
 
     explicit_model = (
-        os.environ.get("HERMES_MODEL", "")
-        or os.environ.get("HERMES_INFERENCE_MODEL", "")
+        os.environ.get("GENGAR_MODEL", "")
+        or os.environ.get("GENGAR_INFERENCE_MODEL", "")
     ).strip()
     if not explicit_model:
         return model, None
@@ -798,7 +798,7 @@ def _resolve_startup_runtime() -> tuple[str, str | None]:
                 if isinstance(cfg, dict)
                 else ""
             )
-            or os.environ.get("HERMES_INFERENCE_PROVIDER", "").strip().lower()
+            or os.environ.get("GENGAR_INFERENCE_PROVIDER", "").strip().lower()
             or "auto"
         )
         detected = detect_static_provider_for_model(explicit_model, current_provider)
@@ -887,7 +887,7 @@ def _load_tool_progress_mode() -> str:
 def _load_enabled_toolsets() -> list[str] | None:
     explicit = [
         item.strip()
-        for item in os.environ.get("HERMES_TUI_TOOLSETS", "").split(",")
+        for item in os.environ.get("GENGAR_TUI_TOOLSETS", "").split(",")
         if item.strip()
     ]
     cfg = None
@@ -919,7 +919,7 @@ def _load_enabled_toolsets() -> list[str] | None:
             ignored = [name for name in explicit if name not in {"all", "*"}]
             if ignored:
                 print(
-                    "[tui] HERMES_TUI_TOOLSETS=all enables every toolset; "
+                    "[tui] GENGAR_TUI_TOOLSETS=all enables every toolset; "
                     f"ignoring additional entries: {', '.join(ignored)}",
                     file=sys.stderr,
                     flush=True,
@@ -955,13 +955,13 @@ def _load_enabled_toolsets() -> list[str] | None:
 
         if unknown:
             print(
-                f"[tui] ignoring unknown HERMES_TUI_TOOLSETS entries: {', '.join(unknown)}",
+                f"[tui] ignoring unknown GENGAR_TUI_TOOLSETS entries: {', '.join(unknown)}",
                 file=sys.stderr,
                 flush=True,
             )
         if disabled:
             print(
-                "[tui] ignoring disabled MCP servers in HERMES_TUI_TOOLSETS "
+                "[tui] ignoring disabled MCP servers in GENGAR_TUI_TOOLSETS "
                 "(set enabled: true in config.yaml to use): "
                 f"{', '.join(disabled)}",
                 file=sys.stderr,
@@ -971,7 +971,7 @@ def _load_enabled_toolsets() -> list[str] | None:
         if valid:
             return valid
 
-        fallback_notice = "[tui] no valid HERMES_TUI_TOOLSETS entries; using configured CLI toolsets"
+        fallback_notice = "[tui] no valid GENGAR_TUI_TOOLSETS entries; using configured CLI toolsets"
 
     try:
         from hermes_cli.config import load_config
@@ -994,7 +994,7 @@ def _load_enabled_toolsets() -> list[str] | None:
     except Exception:
         if fallback_notice is not None:
             print(
-                "[tui] no valid HERMES_TUI_TOOLSETS entries and configured CLI toolsets could not be loaded; enabling all toolsets",
+                "[tui] no valid GENGAR_TUI_TOOLSETS entries and configured CLI toolsets could not be loaded; enabling all toolsets",
                 file=sys.stderr,
                 flush=True,
             )
@@ -1102,21 +1102,21 @@ def _apply_model_switch(sid: str, session: dict, raw_input: str) -> dict:
         _restart_slash_worker(session)
         _emit("session.info", sid, _session_info(agent))
 
-    os.environ["HERMES_MODEL"] = result.new_model
-    os.environ["HERMES_INFERENCE_MODEL"] = result.new_model
+    os.environ["GENGAR_MODEL"] = result.new_model
+    os.environ["GENGAR_INFERENCE_MODEL"] = result.new_model
     # Keep the process-level provider env vars in sync with the user's
     # explicit choice so any ambient re-resolution (credential pool refresh,
     # compressor rebuild, aux clients) and startup re-resolution on /new
     # both pick up the new provider instead of the original one persisted
     # in config or env.
     #
-    # HERMES_TUI_PROVIDER is the canonical "explicit-this-process" carrier
+    # GENGAR_TUI_PROVIDER is the canonical "explicit-this-process" carrier
     # consumed by _resolve_startup_runtime() — set it unconditionally on
     # /model so /new can't fall through to static-catalog detection and
     # pick a coincidentally-matching native provider (fixes #16857).
     if result.target_provider:
-        os.environ["HERMES_INFERENCE_PROVIDER"] = result.target_provider
-        os.environ["HERMES_TUI_PROVIDER"] = result.target_provider
+        os.environ["GENGAR_INFERENCE_PROVIDER"] = result.target_provider
+        os.environ["GENGAR_TUI_PROVIDER"] = result.target_provider
     if persist_global:
         _persist_model_switch(result)
     return {"value": result.new_model, "warning": result.warning_message or ""}
@@ -1184,7 +1184,7 @@ def _sync_session_key_after_compress(sid: str, session: dict) -> None:
     approval routing, slash worker init, DB title/history lookups, yolo
     state).  Without this sync, those operations would target the ended
     parent session while the agent writes to the new continuation session.
-    Mirrors HermesCLI._manual_compress's session_id sync.
+    Mirrors GengarCLI._manual_compress's session_id sync.
     """
     agent = session.get("agent")
     new_session_id = getattr(agent, "session_id", None) or ""
@@ -2017,7 +2017,7 @@ def _(rid, params: dict) -> dict:
         # Resume picker should surface human conversation sessions from every
         # user-facing surface — CLI, TUI, all gateway platforms (including new
         # ones not enumerated here), ACP adapter clients, webhook sessions,
-        # custom `HERMES_SESSION_SOURCE` values, and older installs with
+        # custom `GENGAR_SESSION_SOURCE` values, and older installs with
         # different source labels. We deny-list only the noisy internal
         # sources (``tool`` sub-agent runs) rather than allow-listing a
         # fixed set of platform names that goes stale whenever a new
@@ -2571,7 +2571,7 @@ def _(rid, params: dict) -> dict:
 # from the event stream).  On turn-complete it posts the final tree here;
 # /replay and /replay-diff fetch past snapshots by session_id + filename.
 #
-# Layout:  $HERMES_HOME/spawn-trees/<session_id>/<timestamp>.json
+# Layout:  $GENGAR_HOME/spawn-trees/<session_id>/<timestamp>.json
 # Each file contains { session_id, started_at, finished_at, subagents: [...] }.
 
 
@@ -3516,12 +3516,12 @@ def _(rid, params: dict) -> dict:
                     enable_session_yolo(session["session_key"])
                     nv = "1"
             else:
-                current = is_truthy_value(os.environ.get("HERMES_YOLO_MODE"))
+                current = is_truthy_value(os.environ.get("GENGAR_YOLO_MODE"))
                 if current:
-                    os.environ.pop("HERMES_YOLO_MODE", None)
+                    os.environ.pop("GENGAR_YOLO_MODE", None)
                     nv = "0"
                 else:
-                    os.environ["HERMES_YOLO_MODE"] = "1"
+                    os.environ["GENGAR_YOLO_MODE"] = "1"
                     nv = "1"
             return _ok(rid, {"key": key, "value": nv})
         except Exception as e:
@@ -3956,7 +3956,7 @@ def _(rid, params: dict) -> dict:
 
 @method("reload.env")
 def _(rid, params: dict) -> dict:
-    """Re-read ``~/.hermes/.env`` into the gateway process via
+    """Re-read ``~/.gengar/.env`` into the gateway process via
     ``hermes_cli.config.reload_env``, matching classic CLI's ``/reload``
     handler.  Newly added API keys take effect on the next agent call
     without restarting the TUI.
@@ -4110,16 +4110,16 @@ def _(rid, params: dict) -> dict:
 def _cli_exec_blocked(argv: list[str]) -> str | None:
     """Return user hint if this argv must not run headless in the gateway process."""
     if not argv:
-        return "bare `hermes` is interactive — use `/hermes chat -q …` or run `hermes` in another terminal"
+        return "bare `gengar` is interactive — use `/gengar chat -q …` or run `gengar` in another terminal"
     a0 = argv[0].lower()
     if a0 == "setup":
-        return "`hermes setup` needs a full terminal — run it outside the TUI"
+        return "`gengar setup` needs a full terminal — run it outside the TUI"
     if a0 == "gateway":
-        return "`hermes gateway` is long-running — run it in another terminal"
+        return "`gengar gateway` is long-running — run it in another terminal"
     if a0 == "sessions" and len(argv) > 1 and argv[1].lower() == "browse":
-        return "`hermes sessions browse` is interactive — use /resume here, or run browse in another terminal"
+        return "`gengar sessions browse` is interactive — use /resume here, or run browse in another terminal"
     if a0 == "config" and len(argv) > 1 and argv[1].lower() == "edit":
-        return "`hermes config edit` needs $EDITOR in a real terminal"
+        return "`gengar config edit` needs $EDITOR in a real terminal"
     return None
 
 
@@ -4889,7 +4889,7 @@ def _(rid, params: dict) -> dict:
         current_model = getattr(agent, "model", "") or _resolve_model()
         current_base_url = getattr(agent, "base_url", "") or ""
         # list_authenticated_providers already populates each provider's
-        # "models" with the curated list (same source as `hermes model` and
+        # "models" with the curated list (same source as `gengar model` and
         # classic CLI's /model picker). Do NOT overwrite with live
         # provider_model_ids() — that bypasses curation and pulls in
         # non-agentic models (e.g. Nous /models returns ~400 IDs including
@@ -4934,7 +4934,7 @@ def _(rid, params: dict) -> dict:
                 if auth_type == "api_key" and key_env:
                     warning = f"paste {key_env} to activate"
                 else:
-                    warning = f"run `hermes model` to configure ({auth_type})"
+                    warning = f"run `gengar model` to configure ({auth_type})"
                 ordered.append({
                     "slug": entry.slug,
                     "name": _PROVIDER_LABELS.get(entry.slug, entry.label),
@@ -4995,12 +4995,12 @@ def _(rid, params: dict) -> dict:
             return _err(
                 rid, 4003,
                 f"{pconfig.name} uses {pconfig.auth_type} auth — "
-                f"run `hermes model` to configure"
+                f"run `gengar model` to configure"
             )
         if not pconfig.api_key_env_vars:
             return _err(rid, 4004, f"no env var defined for {pconfig.name}")
 
-        # Save the key to ~/.hermes/.env
+        # Save the key to ~/.gengar/.env
         env_var = pconfig.api_key_env_vars[0]
         save_env_value(env_var, api_key)
         # Also set in current process so list_authenticated_providers sees it
@@ -5239,12 +5239,12 @@ def _voice_mode_enabled() -> bool:
     avoids the TUI auto-starting in REC the next time the user opens it
     just because they happened to enable voice in a prior session.
     """
-    return os.environ.get("HERMES_VOICE", "").strip() == "1"
+    return os.environ.get("GENGAR_VOICE", "").strip() == "1"
 
 
 def _voice_tts_enabled() -> bool:
     """Whether agent replies should be spoken back via TTS (runtime only)."""
-    return os.environ.get("HERMES_VOICE_TTS", "").strip() == "1"
+    return os.environ.get("GENGAR_VOICE_TTS", "").strip() == "1"
 
 
 @method("voice.toggle")
@@ -5291,7 +5291,7 @@ def _(rid, params: dict) -> dict:
         # Runtime-only flag (CLI parity) — no _write_config_key, so the
         # next TUI launch starts with voice OFF instead of auto-REC from a
         # persisted stale toggle.
-        os.environ["HERMES_VOICE"] = "1" if enabled else "0"
+        os.environ["GENGAR_VOICE"] = "1" if enabled else "0"
 
         if not enabled:
             # Disabling the mode must tear the continuous loop down; the
@@ -5312,7 +5312,7 @@ def _(rid, params: dict) -> dict:
             return _err(rid, 4014, "enable voice mode first: /voice on")
         new_value = not _voice_tts_enabled()
         # Runtime-only flag (CLI parity) — see voice.toggle on/off above.
-        os.environ["HERMES_VOICE_TTS"] = "1" if new_value else "0"
+        os.environ["GENGAR_VOICE_TTS"] = "1" if new_value else "0"
         return _ok(rid, {"enabled": True, "tts": new_value})
 
     return _err(rid, 4013, f"unknown voice action: {action}")
@@ -5784,9 +5784,9 @@ def _(rid, params: dict) -> dict:
     try:
         cfg = _load_cfg()
         model = _resolve_model()
-        api_key = os.environ.get("HERMES_API_KEY", "") or cfg.get("api_key", "")
+        api_key = os.environ.get("GENGAR_API_KEY", "") or cfg.get("api_key", "")
         masked = f"****{api_key[-4:]}" if len(api_key) > 4 else "(not set)"
-        base_url = os.environ.get("HERMES_BASE_URL", "") or cfg.get("base_url", "")
+        base_url = os.environ.get("GENGAR_BASE_URL", "") or cfg.get("base_url", "")
 
         sections = [
             {

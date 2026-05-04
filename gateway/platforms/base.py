@@ -23,7 +23,7 @@ from utils import normalize_proxy_url
 
 logger = logging.getLogger(__name__)
 
-# Audio file extensions Hermes recognizes for native audio delivery.
+# Audio file extensions Gengar recognizes for native audio delivery.
 # Kept in sync with tools/send_message_tool.py and cron/scheduler.py via
 # should_send_media_as_audio() below.
 _AUDIO_EXTS = frozenset({'.ogg', '.opus', '.mp3', '.wav', '.m4a', '.flac'})
@@ -429,7 +429,7 @@ from hermes_constants import get_hermes_dir
 
 GATEWAY_SECRET_CAPTURE_UNSUPPORTED_MESSAGE = (
     "Secure secret entry is not supported over messaging. "
-    "Load this skill in the local CLI to be prompted, or add the key to ~/.hermes/.env manually."
+    "Load this skill in the local CLI to be prompted, or add the key to ~/.gengar/.env manually."
 )
 
 
@@ -496,7 +496,7 @@ async def _ssrf_redirect_guard(response):
 # (e.g. Telegram file URLs expire after ~1 hour).
 # ---------------------------------------------------------------------------
 
-# Default location: {HERMES_HOME}/cache/images/ (legacy: image_cache/)
+# Default location: {GENGAR_HOME}/cache/images/ (legacy: image_cache/)
 IMAGE_CACHE_DIR = get_hermes_dir("cache/images", "image_cache")
 
 
@@ -586,7 +586,7 @@ async def cache_image_from_url(url: str, ext: str = ".jpg", retries: int = 2) ->
                 response = await client.get(
                     url,
                     headers={
-                        "User-Agent": "Mozilla/5.0 (compatible; HermesAgent/1.0)",
+                        "User-Agent": "Mozilla/5.0 (compatible; Gengar/1.0)",
                         "Accept": "image/*,*/*;q=0.8",
                     },
                 )
@@ -700,7 +700,7 @@ async def cache_audio_from_url(url: str, ext: str = ".ogg", retries: int = 2) ->
                 response = await client.get(
                     url,
                     headers={
-                        "User-Agent": "Mozilla/5.0 (compatible; HermesAgent/1.0)",
+                        "User-Agent": "Mozilla/5.0 (compatible; Gengar/1.0)",
                         "Accept": "audio/*,*/*;q=0.8",
                     },
                 )
@@ -948,8 +948,8 @@ class MessageEvent:
 
 _PLAINTEXT_GATEWAY_RESTART_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"^(?:please\s+)?restart\s+(?:the\s+)?gateway[.!?\s]*$", re.IGNORECASE),
-    re.compile(r"^(?:please\s+)?restart\s+(?:the\s+)?hermes\s+gateway[.!?\s]*$", re.IGNORECASE),
-    re.compile(r"^(?:please\s+)?restart\s+hermes[.!?\s]*$", re.IGNORECASE),
+    re.compile(r"^(?:please\s+)?restart\s+(?:the\s+)?gengar\s+gateway[.!?\s]*$", re.IGNORECASE),
+    re.compile(r"^(?:please\s+)?restart\s+gengar[.!?\s]*$", re.IGNORECASE),
 )
 
 
@@ -2656,15 +2656,15 @@ class BasePlatformAdapter(ABC):
         Return a random delay in seconds for human-like response pacing.
 
         Reads from env vars:
-          HERMES_HUMAN_DELAY_MODE: "off" (default) | "natural" | "custom"
-          HERMES_HUMAN_DELAY_MIN_MS: minimum delay in ms (default 800, custom mode)
-          HERMES_HUMAN_DELAY_MAX_MS: maximum delay in ms (default 2500, custom mode)
+          GENGAR_HUMAN_DELAY_MODE: "off" (default) | "natural" | "custom"
+          GENGAR_HUMAN_DELAY_MIN_MS: minimum delay in ms (default 800, custom mode)
+          GENGAR_HUMAN_DELAY_MAX_MS: maximum delay in ms (default 2500, custom mode)
         """
-        mode = os.getenv("HERMES_HUMAN_DELAY_MODE", "off").lower()
+        mode = os.getenv("GENGAR_HUMAN_DELAY_MODE", "off").lower()
         if mode == "off":
             return 0.0
-        min_ms = int(os.getenv("HERMES_HUMAN_DELAY_MIN_MS", "800"))
-        max_ms = int(os.getenv("HERMES_HUMAN_DELAY_MAX_MS", "2500"))
+        min_ms = int(os.getenv("GENGAR_HUMAN_DELAY_MIN_MS", "800"))
+        max_ms = int(os.getenv("GENGAR_HUMAN_DELAY_MAX_MS", "2500"))
         if mode == "natural":
             min_ms, max_ms = 800, 2500
         return random.uniform(min_ms / 1000.0, max_ms / 1000.0)

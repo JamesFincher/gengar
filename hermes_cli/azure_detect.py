@@ -88,7 +88,7 @@ def _http_get_json(url: str, api_key: str, timeout: float = 6.0) -> tuple[int, O
     # so we probe once per URL rather than twice.
     req.add_header("api-key", api_key)
     req.add_header("Authorization", f"Bearer {api_key}")
-    req.add_header("User-Agent", "hermes-agent/azure-detect")
+    req.add_header("User-Agent", "gengar/azure-detect")
     try:
         with urllib_request.urlopen(req, timeout=timeout) as resp:
             body = resp.read()
@@ -191,7 +191,7 @@ def _probe_anthropic_messages(base_url: str, api_key: str) -> bool:
     req.add_header("Authorization", f"Bearer {api_key}")
     req.add_header("anthropic-version", "2023-06-01")
     req.add_header("content-type", "application/json")
-    req.add_header("User-Agent", "hermes-agent/azure-detect")
+    req.add_header("User-Agent", "gengar/azure-detect")
     try:
         with urllib_request.urlopen(req, timeout=6.0) as resp:
             # Should never 200 — "probe" isn't a real deployment.  But

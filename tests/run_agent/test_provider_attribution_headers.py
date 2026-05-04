@@ -23,8 +23,8 @@ def test_openrouter_base_url_applies_or_headers(mock_openai):
     agent._apply_client_headers_for_base_url("https://openrouter.ai/api/v1")
 
     headers = agent._client_kwargs["default_headers"]
-    assert headers["HTTP-Referer"] == "https://hermes-agent.nousresearch.com"
-    assert headers["X-OpenRouter-Title"] == "Hermes Agent"
+    assert headers["HTTP-Referer"] == "https://gengar.jamesfincher.com"
+    assert headers["X-OpenRouter-Title"] == "Gengar"
 
 
 @patch("run_agent.OpenAI")
@@ -42,9 +42,9 @@ def test_ai_gateway_base_url_applies_attribution_headers(mock_openai):
     agent._apply_client_headers_for_base_url("https://ai-gateway.vercel.sh/v1")
 
     headers = agent._client_kwargs["default_headers"]
-    assert headers["HTTP-Referer"] == "https://hermes-agent.nousresearch.com"
-    assert headers["X-Title"] == "Hermes Agent"
-    assert headers["User-Agent"].startswith("HermesAgent/")
+    assert headers["HTTP-Referer"] == "https://gengar.jamesfincher.com"
+    assert headers["X-Title"] == "Gengar"
+    assert headers["User-Agent"].startswith("Gengar/")
 
 
 @patch("run_agent.OpenAI")
@@ -62,7 +62,7 @@ def test_routermint_base_url_applies_user_agent_header(mock_openai):
     agent._apply_client_headers_for_base_url("https://api.routermint.com/v1")
 
     headers = agent._client_kwargs["default_headers"]
-    assert headers["User-Agent"].startswith("HermesAgent/")
+    assert headers["User-Agent"].startswith("Gengar/")
 
 
 @patch("run_agent.OpenAI")
@@ -102,7 +102,7 @@ def test_openrouter_headers_include_response_cache_when_enabled(mock_openai):
         agent._apply_client_headers_for_base_url("https://openrouter.ai/api/v1")
 
     headers = agent._client_kwargs["default_headers"]
-    assert headers["HTTP-Referer"] == "https://hermes-agent.nousresearch.com"
+    assert headers["HTTP-Referer"] == "https://gengar.jamesfincher.com"
     assert headers["X-OpenRouter-Cache"] == "true"
     assert headers["X-OpenRouter-Cache-TTL"] == "600"
 
@@ -126,6 +126,6 @@ def test_openrouter_headers_no_cache_when_disabled(mock_openai):
         agent._apply_client_headers_for_base_url("https://openrouter.ai/api/v1")
 
     headers = agent._client_kwargs["default_headers"]
-    assert headers["HTTP-Referer"] == "https://hermes-agent.nousresearch.com"
+    assert headers["HTTP-Referer"] == "https://gengar.jamesfincher.com"
     assert "X-OpenRouter-Cache" not in headers
     assert "X-OpenRouter-Cache-TTL" not in headers

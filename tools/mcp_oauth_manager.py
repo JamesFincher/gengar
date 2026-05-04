@@ -77,7 +77,7 @@ class _ProviderEntry:
 
 
 # ---------------------------------------------------------------------------
-# HermesMCPOAuthProvider — OAuthClientProvider subclass with disk-watch
+# GengarMCPOAuthProvider — OAuthClientProvider subclass with disk-watch
 # ---------------------------------------------------------------------------
 
 
@@ -92,7 +92,7 @@ def _make_hermes_provider_class() -> Optional[type]:
     except ImportError:  # pragma: no cover — SDK required in CI
         return None
 
-    class HermesMCPOAuthProvider(OAuthClientProvider):
+    class GengarMCPOAuthProvider(OAuthClientProvider):
         """OAuthClientProvider with pre-flow disk-mtime reload.
 
         Before every ``async_auth_flow`` invocation, asks the manager to
@@ -139,7 +139,7 @@ def _make_hermes_provider_class() -> Optional[type]:
             ``async_auth_flow`` takes the ``can_refresh_token()`` branch,
             and the SDK quietly refreshes before the first real request.
 
-            Paired with :class:`HermesTokenStorage` persisting an absolute
+            Paired with :class:`GengarTokenStorage` persisting an absolute
             ``expires_at`` timestamp (``mcp_oauth.py:set_tokens``) so the
             remaining TTL we compute here reflects real wall-clock age.
             """
@@ -273,11 +273,11 @@ def _make_hermes_provider_class() -> Optional[type]:
             except StopAsyncIteration:
                 return
 
-    return HermesMCPOAuthProvider
+    return GengarMCPOAuthProvider
 
 
 # Cached at import time. Tested and used by :class:`MCPOAuthManager`.
-_HERMES_PROVIDER_CLS: Optional[type] = _make_hermes_provider_class()
+_GENGAR_PROVIDER_CLS: Optional[type] = _make_hermes_provider_class()
 
 
 # ---------------------------------------------------------------------------
@@ -341,14 +341,14 @@ class MCPOAuthManager:
     ) -> Optional[Any]:
         """Build the underlying OAuth provider.
 
-        Constructs :class:`HermesMCPOAuthProvider` directly using the helpers
+        Constructs :class:`GengarMCPOAuthProvider` directly using the helpers
         extracted from ``tools.mcp_oauth``. The subclass injects a pre-flow
         disk-watch hook so external token refreshes (cron, other CLI
         instances) are visible to running MCP sessions.
 
         Returns None if the MCP SDK's OAuth support is unavailable.
         """
-        if _HERMES_PROVIDER_CLS is None:
+        if _GENGAR_PROVIDER_CLS is None:
             logger.warning(
                 "MCP OAuth '%s': SDK auth module unavailable", server_name,
             )
@@ -356,7 +356,7 @@ class MCPOAuthManager:
 
         # Local imports avoid circular deps at module import time.
         from tools.mcp_oauth import (
-            HermesTokenStorage,
+            GengarTokenStorage,
             _OAUTH_AVAILABLE,
             _build_client_metadata,
             _configure_callback_port,
@@ -370,7 +370,7 @@ class MCPOAuthManager:
             return None
 
         cfg = dict(entry.oauth_config or {})
-        storage = HermesTokenStorage(server_name)
+        storage = GengarTokenStorage(server_name)
 
         if not _is_interactive() and not storage.has_cached_tokens():
             logger.warning(
@@ -384,7 +384,7 @@ class MCPOAuthManager:
         client_metadata = _build_client_metadata(cfg)
         _maybe_preregister_client(storage, cfg, client_metadata)
 
-        return _HERMES_PROVIDER_CLS(
+        return _GENGAR_PROVIDER_CLS(
             server_name=server_name,
             server_url=entry.server_url,
             client_metadata=client_metadata,
@@ -397,8 +397,8 @@ class MCPOAuthManager:
     def remove(self, server_name: str) -> None:
         """Evict the provider from cache AND delete tokens from disk.
 
-        Called by ``hermes mcp remove <name>`` and (indirectly) by
-        ``hermes mcp login <name>`` during forced re-auth.
+        Called by ``gengar mcp remove <name>`` and (indirectly) by
+        ``gengar mcp login <name>`` during forced re-auth.
         """
         with self._entries_lock:
             self._entries.pop(server_name, None)

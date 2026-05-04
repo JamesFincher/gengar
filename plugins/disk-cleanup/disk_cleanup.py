@@ -1,4 +1,4 @@
-"""disk_cleanup — ephemeral file cleanup for Hermes Agent.
+"""disk_cleanup — ephemeral file cleanup for Gengar.
 
 Library module wrapping the deterministic cleanup rules written by
 @LVT382009 in PR #12212. The plugin ``__init__.py`` wires these
@@ -10,13 +10,13 @@ Rules:
   - test files    → delete immediately at task end (age >= 0)
   - temp files    → delete after 7 days
   - cron-output   → delete after 14 days
-  - empty dirs    → always delete (under HERMES_HOME)
+  - empty dirs    → always delete (under GENGAR_HOME)
   - research      → keep 10 newest, prompt for older (deep only)
   - chrome-profile→ prompt after 14 days (deep only)
   - >500 MB files → prompt always (deep only)
 
-Scope: strictly HERMES_HOME and /tmp/hermes-*
-Never touches: ~/.hermes/logs/ or any system directory.
+Scope: strictly GENGAR_HOME and /tmp/gengar-*
+Never touches: ~/.gengar/logs/ or any system directory.
 """
 
 from __future__ import annotations
@@ -34,8 +34,8 @@ except Exception:  # pragma: no cover — plugin may load before constants resol
     import os
 
     def get_hermes_home() -> Path:  # type: ignore[no-redef]
-        val = (os.environ.get("HERMES_HOME") or "").strip()
-        return Path(val).resolve() if val else (Path.home() / ".hermes").resolve()
+        val = (os.environ.get("GENGAR_HOME") or "").strip()
+        return Path(val).resolve() if val else (Path.home() / ".gengar").resolve()
 
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 def get_state_dir() -> Path:
-    """State dir — separate from ``$HERMES_HOME/logs/``."""
+    """State dir — separate from ``$GENGAR_HOME/logs/``."""
     return get_hermes_home() / "disk-cleanup"
 
 
@@ -55,7 +55,7 @@ def get_tracked_file() -> Path:
 
 
 def get_log_file() -> Path:
-    """Audit log — intentionally NOT under ``$HERMES_HOME/logs/``."""
+    """Audit log — intentionally NOT under ``$GENGAR_HOME/logs/``."""
     return get_state_dir() / "cleanup.log"
 
 
@@ -64,7 +64,7 @@ def get_log_file() -> Path:
 # ---------------------------------------------------------------------------
 
 def is_safe_path(path: Path) -> bool:
-    """Accept only paths under HERMES_HOME or ``/tmp/hermes-*``.
+    """Accept only paths under GENGAR_HOME or ``/tmp/gengar-*``.
 
     Rejects Windows mounts (``/mnt/c`` etc.) and any system directory.
     """
@@ -74,9 +74,9 @@ def is_safe_path(path: Path) -> bool:
         return True
     except (ValueError, OSError):
         pass
-    # Allow /tmp/hermes-* explicitly
+    # Allow /tmp/gengar-* explicitly
     parts = path.parts
-    if len(parts) >= 3 and parts[1] == "tmp" and parts[2].startswith("hermes-"):
+    if len(parts) >= 3 and parts[1] == "tmp" and parts[2].startswith("gengar-"):
         return True
     return False
 
@@ -170,7 +170,7 @@ def track(path_str: str, category: str, silent: bool = False) -> bool:
         return False
 
     if not is_safe_path(path):
-        _log(f"REJECT: {path} (outside HERMES_HOME)")
+        _log(f"REJECT: {path} (outside GENGAR_HOME)")
         return False
 
     size = path.stat().st_size if path.is_file() else 0
@@ -291,14 +291,14 @@ def quick() -> Dict[str, Any]:
         else:
             new_tracked.append(item)
 
-    # Remove empty dirs under HERMES_HOME (but leave HERMES_HOME itself and
+    # Remove empty dirs under GENGAR_HOME (but leave GENGAR_HOME itself and
     # a short list of well-known top-level state dirs alone — a fresh install
     # has these empty, and deleting them would surprise the user).
     hermes_home = get_hermes_home()
     _PROTECTED_TOP_LEVEL = {
         "logs", "memories", "sessions", "cron", "cronjobs",
         "cache", "skills", "plugins", "disk-cleanup", "optional-skills",
-        "hermes-agent", "backups", "profiles", ".worktrees",
+        "gengar", "backups", "profiles", ".worktrees",
     }
     empty_removed = 0
     try:
@@ -477,7 +477,7 @@ def guess_category(path: Path) -> Optional[str]:
         if top in {
             "disk-cleanup", "logs", "memories", "sessions", "config.yaml",
             "skills", "plugins", ".env", "USER.md", "MEMORY.md", "SOUL.md",
-            "auth.json", "hermes-agent",
+            "auth.json", "gengar",
         }:
             return None
         if top == "cron" or top == "cronjobs":
@@ -485,7 +485,7 @@ def guess_category(path: Path) -> Optional[str]:
         if top == "cache":
             return "temp"
     except ValueError:
-        # Path isn't under HERMES_HOME (e.g. /tmp/hermes-*) — fall through.
+        # Path isn't under GENGAR_HOME (e.g. /tmp/gengar-*) — fall through.
         pass
 
     name = path.name

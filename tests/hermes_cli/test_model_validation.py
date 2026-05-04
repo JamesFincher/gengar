@@ -76,9 +76,9 @@ class TestParseModelInput:
         assert model == "gpt-5.4"
 
     def test_nous_provider_switch(self):
-        provider, model = parse_model_input("nous:hermes-3", "openrouter")
+        provider, model = parse_model_input("nous:gengar-3", "openrouter")
         assert provider == "nous"
-        assert model == "hermes-3"
+        assert model == "gengar-3"
 
     def test_empty_model_after_colon_keeps_current(self):
         provider, model = parse_model_input("openrouter:", "nous")
@@ -784,7 +784,7 @@ class TestValidateCodexAutoCorrection:
 # -- probe_api_models — Cloudflare UA mitigation --------------------------------
 
 class TestProbeApiModelsUserAgent:
-    """Probing custom /v1/models must send a Hermes User-Agent.
+    """Probing custom /v1/models must send a Gengar User-Agent.
 
     Some custom Claude proxies (e.g. ``packyapi.com``) sit behind Cloudflare with
     Browser Integrity Check enabled. The default ``Python-urllib/3.x`` signature
@@ -817,8 +817,8 @@ class TestProbeApiModelsUserAgent:
         req = mock_urlopen.call_args[0][0]
         ua = req.get_header("User-agent")  # urllib title-cases header names
         assert ua, "probe_api_models must send a User-Agent header"
-        assert ua.startswith("hermes-cli/"), (
-            f"User-Agent must advertise hermes-cli, got {ua!r}"
+        assert ua.startswith("gengar-cli/"), (
+            f"User-Agent must advertise gengar-cli, got {ua!r}"
         )
         # Must not fall back to urllib's default — that's what Cloudflare 1010 blocks.
         assert not ua.startswith("Python-urllib")
@@ -836,6 +836,6 @@ class TestProbeApiModelsUserAgent:
 
         req = mock_urlopen.call_args[0][0]
         ua = req.get_header("User-agent")
-        assert ua and ua.startswith("hermes-cli/")
+        assert ua and ua.startswith("gengar-cli/")
         # No Authorization was set, but UA must still be present.
         assert req.get_header("Authorization") is None

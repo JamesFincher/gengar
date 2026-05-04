@@ -1,7 +1,7 @@
 """
-Gateway subcommand for hermes CLI.
+Gateway subcommand for gengar CLI.
 
-Handles: hermes gateway [run|start|stop|restart|status|install|uninstall|setup]
+Handles: gengar gateway [run|start|stop|restart|status|install|uninstall|setup]
 """
 
 import asyncio
@@ -31,7 +31,7 @@ from hermes_cli.config import (
     save_env_value,
 )
 # display_hermes_home is imported lazily at call sites to avoid ImportError
-# when hermes_constants is cached from a pre-update version during `hermes update`.
+# when hermes_constants is cached from a pre-update version during `gengar update`.
 from hermes_cli.setup import (
     print_header, print_info, print_success, print_warning, print_error,
     prompt, prompt_choice, prompt_yes_no,
@@ -82,7 +82,7 @@ def _get_service_pids() -> set:
         for scope_args in [["systemctl", "--user"], ["systemctl"]]:
             try:
                 result = subprocess.run(
-                    scope_args + ["list-units", "hermes-gateway*",
+                    scope_args + ["list-units", "gengar-gateway*",
                                   "--plain", "--no-legend", "--no-pager"],
                     capture_output=True, text=True, timeout=5,
                 )
@@ -260,7 +260,7 @@ def _scan_gateway_pids(exclude_pids: set[int], all_profiles: bool = False) -> li
         "hermes_cli/main.py gateway",
         "hermes_cli/main.py --profile",
         "hermes_cli/main.py -p",
-        "hermes gateway",
+        "gengar gateway",
         "gateway/run.py",
     ]
     current_home = str(get_hermes_home().resolve())
@@ -272,12 +272,12 @@ def _scan_gateway_pids(exclude_pids: set[int], all_profiles: bool = False) -> li
             return (
                 f"--profile {current_profile_name}" in command
                 or f"-p {current_profile_name}" in command
-                or f"HERMES_HOME={current_home}" in command
+                or f"GENGAR_HOME={current_home}" in command
             )
 
         if "--profile " in command or " -p " in command:
             return False
-        if "HERMES_HOME=" in command and f"HERMES_HOME={current_home}" not in command:
+        if "GENGAR_HOME=" in command and f"GENGAR_HOME={current_home}" not in command:
             return False
         return True
 
@@ -358,10 +358,10 @@ def find_gateway_pids(exclude_pids: set | None = None, all_profiles: bool = Fals
         exclude_pids: PIDs to exclude from the result (e.g. service-managed
             PIDs that should not be killed during a stale-process sweep).
         all_profiles: When ``True``, return gateway PIDs across **all**
-            profiles (the pre-7923 global behaviour).  ``hermes update``
+            profiles (the pre-7923 global behaviour).  ``gengar update``
             needs this because a code update affects every profile.
             When ``False`` (default), only PIDs belonging to the current
-            Hermes profile are returned.
+            Gengar profile are returned.
     """
     _exclude = set(exclude_pids or set())
     pids: list[int] = []
@@ -382,7 +382,7 @@ def find_gateway_pids(exclude_pids: set | None = None, all_profiles: bool = Fals
 def find_profile_gateway_processes(
     exclude_pids: set | None = None,
 ) -> list[ProfileGatewayProcess]:
-    """Return running gateway PIDs mapped to Hermes profiles via PID files."""
+    """Return running gateway PIDs mapped to Gengar profiles via PID files."""
     _exclude = set(exclude_pids or set())
     processes: list[ProfileGatewayProcess] = []
     try:
@@ -555,7 +555,7 @@ def _wait_for_systemd_service_restart(
 
     print(
         f"⚠ {scope_label} service did not become active within {int(timeout)}s.\n"
-        f"  Check status: {'sudo ' if system else ''}hermes gateway status\n"
+        f"  Check status: {'sudo ' if system else ''}gengar gateway status\n"
         f"  Check logs:   journalctl {'--user ' if not system else ''}-u {svc} -l --since '2 min ago'"
     )
     return False
@@ -686,7 +686,7 @@ def _print_gateway_process_mismatch(snapshot: GatewayRuntimeSnapshot) -> None:
     print()
     print("⚠ Gateway process is running for this profile, but the service is not active")
     print(f"  PID(s): {_format_gateway_pids(snapshot.gateway_pids, limit=None)}")
-    print("  This is usually a manual foreground/tmux/nohup run, so `hermes gateway`")
+    print("  This is usually a manual foreground/tmux/nohup run, so `gengar gateway`")
     print("  can refuse to start another copy until this process stops.")
 
 
@@ -720,7 +720,7 @@ def kill_gateway_processes(force: bool = False, exclude_pids: set | None = None,
 
 
 def stop_profile_gateway() -> bool:
-    """Stop only the gateway for the current profile (HERMES_HOME-scoped).
+    """Stop only the gateway for the current profile (GENGAR_HOME-scoped).
 
     Uses the PID file written by start_gateway(), so it only kills the
     gateway belonging to this profile — not gateways from other profiles.
@@ -822,16 +822,16 @@ def is_windows() -> bool:
 # Service Configuration
 # =============================================================================
 
-_SERVICE_BASE = "hermes-gateway"
-SERVICE_DESCRIPTION = "Hermes Agent Gateway - Messaging Platform Integration"
+_SERVICE_BASE = "gengar-gateway"
+SERVICE_DESCRIPTION = "Gengar Gateway - Messaging Platform Integration"
 
 
 def _profile_suffix() -> str:
-    """Derive a service-name suffix from the current HERMES_HOME.
+    """Derive a service-name suffix from the current GENGAR_HOME.
 
     Returns ``""`` for the default root, the profile name for
     ``<root>/profiles/<name>``, or a short hash for any other path.
-    Works correctly in Docker (HERMES_HOME=/opt/data) and standard deployments.
+    Works correctly in Docker (GENGAR_HOME=/opt/data) and standard deployments.
     """
     import hashlib
     import re
@@ -849,18 +849,18 @@ def _profile_suffix() -> str:
             return parts[0]
     except ValueError:
         pass
-    # Fallback: short hash for arbitrary HERMES_HOME paths
+    # Fallback: short hash for arbitrary GENGAR_HOME paths
     return hashlib.sha256(str(home).encode()).hexdigest()[:8]
 
 
 def _profile_arg(hermes_home: str | None = None) -> str:
-    """Return ``--profile <name>`` only when HERMES_HOME is a named profile.
+    """Return ``--profile <name>`` only when GENGAR_HOME is a named profile.
 
-    For ``~/.hermes/profiles/<name>``, returns ``"--profile <name>"``.
+    For ``~/.gengar/profiles/<name>``, returns ``"--profile <name>"``.
     For the default profile or hash-based custom paths, returns the empty string.
 
     Args:
-        hermes_home: Optional explicit HERMES_HOME path. Defaults to the current
+        hermes_home: Optional explicit GENGAR_HOME path. Defaults to the current
             ``get_hermes_home()`` value. Should be passed when generating a
             service definition for a different user (e.g. system service).
     """
@@ -882,11 +882,11 @@ def _profile_arg(hermes_home: str | None = None) -> str:
 
 
 def get_service_name() -> str:
-    """Derive a systemd service name scoped to this HERMES_HOME.
+    """Derive a systemd service name scoped to this GENGAR_HOME.
 
-    Default ``~/.hermes`` returns ``hermes-gateway`` (backward compatible).
-    Profile ``~/.hermes/profiles/coder`` returns ``hermes-gateway-coder``.
-    Any other HERMES_HOME appends a short hash for uniqueness.
+    Default ``~/.gengar`` returns ``gengar-gateway`` (backward compatible).
+    Profile ``~/.gengar/profiles/coder`` returns ``gengar-gateway-coder``.
+    Any other GENGAR_HOME appends a short hash for uniqueness.
     """
     suffix = _profile_suffix()
     if not suffix:
@@ -1070,7 +1070,7 @@ def _raise_user_systemd_unavailable(username: str, *, reason: str, fix_hint: str
         "\n"
         "  Alternative: run the gateway in the foreground (stays up until\n"
         "  you exit / close the terminal):\n"
-        "    hermes gateway run"
+        "    gengar gateway run"
     )
     raise UserSystemdUnavailableError(msg)
 
@@ -1121,11 +1121,11 @@ def has_conflicting_systemd_units() -> bool:
     return len(get_installed_systemd_scopes()) > 1
 
 
-# Legacy service names from older Hermes installs that predate the
-# hermes-gateway rename. Kept as an explicit allowlist (NOT a glob) so
-# profile units (hermes-gateway-*.service) and unrelated third-party
-# "hermes" units are never matched.
-_LEGACY_SERVICE_NAMES: tuple[str, ...] = ("hermes.service",)
+# Legacy service names from older Gengar installs that predate the
+# gengar-gateway rename. Kept as an explicit allowlist (NOT a glob) so
+# profile units (gengar-gateway-*.service) and unrelated third-party
+# "gengar" units are never matched.
+_LEGACY_SERVICE_NAMES: tuple[str, ...] = ("gengar.service",)
 
 # ExecStart content markers that identify a unit as running our gateway.
 # A legacy unit is only flagged when its file contains one of these.
@@ -1133,8 +1133,8 @@ _LEGACY_UNIT_EXECSTART_MARKERS: tuple[str, ...] = (
     "hermes_cli.main gateway",
     "hermes_cli/main.py gateway",
     "gateway/run.py",
-    " hermes gateway ",
-    "/hermes gateway ",
+    " gengar gateway ",
+    "/gengar gateway ",
 )
 
 
@@ -1151,22 +1151,22 @@ def _legacy_unit_search_paths() -> list[tuple[bool, Path]]:
 
 
 def _find_legacy_hermes_units() -> list[tuple[str, Path, bool]]:
-    """Return ``[(unit_name, unit_path, is_system)]`` for legacy Hermes gateway units.
+    """Return ``[(unit_name, unit_path, is_system)]`` for legacy Gengar gateway units.
 
-    Detects unit files installed by older Hermes versions that used a
-    different service name (e.g. ``hermes.service`` before the rename to
-    ``hermes-gateway.service``). When both a legacy unit and the current
-    ``hermes-gateway.service`` are active, they fight over the same bot
+    Detects unit files installed by older Gengar versions that used a
+    different service name (e.g. ``gengar.service`` before the rename to
+    ``gengar-gateway.service``). When both a legacy unit and the current
+    ``gengar-gateway.service`` are active, they fight over the same bot
     token — the PR #5646 signal-recovery change turns this into a 30-second
     SIGTERM flap loop.
 
     Safety guards:
 
     * Explicit allowlist of legacy names (no globbing). Profile units such
-      as ``hermes-gateway-coder.service`` and unrelated third-party
-      ``hermes-*`` services are never matched.
+      as ``gengar-gateway-coder.service`` and unrelated third-party
+      ``gengar-*`` services are never matched.
     * ExecStart content check — only flag units that invoke our gateway
-      entrypoint. A user-created ``hermes.service`` running an unrelated
+      entrypoint. A user-created ``gengar.service`` running an unrelated
       binary is left untouched.
     * Results are returned purely for caller inspection; this function
       never mutates or removes anything.
@@ -1189,12 +1189,12 @@ def _find_legacy_hermes_units() -> list[tuple[str, Path, bool]]:
 
 
 def has_legacy_hermes_units() -> bool:
-    """Return True when any legacy Hermes gateway unit files exist."""
+    """Return True when any legacy Gengar gateway unit files exist."""
     return bool(_find_legacy_hermes_units())
 
 
 def print_legacy_unit_warning() -> None:
-    """Warn about legacy Hermes gateway unit files if any are installed.
+    """Warn about legacy Gengar gateway unit files if any are installed.
 
     Idempotent: prints nothing when no legacy units are detected. Safe to
     call from any status/install/setup path.
@@ -1202,21 +1202,21 @@ def print_legacy_unit_warning() -> None:
     legacy = _find_legacy_hermes_units()
     if not legacy:
         return
-    print_warning("Legacy Hermes gateway unit(s) detected from an older install:")
+    print_warning("Legacy Gengar gateway unit(s) detected from an older install:")
     for name, path, is_system in legacy:
         scope = "system" if is_system else "user"
         print_info(f"    {path}  ({scope} scope)")
-    print_info("  These run alongside the current hermes-gateway service and")
+    print_info("  These run alongside the current gengar-gateway service and")
     print_info("  cause SIGTERM flap loops — both try to use the same bot token.")
     print_info("  Remove them with:")
-    print_info("    hermes gateway migrate-legacy")
+    print_info("    gengar gateway migrate-legacy")
 
 
 def remove_legacy_hermes_units(
     interactive: bool = True,
     dry_run: bool = False,
 ) -> tuple[int, list[Path]]:
-    """Stop, disable, and remove legacy Hermes gateway unit files.
+    """Stop, disable, and remove legacy Gengar gateway unit files.
 
     Iterates over whatever ``_find_legacy_hermes_units()`` returns — which is
     an explicit allowlist of legacy names (not a glob). Profile units and
@@ -1234,14 +1234,14 @@ def remove_legacy_hermes_units(
     """
     legacy = _find_legacy_hermes_units()
     if not legacy:
-        print("No legacy Hermes gateway units found.")
+        print("No legacy Gengar gateway units found.")
         return 0, []
 
     user_units = [(n, p) for n, p, is_sys in legacy if not is_sys]
     system_units = [(n, p) for n, p, is_sys in legacy if is_sys]
 
     print()
-    print("Legacy Hermes gateway unit(s) found:")
+    print("Legacy Gengar gateway unit(s) found:")
     for name, path, is_system in legacy:
         scope = "system" if is_system else "user"
         print(f"  {path}  ({scope} scope)")
@@ -1252,7 +1252,7 @@ def remove_legacy_hermes_units(
         return 0, [p for _, p, _ in legacy]
 
     if interactive and not prompt_yes_no("Remove these legacy units?", True):
-        print("Skipped. Run again with: hermes gateway migrate-legacy")
+        print("Skipped. Run again with: gengar gateway migrate-legacy")
         return 0, [p for _, p, _ in legacy]
 
     removed = 0
@@ -1281,7 +1281,7 @@ def remove_legacy_hermes_units(
         if os.geteuid() != 0:
             print()
             print_warning("System-scope legacy units require root to remove.")
-            print_info("  Re-run with: sudo hermes gateway migrate-legacy")
+            print_info("  Re-run with: sudo gengar gateway migrate-legacy")
             for _, path in system_units:
                 remaining.append(path)
         else:
@@ -1320,8 +1320,8 @@ def print_systemd_scope_conflict_warning() -> None:
     print_info("  This is confusing and can make start/stop/status behavior ambiguous.")
     print_info("  Default gateway commands target the user service unless you pass --system.")
     print_info("  Keep one of these:")
-    print_info("    hermes gateway uninstall")
-    print_info("    sudo hermes gateway uninstall --system")
+    print_info("    gengar gateway uninstall")
+    print_info("    sudo gengar gateway uninstall --system")
 
 
 def _require_root_for_system_service(action: str) -> None:
@@ -1392,12 +1392,12 @@ def install_linux_gateway_from_setup(force: bool = False) -> tuple[str | None, b
     if scope == "system":
         run_as_user = _default_system_service_user()
         if os.geteuid() != 0:
-            print_warning("  System service install requires sudo, so Hermes can't create it from this user session.")
+            print_warning("  System service install requires sudo, so Gengar can't create it from this user session.")
             if run_as_user:
-                print_info(f"  After setup, run: sudo hermes gateway install --system --run-as-user {run_as_user}")
+                print_info(f"  After setup, run: sudo gengar gateway install --system --run-as-user {run_as_user}")
             else:
-                print_info("  After setup, run: sudo hermes gateway install --system --run-as-user <your-user>")
-            print_info("  Then start it with: sudo hermes gateway start --system")
+                print_info("  After setup, run: sudo gengar gateway install --system --run-as-user <your-user>")
+            print_info("  Then start it with: sudo gengar gateway start --system")
             return scope, False
 
         if not run_as_user:
@@ -1480,7 +1480,7 @@ def print_systemd_linger_guidance() -> None:
 def _launchd_user_home() -> Path:
     """Return the real macOS user home for launchd artifacts.
 
-    Profile-mode Hermes often sets ``HOME`` to a profile-scoped directory, but
+    Profile-mode Gengar often sets ``HOME`` to a profile-scoped directory, but
     launchd user agents still live under the actual account home.
     """
     import pwd
@@ -1491,11 +1491,11 @@ def _launchd_user_home() -> Path:
 def get_launchd_plist_path() -> Path:
     """Return the launchd plist path, scoped per profile.
 
-    Default ``~/.hermes`` → ``ai.hermes.gateway.plist`` (backward compatible).
-    Profile ``~/.hermes/profiles/coder`` → ``ai.hermes.gateway-coder.plist``.
+    Default ``~/.gengar`` → ``ai.gengar.gateway.plist`` (backward compatible).
+    Profile ``~/.gengar/profiles/coder`` → ``ai.gengar.gateway-coder.plist``.
     """
     suffix = _profile_suffix()
-    name = f"ai.hermes.gateway-{suffix}" if suffix else "ai.hermes.gateway"
+    name = f"ai.gengar.gateway-{suffix}" if suffix else "ai.gengar.gateway"
     return _launchd_user_home() / "Library" / "LaunchAgents" / f"{name}.plist"
 
 def _detect_venv_dir() -> Path | None:
@@ -1564,8 +1564,8 @@ def _remap_path_for_user(path: str, target_home_dir: str) -> str:
     If *path* lives under ``Path.home()`` the corresponding prefix is swapped
     to *target_home_dir*; otherwise the path is returned unchanged.
 
-      /root/.hermes/hermes-agent  -> /home/alice/.hermes/hermes-agent
-      /opt/hermes                 -> /opt/hermes  (kept as-is)
+      /root/.gengar/gengar  -> /home/alice/.gengar/gengar
+      /opt/gengar                 -> /opt/gengar  (kept as-is)
 
     Note: this function intentionally does NOT resolve symlinks. A venv's
     ``bin/python`` is typically a symlink to the base interpreter (e.g. a
@@ -1585,28 +1585,28 @@ def _remap_path_for_user(path: str, target_home_dir: str) -> str:
 
 
 def _hermes_home_for_target_user(target_home_dir: str) -> str:
-    """Remap the current HERMES_HOME to the equivalent under a target user's home.
+    """Remap the current GENGAR_HOME to the equivalent under a target user's home.
 
     When installing a system service via sudo, get_hermes_home() resolves to
     root's home.  This translates it to the target user's equivalent path:
-      /root/.hermes                    → /home/alice/.hermes
-      /root/.hermes/profiles/coder     → /home/alice/.hermes/profiles/coder
-      /opt/custom-hermes               → /opt/custom-hermes  (kept as-is)
+      /root/.gengar                    → /home/alice/.gengar
+      /root/.gengar/profiles/coder     → /home/alice/.gengar/profiles/coder
+      /opt/custom-gengar               → /opt/custom-gengar  (kept as-is)
     """
     current_hermes = get_hermes_home().resolve()
-    current_default = (Path.home() / ".hermes").resolve()
-    target_default = Path(target_home_dir) / ".hermes"
+    current_default = (Path.home() / ".gengar").resolve()
+    target_default = Path(target_home_dir) / ".gengar"
 
-    # Default ~/.hermes → remap to target user's default
+    # Default ~/.gengar → remap to target user's default
     if current_hermes == current_default:
         return str(target_default)
 
-    # Profile or subdir of ~/.hermes → preserve the relative structure
+    # Profile or subdir of ~/.gengar → preserve the relative structure
     try:
         relative = current_hermes.relative_to(current_default)
         return str(target_default / relative)
     except ValueError:
-        # Completely custom path (not under ~/.hermes) — keep as-is
+        # Completely custom path (not under ~/.gengar) — keep as-is
         return str(current_hermes)
 
 
@@ -1668,7 +1668,7 @@ Environment="USER={username}"
 Environment="LOGNAME={username}"
 Environment="PATH={sane_path}"
 Environment="VIRTUAL_ENV={venv_dir}"
-Environment="HERMES_HOME={hermes_home}"
+Environment="GENGAR_HOME={hermes_home}"
 Restart=always
 RestartSec=60
 RestartMaxDelaySec=300
@@ -1702,7 +1702,7 @@ ExecStart={python_path} -m hermes_cli.main{f" {profile_arg}" if profile_arg else
 WorkingDirectory={working_dir}
 Environment="PATH={sane_path}"
 Environment="VIRTUAL_ENV={venv_dir}"
-Environment="HERMES_HOME={hermes_home}"
+Environment="GENGAR_HOME={hermes_home}"
 Restart=always
 RestartSec=60
 RestartMaxDelaySec=300
@@ -1736,7 +1736,7 @@ def _normalize_launchd_plist_for_comparison(text: str) -> str:
     normalized = _normalize_service_definition(text)
     return re.sub(
         r'(<key>PATH</key>\s*<string>)(.*?)(</string>)',
-        r'\1__HERMES_PATH__\3',
+        r'\1__GENGAR_PATH__\3',
         normalized,
         flags=re.S,
     )
@@ -1763,7 +1763,7 @@ def refresh_systemd_unit_if_needed(system: bool = False) -> bool:
     expected_user = _read_systemd_user_from_unit(unit_path) if system else None
     unit_path.write_text(generate_systemd_unit(system=system, run_as_user=expected_user), encoding="utf-8")
     _run_systemctl(["daemon-reload"], system=system, check=True, timeout=30)
-    print(f"↻ Updated gateway {_service_scope_label(system)} service definition to match the current Hermes install")
+    print(f"↻ Updated gateway {_service_scope_label(system)} service definition to match the current Gengar install")
     return True
 
 
@@ -1834,7 +1834,7 @@ def _select_systemd_scope(system: bool = False) -> bool:
 
 def _get_restart_drain_timeout() -> float:
     """Return the configured gateway restart drain timeout in seconds."""
-    raw = os.getenv("HERMES_RESTART_DRAIN_TIMEOUT", "").strip()
+    raw = os.getenv("GENGAR_RESTART_DRAIN_TIMEOUT", "").strip()
     if not raw:
         cfg = read_raw_config()
         agent_cfg = cfg.get("agent", {}) if isinstance(cfg, dict) else {}
@@ -1850,8 +1850,8 @@ def systemd_install(force: bool = False, system: bool = False, run_as_user: str 
     if system:
         _require_root_for_system_service("install")
 
-    # Offer to remove legacy units (hermes.service from pre-rename installs)
-    # before installing the new hermes-gateway.service. If both remain, they
+    # Offer to remove legacy units (gengar.service from pre-rename installs)
+    # before installing the new gengar-gateway.service. If both remain, they
     # flap-fight for the Telegram bot token on every gateway startup.
     # Only removes units matching _LEGACY_SERVICE_NAMES + our ExecStart
     # signature — profile units are never touched.
@@ -1888,8 +1888,8 @@ def systemd_install(force: bool = False, system: bool = False, run_as_user: str 
     print(f"✓ {_service_scope_label(system).capitalize()} service installed and enabled!")
     print()
     print("Next steps:")
-    print(f"  {'sudo ' if system else ''}hermes gateway start{scope_flag}              # Start the service")
-    print(f"  {'sudo ' if system else ''}hermes gateway status{scope_flag}             # Check status")
+    print(f"  {'sudo ' if system else ''}gengar gateway start{scope_flag}              # Start the service")
+    print(f"  {'sudo ' if system else ''}gengar gateway status{scope_flag}             # Check status")
     print(f"  {'journalctl' if system else 'journalctl --user'} -u {get_service_name()} -f  # View logs")
     print()
 
@@ -1976,7 +1976,7 @@ def systemd_restart(system: bool = False):
         # systemd can sit in the RestartSec window or even wedge itself into a
         # failed/rate-limited state if the operator asks for another restart in
         # the middle of that handoff. Clear any stale failed state and kick the
-        # unit immediately so `hermes gateway restart` behaves idempotently.
+        # unit immediately so `gengar gateway restart` behaves idempotently.
         _run_systemctl(
             ["reset-failed", svc],
             system=system,
@@ -2013,7 +2013,7 @@ def systemd_status(deep: bool = False, system: bool = False, full: bool = False)
 
     if not unit_path.exists():
         print("✗ Gateway service is not installed")
-        print(f"  Run: {'sudo ' if system else ''}hermes gateway install{scope_flag}")
+        print(f"  Run: {'sudo ' if system else ''}gengar gateway install{scope_flag}")
         return
 
     if has_conflicting_systemd_units():
@@ -2026,7 +2026,7 @@ def systemd_status(deep: bool = False, system: bool = False, full: bool = False)
 
     if not systemd_unit_is_current(system=system):
         print("⚠ Installed gateway service definition is outdated")
-        print(f"  Run: {'sudo ' if system else ''}hermes gateway restart{scope_flag}  # auto-refreshes the unit")
+        print(f"  Run: {'sudo ' if system else ''}gengar gateway restart{scope_flag}  # auto-refreshes the unit")
         print()
 
     status_cmd = ["status", get_service_name(), "--no-pager"]
@@ -2054,7 +2054,7 @@ def systemd_status(deep: bool = False, system: bool = False, full: bool = False)
         print(f"✓ {_service_scope_label(system).capitalize()} gateway service is running")
     else:
         print(f"✗ {_service_scope_label(system).capitalize()} gateway service is stopped")
-        print(f"  Run: {'sudo ' if system else ''}hermes gateway start{scope_flag}")
+        print(f"  Run: {'sudo ' if system else ''}gengar gateway start{scope_flag}")
 
     configured_user = _read_systemd_user_from_unit(unit_path) if system else None
     if configured_user:
@@ -2076,7 +2076,7 @@ def systemd_status(deep: bool = False, system: bool = False, full: bool = False)
         print("  ⏳ Restart pending: systemd is waiting to relaunch the gateway")
     elif active_state == "failed" and exec_main_status == str(GATEWAY_SERVICE_RESTART_EXIT_CODE):
         print("  ⚠ Planned restart is stuck in systemd failed state (exit 75)")
-        print(f"  Run: systemctl {'--user ' if not system else ''}reset-failed {get_service_name()} && {'sudo ' if system else ''}hermes gateway start{scope_flag}")
+        print(f"  Run: systemctl {'--user ' if not system else ''}reset-failed {get_service_name()} && {'sudo ' if system else ''}gengar gateway start{scope_flag}")
     elif active_state == "failed" and result_code:
         print(f"  ⚠ Systemd unit result: {result_code}")
 
@@ -2108,7 +2108,7 @@ def systemd_status(deep: bool = False, system: bool = False, full: bool = False)
 def get_launchd_label() -> str:
     """Return the launchd service label, scoped per profile."""
     suffix = _profile_suffix()
-    return f"ai.hermes.gateway-{suffix}" if suffix else "ai.hermes.gateway"
+    return f"ai.gengar.gateway-{suffix}" if suffix else "ai.gengar.gateway"
 
 
 def _launchd_domain() -> str:
@@ -2181,7 +2181,7 @@ def generate_launchd_plist() -> str:
         <string>{sane_path}</string>
         <key>VIRTUAL_ENV</key>
         <string>{venv_dir}</string>
-        <key>HERMES_HOME</key>
+        <key>GENGAR_HOME</key>
         <string>{hermes_home}</string>
     </dict>
     
@@ -2230,7 +2230,7 @@ def refresh_launchd_plist_if_needed() -> bool:
     # Bootout/bootstrap so launchd picks up the new definition
     subprocess.run(["launchctl", "bootout", f"{_launchd_domain()}/{label}"], check=False, timeout=90)
     subprocess.run(["launchctl", "bootstrap", _launchd_domain(), str(plist_path)], check=False, timeout=30)
-    print("↻ Updated gateway launchd service definition to match the current Hermes install")
+    print("↻ Updated gateway launchd service definition to match the current Gengar install")
     return True
 
 
@@ -2257,7 +2257,7 @@ def launchd_install(force: bool = False):
     print("✓ Service installed and loaded!")
     print()
     print("Next steps:")
-    print("  hermes gateway status             # Check status")
+    print("  gengar gateway status             # Check status")
     from hermes_constants import display_hermes_home as _dhh
     print(f"  tail -f {_dhh()}/logs/gateway.log  # View logs")
 
@@ -2303,7 +2303,7 @@ def launchd_stop():
     # bootout unloads the service definition so KeepAlive doesn't respawn
     # the process.  A plain `kill SIGTERM` only signals the process — launchd
     # immediately restarts it because KeepAlive.SuccessfulExit = false.
-    # `hermes gateway start` re-bootstraps when it detects the job is unloaded.
+    # `gengar gateway start` re-bootstraps when it detects the job is unloaded.
     try:
         subprocess.run(["launchctl", "bootout", target], check=True, timeout=90)
     except subprocess.CalledProcessError as e:
@@ -2319,7 +2319,7 @@ def _wait_for_gateway_exit(timeout: float = 10.0, force_after: float | None = 5.
 
     Uses the PID from the gateway.pid file — not launchd labels — so this
     works correctly when multiple gateway instances run under separate
-    HERMES_HOME directories.
+    GENGAR_HOME directories.
 
     Args:
         timeout: Total seconds to wait before giving up.
@@ -2406,10 +2406,10 @@ def launchd_status(deep: bool = False):
 
     print(f"Launchd plist: {plist_path}")
     if launchd_plist_is_current():
-        print("✓ Service definition matches the current Hermes install")
+        print("✓ Service definition matches the current Gengar install")
     else:
-        print("⚠ Service definition is stale relative to the current Hermes install")
-        print("  Run: hermes gateway start")
+        print("⚠ Service definition is stale relative to the current Gengar install")
+        print("  Run: gengar gateway start")
 
     if loaded:
         print("✓ Gateway service is loaded")
@@ -2417,7 +2417,7 @@ def launchd_status(deep: bool = False):
     else:
         print("✗ Gateway service is not loaded")
         print("  Service definition exists locally but launchd has not loaded it.")
-        print("  Run: hermes gateway start")
+        print("  Run: gengar gateway start")
     
     if deep:
         log_file = get_hermes_home() / "logs" / "gateway.log"
@@ -2446,7 +2446,7 @@ def run_gateway(verbose: int = 0, quiet: bool = False, replace: bool = False):
     from gateway.run import start_gateway
     
     print("┌─────────────────────────────────────────────────────────┐")
-    print("│           ⚕ Hermes Gateway Starting...                 │")
+    print("│           ⚕ Gengar Gateway Starting...                 │")
     print("├─────────────────────────────────────────────────────────┤")
     print("│  Messaging platforms + cron scheduler                    │")
     print("│  Press Ctrl+C to stop                                   │")
@@ -2563,7 +2563,7 @@ _PLATFORMS = [
             "3. Get an access token: Element → Settings → Help & About → Access Token",
             "   Or via API: curl -X POST https://your-server/_matrix/client/v3/login \\",
             "     -d '{\"type\":\"m.login.password\",\"user\":\"@bot:server\",\"password\":\"...\"}'",
-            "4. Alternatively, provide user ID + password and Hermes will log in directly",
+            "4. Alternatively, provide user ID + password and Gengar will log in directly",
             "5. For E2EE: set MATRIX_ENCRYPTION=true (requires pip install 'mautrix[encryption]')",
             "6. To find your user ID: it's @username:your-server (shown in Element profile)",
         ],
@@ -2573,7 +2573,7 @@ _PLATFORMS = [
             {"name": "MATRIX_ACCESS_TOKEN", "prompt": "Access token (leave empty to use password login instead)", "password": True,
              "help": "Paste your access token, or leave empty and provide user ID + password below."},
             {"name": "MATRIX_USER_ID", "prompt": "User ID (@bot:server — required for password login)", "password": False,
-             "help": "Full Matrix user ID, e.g. @hermes:matrix.example.org"},
+             "help": "Full Matrix user ID, e.g. @gengar:matrix.example.org"},
             {"name": "MATRIX_ALLOWED_USERS", "prompt": "Allowed user IDs (comma-separated, e.g. @you:server)", "password": False,
              "is_allowlist": True,
              "help": "Matrix user IDs who can interact with the bot."},
@@ -2589,7 +2589,7 @@ _PLATFORMS = [
         "setup_instructions": [
             "1. In Mattermost: Integrations → Bot Accounts → Add Bot Account",
             "   (System Console → Integrations → Bot Accounts must be enabled)",
-            "2. Give it a username (e.g. hermes) and copy the bot token",
+            "2. Give it a username (e.g. gengar) and copy the bot token",
             "3. Works with any self-hosted Mattermost instance — enter your server URL",
             "4. To find your user ID: click your avatar (top-left) → Profile",
             "   Your user ID is displayed there — click it to copy.",
@@ -2605,7 +2605,7 @@ _PLATFORMS = [
              "is_allowlist": True,
              "help": "Your Mattermost user ID from step 4 above."},
             {"name": "MATTERMOST_HOME_CHANNEL", "prompt": "Home channel ID (for cron/notification delivery, or empty to set later with /set-home)", "password": False,
-             "help": "Channel ID where Hermes delivers cron results and notifications."},
+             "help": "Channel ID where Gengar delivers cron results and notifications."},
             {"name": "MATTERMOST_REPLY_MODE", "prompt": "Reply mode — 'off' for flat messages, 'thread' for threaded replies (default: off)", "password": False,
              "help": "off = flat channel messages, thread = replies nest under your message."},
         ],
@@ -2628,7 +2628,7 @@ _PLATFORMS = [
         "emoji": "📧",
         "token_var": "EMAIL_ADDRESS",
         "setup_instructions": [
-            "1. Use a dedicated email account for your Hermes agent",
+            "1. Use a dedicated email account for your Gengar agent",
             "2. For Gmail: enable 2FA, then create an App Password at",
             "   https://myaccount.google.com/apppasswords",
             "3. For other providers: use your email password or app-specific password",
@@ -2636,7 +2636,7 @@ _PLATFORMS = [
         ],
         "vars": [
             {"name": "EMAIL_ADDRESS", "prompt": "Email address", "password": False,
-             "help": "The email address Hermes will use (e.g., hermes@gmail.com)."},
+             "help": "The email address Gengar will use (e.g., gengar@gmail.com)."},
             {"name": "EMAIL_PASSWORD", "prompt": "Email password (or app password)", "password": True,
              "help": "For Gmail, use an App Password (not your regular password)."},
             {"name": "EMAIL_IMAP_HOST", "prompt": "IMAP host", "password": False,
@@ -2794,9 +2794,9 @@ _PLATFORMS = [
             "2. Complete the BlueBubbles setup wizard — sign in with your Apple ID",
             "3. In BlueBubbles Settings → API, note the Server URL and password",
             "4. The server URL is typically http://<your-mac-ip>:1234",
-            "5. Hermes connects via the BlueBubbles REST API and receives",
+            "5. Gengar connects via the BlueBubbles REST API and receives",
             "   incoming messages via a local webhook",
-            "6. To authorize users, use DM pairing: hermes pairing generate bluebubbles",
+            "6. To authorize users, use DM pairing: gengar pairing generate bluebubbles",
             "   Share the code — the user sends it via iMessage to get approved",
         ],
         "vars": [
@@ -2843,7 +2843,7 @@ _PLATFORMS = [
             "1. Download the Yuanbao app from https://yuanbao.tencent.com/",
             "2. In the app, go to PAI → My Bot and create a new bot",
             "3. After the bot is created, copy the App ID and App Secret",
-            "4. Enter them below and Hermes will connect automatically over WebSocket",
+            "4. Enter them below and Gengar will connect automatically over WebSocket",
         ],
         "vars": [
             {"name": "YUANBAO_APP_ID", "prompt": "App ID", "password": False,
@@ -2859,14 +2859,14 @@ def _all_platforms() -> list[dict]:
     Combines the built-in ``_PLATFORMS`` with plugin platforms registered via
     ``platform_registry``. Plugins are discovered on first call so bundled
     platforms (like IRC, which auto-load via ``kind: platform``) appear in
-    ``hermes setup gateway`` without needing the gateway to be running.
+    ``gengar setup gateway`` without needing the gateway to be running.
     Built-ins keep their dict shape; plugin entries are adapted to the same
     shape with ``_registry_entry`` holding the source.
     """
     # Populate the registry so plugin platforms are visible. Idempotent.
     # Bundled platform plugins (``kind: platform``) auto-load unconditionally,
     # so every shipped messaging channel appears in the setup menu by default.
-    # User-installed platform plugins under ~/.hermes/plugins/ still require
+    # User-installed platform plugins under ~/.gengar/plugins/ still require
     # opt-in via ``plugins.enabled`` (untrusted code).
     try:
         from hermes_cli.plugins import discover_plugins
@@ -3065,7 +3065,7 @@ def _setup_standard_platform(platform: dict):
                 print()
                 access_choices = [
                     "Enable open access (anyone can message the bot)",
-                    "Use DM pairing (unknown users request access, you approve with 'hermes pairing approve')",
+                    "Use DM pairing (unknown users request access, you approve with 'gengar pairing approve')",
                     "Skip for now (bot will deny all users until configured)",
                 ]
                 access_idx = prompt_choice("  How should unauthorized users be handled?", access_choices, 1)
@@ -3074,9 +3074,9 @@ def _setup_standard_platform(platform: dict):
                     print_warning("  Open access enabled — anyone can use your bot!")
                 elif access_idx == 1:
                     print_success("  DM pairing mode — users will receive a code to request access.")
-                    print_info("  Approve with: hermes pairing approve <platform> <code>")
+                    print_info("  Approve with: gengar pairing approve <platform> <code>")
                 else:
-                    print_info("  Skipped — configure later with 'hermes gateway setup'")
+                    print_info("  Skipped — configure later with 'gengar gateway setup'")
             continue
 
         value = prompt(f"  {var['prompt']}", password=var.get("password", False))
@@ -3267,7 +3267,7 @@ def _setup_wecom():
         print()
         access_choices = [
             "Enable open access (anyone can message the bot)",
-            "Use DM pairing (unknown users request access, you approve with 'hermes pairing approve')",
+            "Use DM pairing (unknown users request access, you approve with 'gengar pairing approve')",
             "Disable direct messages",
             "Skip for now (bot will deny all users until configured)",
         ]
@@ -3279,12 +3279,12 @@ def _setup_wecom():
         elif access_idx == 1:
             save_env_value("WECOM_DM_POLICY", "pairing")
             print_success("  DM pairing mode — users will receive a code to request access.")
-            print_info("  Approve with: hermes pairing approve <platform> <code>")
+            print_info("  Approve with: gengar pairing approve <platform> <code>")
         elif access_idx == 2:
             save_env_value("WECOM_DM_POLICY", "disabled")
             print_warning("  Direct messages disabled.")
         else:
-            print_info("  Skipped — configure later with 'hermes gateway setup'")
+            print_info("  Skipped — configure later with 'gengar gateway setup'")
 
     # ── Home channel (optional) ──
     print()
@@ -3360,9 +3360,9 @@ def _setup_weixin():
     print()
     print(color("  ─── 💬 Weixin / WeChat Setup ───", Colors.CYAN))
     print()
-    print_info("  1. Hermes will open Tencent iLink QR login in this terminal.")
+    print_info("  1. Gengar will open Tencent iLink QR login in this terminal.")
     print_info("  2. Use WeChat to scan and confirm the QR code.")
-    print_info("  3. Hermes will store the returned account_id/token in ~/.hermes/.env.")
+    print_info("  3. Gengar will store the returned account_id/token in ~/.gengar/.env.")
     print_info("  4. This adapter supports native text, image, video, and document delivery.")
 
     existing_account = get_env_value("WEIXIN_ACCOUNT_ID")
@@ -3382,7 +3382,7 @@ def _setup_weixin():
 
     if not check_weixin_requirements():
         print_error("  Missing dependencies: Weixin needs aiohttp and cryptography.")
-        print_info("  Install them, then rerun `hermes gateway setup`.")
+        print_info("  Install them, then rerun `gengar gateway setup`.")
         return
 
     print()
@@ -3429,7 +3429,7 @@ def _setup_weixin():
         save_env_value("WEIXIN_ALLOW_ALL_USERS", "false")
         save_env_value("WEIXIN_ALLOWED_USERS", "")
         print_success("  DM pairing enabled.")
-        print_info("  Unknown DM users can request access and you approve them with `hermes pairing approve`.")
+        print_info("  Unknown DM users can request access and you approve them with `gengar pairing approve`.")
     elif access_idx == 1:
         save_env_value("WEIXIN_DM_POLICY", "open")
         save_env_value("WEIXIN_ALLOW_ALL_USERS", "true")
@@ -3619,7 +3619,7 @@ def _setup_feishu():
         save_env_value("FEISHU_ALLOW_ALL_USERS", "false")
         save_env_value("FEISHU_ALLOWED_USERS", "")
         print_success("  DM pairing enabled.")
-        print_info("  Unknown users can request access; approve with `hermes pairing approve`.")
+        print_info("  Unknown users can request access; approve with `gengar pairing approve`.")
     elif access_idx == 1:
         save_env_value("FEISHU_ALLOW_ALL_USERS", "true")
         save_env_value("FEISHU_ALLOWED_USERS", "")
@@ -3737,7 +3737,7 @@ def _setup_qqbot():
         else:
             save_env_value("QQ_ALLOWED_USERS", "")
         print_success("  DM pairing enabled.")
-        print_info("  Unknown users can request access; approve with `hermes pairing approve`.")
+        print_info("  Unknown users can request access; approve with `gengar pairing approve`.")
     elif access_idx == 1:
         save_env_value("QQ_ALLOW_ALL_USERS", "true")
         save_env_value("QQ_ALLOWED_USERS", "")
@@ -3795,7 +3795,7 @@ def _setup_signal():
         print_info("    Docker: bbernhard/signal-cli-rest-api")
         print()
         print_info("  After installing, link your account and start the daemon:")
-        print_info("    signal-cli link -n \"HermesAgent\"")
+        print_info("    signal-cli link -n \"Gengar\"")
         print_info("    signal-cli --account +YOURNUMBER daemon --http 127.0.0.1:8080")
         print()
 
@@ -3914,7 +3914,7 @@ def _configure_platform(platform: dict) -> None:
       4. Env-var hint fallback for plugins that offer no setup helper.
 
     Bundled platform plugins (e.g. IRC) auto-load, so no plugin enable step
-    is needed here. User-installed platform plugins under ~/.hermes/plugins/
+    is needed here. User-installed platform plugins under ~/.gengar/plugins/
     must already be in ``plugins.enabled`` before they appear in this menu.
     """
     entry = platform.get("_registry_entry")
@@ -3939,7 +3939,7 @@ def _configure_platform(platform: dict) -> None:
     print(color(f"  ─── {emoji} {label} Setup ───", Colors.CYAN))
     required = entry.required_env if entry else []
     if required:
-        print_info(f"  Set these env vars in ~/.hermes/.env: {', '.join(required)}")
+        print_info(f"  Set these env vars in ~/.gengar/.env: {', '.join(required)}")
     else:
         print_info(f"  Configure {label} in config.yaml under gateway.platforms.{platform['key']}")
     if platform.get("install_hint"):
@@ -4044,7 +4044,7 @@ def gateway_setup():
                         launchd_restart()
                     else:
                         stop_profile_gateway()
-                        print_info("Start manually: hermes gateway")
+                        print_info("Start manually: gengar gateway")
                 except UserSystemdUnavailableError as e:
                     print_error("  Restart failed — user systemd not reachable:")
                     for line in str(e).splitlines():
@@ -4093,29 +4093,29 @@ def gateway_setup():
                                 print_error(f"  Start failed: {e}")
                     except subprocess.CalledProcessError as e:
                         print_error(f"  Install failed: {e}")
-                        print_info("  You can try manually: hermes gateway install")
+                        print_info("  You can try manually: gengar gateway install")
                 else:
-                    print_info("  You can install later: hermes gateway install")
+                    print_info("  You can install later: gengar gateway install")
                     if supports_systemd_services():
-                        print_info("  Or as a boot-time service: sudo hermes gateway install --system")
-                    print_info("  Or run in foreground:  hermes gateway run")
+                        print_info("  Or as a boot-time service: sudo gengar gateway install --system")
+                    print_info("  Or run in foreground:  gengar gateway run")
             elif is_wsl():
                 print_info("  WSL detected but systemd is not running.")
-                print_info("  Run in foreground: hermes gateway run")
-                print_info("  For persistence:   tmux new -s hermes 'hermes gateway run'")
+                print_info("  Run in foreground: gengar gateway run")
+                print_info("  For persistence:   tmux new -s gengar 'gengar gateway run'")
                 print_info("  To enable systemd: add systemd=true to /etc/wsl.conf, then 'wsl --shutdown'")
             else:
                 if is_termux():
                     from hermes_constants import display_hermes_home as _dhh
                     print_info("  Termux does not use systemd/launchd services.")
-                    print_info("  Run in foreground: hermes gateway run")
-                    print_info(f"  Or start it manually in the background (best effort): nohup hermes gateway run >{_dhh()}/logs/gateway.log 2>&1 &")
+                    print_info("  Run in foreground: gengar gateway run")
+                    print_info(f"  Or start it manually in the background (best effort): nohup gengar gateway run >{_dhh()}/logs/gateway.log 2>&1 &")
                 else:
                     print_info("  Service install not supported on this platform.")
-                    print_info("  Run in foreground: hermes gateway run")
+                    print_info("  Run in foreground: gengar gateway run")
     else:
         print()
-        print_info("No platforms configured. Run 'hermes gateway setup' when ready.")
+        print_info("No platforms configured. Run 'gengar gateway setup' when ready.")
 
     print()
 
@@ -4162,13 +4162,13 @@ def _gateway_command_inner(args):
         run_as_user = getattr(args, 'run_as_user', None)
         if is_termux():
             print("Gateway service installation is not supported on Termux.")
-            print("Run manually: hermes gateway")
+            print("Run manually: gengar gateway")
             sys.exit(1)
         if supports_systemd_services():
             if is_wsl():
                 print_warning("WSL detected — systemd services may not survive WSL restarts.")
-                print_info("  Consider running in foreground instead: hermes gateway run")
-                print_info("  Or use tmux/screen for persistence: tmux new -s hermes 'hermes gateway run'")
+                print_info("  Consider running in foreground instead: gengar gateway run")
+                print_info("  Or use tmux/screen for persistence: tmux new -s gengar 'gengar gateway run'")
                 print()
             systemd_install(force=force, system=system, run_as_user=run_as_user)
         elif is_macos():
@@ -4178,9 +4178,9 @@ def _gateway_command_inner(args):
             print("Either enable systemd (add systemd=true to /etc/wsl.conf and restart WSL)")
             print("or run the gateway in foreground mode:")
             print()
-            print("  hermes gateway run                              # direct foreground")
-            print("  tmux new -s hermes 'hermes gateway run'         # persistent via tmux")
-            print("  nohup hermes gateway run > ~/.hermes/logs/gateway.log 2>&1 &  # background")
+            print("  gengar gateway run                              # direct foreground")
+            print("  tmux new -s gengar 'gengar gateway run'         # persistent via tmux")
+            print("  nohup gengar gateway run > ~/.gengar/logs/gateway.log 2>&1 &  # background")
             sys.exit(1)
         elif is_container():
             print("Service installation is not needed inside a Docker container.")
@@ -4189,11 +4189,11 @@ def _gateway_command_inner(args):
             print("  docker run --restart unless-stopped ...   # auto-restart on crash/reboot")
             print("  docker restart <container>                # manual restart")
             print()
-            print("To run the gateway: hermes gateway run")
+            print("To run the gateway: gengar gateway run")
             sys.exit(0)
         else:
             print("Service installation not supported on this platform.")
-            print("Run manually: hermes gateway run")
+            print("Run manually: gengar gateway run")
             sys.exit(1)
     
     elif subcmd == "uninstall":
@@ -4203,7 +4203,7 @@ def _gateway_command_inner(args):
         system = getattr(args, 'system', False)
         if is_termux():
             print("Gateway service uninstall is not supported on Termux because there is no managed service to remove.")
-            print("Stop manual runs with: hermes gateway stop")
+            print("Stop manual runs with: gengar gateway stop")
             sys.exit(1)
         if supports_systemd_services():
             systemd_uninstall(system=system)
@@ -4233,7 +4233,7 @@ def _gateway_command_inner(args):
 
         if is_termux():
             print("Gateway service start is not supported on Termux because there is no system service manager.")
-            print("Run manually: hermes gateway")
+            print("Run manually: gengar gateway")
             sys.exit(1)
         if supports_systemd_services():
             systemd_start(system=system)
@@ -4243,9 +4243,9 @@ def _gateway_command_inner(args):
             print("WSL detected but systemd is not available.")
             print("Run the gateway in foreground mode instead:")
             print()
-            print("  hermes gateway run                              # direct foreground")
-            print("  tmux new -s hermes 'hermes gateway run'         # persistent via tmux")
-            print("  nohup hermes gateway run > ~/.hermes/logs/gateway.log 2>&1 &  # background")
+            print("  gengar gateway run                              # direct foreground")
+            print("  tmux new -s gengar 'gengar gateway run'         # persistent via tmux")
+            print("  nohup gengar gateway run > ~/.gengar/logs/gateway.log 2>&1 &  # background")
             print()
             print("To enable systemd: add systemd=true to /etc/wsl.conf and run 'wsl --shutdown' from PowerShell.")
             sys.exit(1)
@@ -4256,7 +4256,7 @@ def _gateway_command_inner(args):
             print("  docker start <container>     # start a stopped container")
             print("  docker restart <container>   # restart a running container")
             print()
-            print("Or run the gateway directly: hermes gateway run")
+            print("Or run the gateway directly: gengar gateway run")
             sys.exit(0)
         else:
             print("Not supported on this platform.")
@@ -4379,14 +4379,14 @@ def _gateway_command_inner(args):
                     print(f"  Run:  sudo loginctl enable-linger {_username}")
                     print()
                     print("  Then restart the gateway:")
-                    print("    hermes gateway restart")
+                    print("    gengar gateway restart")
                     return
 
             if service_configured:
                 print()
                 print("✗ Gateway service restart failed.")
                 print("  The service definition exists, but the service manager did not recover it.")
-                print("  Fix the service, then retry: hermes gateway start")
+                print("  Fix the service, then retry: gengar gateway start")
                 sys.exit(1)
 
             # Manual restart: stop only this profile's gateway
@@ -4434,8 +4434,8 @@ def _gateway_command_inner(args):
                     print("  Use tmux or screen for persistence across terminal closes.")
                 else:
                     print("To install as a service:")
-                    print("  hermes gateway install")
-                    print("  sudo hermes gateway install --system")
+                    print("  gengar gateway install")
+                    print("  sudo gengar gateway install --system")
             else:
                 print("✗ Gateway is not running")
                 runtime_lines = _runtime_health_lines()
@@ -4446,19 +4446,19 @@ def _gateway_command_inner(args):
                         print(f"  {line}")
                 print()
                 print("To start:")
-                print("  hermes gateway run      # Run in foreground")
+                print("  gengar gateway run      # Run in foreground")
                 if is_termux():
-                    print("  nohup hermes gateway run > ~/.hermes/logs/gateway.log 2>&1 &  # Best-effort background start")
+                    print("  nohup gengar gateway run > ~/.gengar/logs/gateway.log 2>&1 &  # Best-effort background start")
                 elif is_wsl():
-                    print("  tmux new -s hermes 'hermes gateway run'         # persistent via tmux")
-                    print("  nohup hermes gateway run > ~/.hermes/logs/gateway.log 2>&1 &  # background")
+                    print("  tmux new -s gengar 'gengar gateway run'         # persistent via tmux")
+                    print("  nohup gengar gateway run > ~/.gengar/logs/gateway.log 2>&1 &  # background")
                 else:
-                    print("  hermes gateway install  # Install as user service")
-                    print("  sudo hermes gateway install --system  # Install as boot-time system service")
+                    print("  gengar gateway install  # Install as user service")
+                    print("  sudo gengar gateway install --system  # Install as boot-time system service")
 
     elif subcmd == "migrate-legacy":
-        # Stop, disable, and remove legacy Hermes gateway unit files from
-        # pre-rename installs (e.g. hermes.service). Profile units and
+        # Stop, disable, and remove legacy Gengar gateway unit files from
+        # pre-rename installs (e.g. gengar.service). Profile units and
         # unrelated third-party services are never touched.
         dry_run = getattr(args, 'dry_run', False)
         yes = getattr(args, 'yes', False)

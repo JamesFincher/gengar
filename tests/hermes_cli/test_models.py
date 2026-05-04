@@ -90,7 +90,7 @@ class TestFetchOpenRouterModels:
     def test_filters_out_models_without_tool_support(self, monkeypatch):
         """Models whose supported_parameters omits 'tools' must not appear in the picker.
 
-        hermes-agent is tool-calling-first — surfacing a non-tool model leads to
+        gengar is tool-calling-first — surfacing a non-tool model leads to
         immediate runtime failures when the user selects it. Ported from
         Kilo-Org/kilocode#9068.
         """
@@ -479,7 +479,7 @@ class TestNousRecommendedModels:
         mock_cm = self._mock_urlopen(self._SAMPLE_PAYLOAD)
         with patch("urllib.request.urlopen", return_value=mock_cm) as mock_urlopen:
             fetch_nous_recommended_models("https://portal.example.com")
-            fetch_nous_recommended_models("https://portal.staging-nousresearch.com")
+            fetch_nous_recommended_models("https://portal.staging-jamesfincher.com")
         assert mock_urlopen.call_count == 2  # different portals → separate fetches
 
     def test_fetch_returns_empty_on_network_failure(self):

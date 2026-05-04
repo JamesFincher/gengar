@@ -16,11 +16,11 @@ import pytest
 
 @pytest.fixture
 def curator_env(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME + freshly reloaded curator + skill_usage modules."""
-    home = tmp_path / ".hermes"
+    """Isolated GENGAR_HOME + freshly reloaded curator + skill_usage modules."""
+    home = tmp_path / ".gengar"
     (home / "skills").mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
 
     import tools.skill_usage as usage
     importlib.reload(usage)
@@ -281,7 +281,7 @@ def test_run_review_records_state(curator_env):
 def test_dry_run_does_not_advance_state(curator_env, monkeypatch):
     """Dry-run previews must not bump last_run_at or run_count. A preview
     shouldn't defer the next scheduled real pass or look like a real run in
-    `hermes curator status`. Fixes #18373.
+    `gengar curator status`. Fixes #18373.
     """
     c = curator_env["curator"]
     skills_dir = curator_env["home"] / "skills"
@@ -570,7 +570,7 @@ def test_curator_review_prompt_offers_support_file_actions():
 
 
 def test_cli_unpin_refuses_bundled_skill(curator_env, capsys):
-    """hermes curator unpin must refuse bundled/hub skills too (matches pin)."""
+    """gengar curator unpin must refuse bundled/hub skills too (matches pin)."""
     from hermes_cli import curator as cli
     skills_dir = curator_env["home"] / "skills"
     _write_skill(skills_dir, "ship-skill")
@@ -608,7 +608,7 @@ def test_cli_pin_refuses_bundled_skill(curator_env, capsys):
 # curator review-model resolution (canonical auxiliary.curator slot)
 #
 # Curator was unified with the rest of the aux task system in Apr 2026 so
-# `hermes model` → auxiliary picker, the dashboard Models tab, and the full
+# `gengar model` → auxiliary picker, the dashboard Models tab, and the full
 # per-task config (timeout, base_url, api_key, extra_body) all work for it.
 # Voscko report: curator.auxiliary.{provider,model} was advertised but never
 # read. Fix wires curator through auxiliary.curator with a legacy fallback.

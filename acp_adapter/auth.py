@@ -1,4 +1,4 @@
-"""ACP auth helpers — detect the currently configured Hermes provider."""
+"""ACP auth helpers — detect the currently configured Gengar provider."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import Optional
 
 
 def detect_provider() -> Optional[str]:
-    """Resolve the active Hermes runtime provider, or None if unavailable."""
+    """Resolve the active Gengar runtime provider, or None if unavailable."""
     try:
         from hermes_cli.runtime_provider import resolve_runtime_provider
         runtime = resolve_runtime_provider()
@@ -20,5 +20,5 @@ def detect_provider() -> Optional[str]:
 
 
 def has_provider() -> bool:
-    """Return True if Hermes can resolve any runtime provider credentials."""
+    """Return True if Gengar can resolve any runtime provider credentials."""
     return detect_provider() is not None

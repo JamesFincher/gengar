@@ -21,7 +21,7 @@ class TestHonchoSession:
         return HonchoSession(
             key="telegram:12345",
             user_peer_id="user-telegram-12345",
-            assistant_peer_id="hermes-assistant",
+            assistant_peer_id="gengar-assistant",
             honcho_session_id="telegram-12345",
         )
 
@@ -197,7 +197,7 @@ class TestPeerLookupHelpers:
         session = HonchoSession(
             key="telegram:123",
             user_peer_id="robert",
-            assistant_peer_id="hermes",
+            assistant_peer_id="gengar",
             honcho_session_id="telegram-123",
         )
         mgr._cache[session.key] = session
@@ -424,11 +424,11 @@ class TestConcludeToolDispatch:
 
         result = provider.handle_tool_call(
             "honcho_profile",
-            {"peer": "hermes"},
+            {"peer": "gengar"},
         )
 
         assert "Role: Assistant" in result
-        provider._manager.get_peer_card.assert_called_once_with("telegram:123", peer="hermes")
+        provider._manager.get_peer_card.assert_called_once_with("telegram:123", peer="gengar")
 
     def test_honcho_search_can_target_explicit_peer_id(self):
         provider = HonchoMemoryProvider()
@@ -439,7 +439,7 @@ class TestConcludeToolDispatch:
 
         result = provider.handle_tool_call(
             "honcho_search",
-            {"query": "assistant", "peer": "hermes"},
+            {"query": "assistant", "peer": "gengar"},
         )
 
         assert "Assistant self context" in result
@@ -447,7 +447,7 @@ class TestConcludeToolDispatch:
             "telegram:123",
             "assistant",
             max_tokens=800,
-            peer="hermes",
+            peer="gengar",
         )
 
     def test_honcho_reasoning_can_target_explicit_peer_id(self):
@@ -459,7 +459,7 @@ class TestConcludeToolDispatch:
 
         result = provider.handle_tool_call(
             "honcho_reasoning",
-            {"query": "who are you", "peer": "hermes"},
+            {"query": "who are you", "peer": "gengar"},
         )
 
         assert "Assistant answer" in result
@@ -467,7 +467,7 @@ class TestConcludeToolDispatch:
             "telegram:123",
             "who are you",
             reasoning_level=None,
-            peer="hermes",
+            peer="gengar",
         )
 
     def test_honcho_conclude_missing_both_params_returns_error(self):
@@ -659,7 +659,7 @@ class TestToolsModeInitBehavior:
 class TestPerSessionMigrateGuard:
     """Verify migrate_memory_files is skipped under per-session strategy.
 
-    per-session creates a fresh Honcho session every Hermes run. Uploading
+    per-session creates a fresh Honcho session every Gengar run. Uploading
     MEMORY.md/USER.md/SOUL.md to each short-lived session floods the backend
     with duplicate content. The guard was added to prevent orphan sessions
     containing only <prior_memory_file> wrappers.
@@ -1514,7 +1514,7 @@ class TestDialecticLifecycleSmoke:
         # Program the dialectic responses in the exact order they'll be requested.
         # An extra or missing call fails the test — strong smoke signal.
         responses = iter([
-            "prewarm: user is eri, works on hermes",      # session-start prewarm
+            "prewarm: user is eri, works on gengar",      # session-start prewarm
             "cadence fire: long query synthesis",         # turn 4 queue_prefetch
             "",                                           # turn 7 fire: silent failure
             "retry success: fresh synthesis",             # turn 8 queue_prefetch retry

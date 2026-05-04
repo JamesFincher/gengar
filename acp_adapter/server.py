@@ -1,4 +1,4 @@
-"""ACP agent server — exposes Hermes Agent via the Agent Client Protocol."""
+"""ACP agent server — exposes Gengar via the Agent Client Protocol."""
 
 from __future__ import annotations
 
@@ -72,9 +72,9 @@ from acp_adapter.tools import build_tool_complete, build_tool_start
 logger = logging.getLogger(__name__)
 
 try:
-    from hermes_cli import __version__ as HERMES_VERSION
+    from hermes_cli import __version__ as GENGAR_VERSION
 except Exception:
-    HERMES_VERSION = "0.0.0"
+    GENGAR_VERSION = "0.0.0"
 
 # Thread pool for running AIAgent (synchronous) in parallel.
 _executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="acp-agent")
@@ -129,7 +129,7 @@ def _content_blocks_to_openai_user_content(
         | EmbeddedResourceContentBlock
     ],
 ) -> str | list[dict[str, Any]]:
-    """Convert ACP prompt blocks into a Hermes/OpenAI-compatible user content payload."""
+    """Convert ACP prompt blocks into a Gengar/OpenAI-compatible user content payload."""
     parts: list[dict[str, Any]] = []
     text_parts: list[str] = []
 
@@ -157,8 +157,8 @@ def _content_blocks_to_openai_user_content(
     return parts
 
 
-class HermesACPAgent(acp.Agent):
-    """ACP Agent implementation wrapping Hermes AIAgent."""
+class GengarACPAgent(acp.Agent):
+    """ACP Agent implementation wrapping Gengar AIAgent."""
 
     _SLASH_COMMANDS = {
         "help": "Show available commands",
@@ -169,7 +169,7 @@ class HermesACPAgent(acp.Agent):
         "compact": "Compress conversation context",
         "steer": "Inject guidance into the currently running agent turn",
         "queue": "Queue a prompt to run after the current turn finishes",
-        "version": "Show Hermes version",
+        "version": "Show Gengar version",
     }
 
     _ADVERTISED_COMMANDS = (
@@ -210,7 +210,7 @@ class HermesACPAgent(acp.Agent):
         },
         {
             "name": "version",
-            "description": "Show Hermes version",
+            "description": "Show Gengar version",
         },
     )
 
@@ -324,7 +324,7 @@ class HermesACPAgent(acp.Agent):
 
         Zed's circular context indicator is driven by ACP ``usage_update``
         session updates: ``size`` is the model context window and ``used`` is
-        the current request pressure.  Hermes estimates ``used`` from the same
+        the current request pressure.  Gengar estimates ``used`` from the same
         buckets it sends to providers: system prompt, conversation history, and
         tool schemas.
         """
@@ -419,7 +419,7 @@ class HermesACPAgent(acp.Agent):
             from model_tools import get_tool_definitions
 
             enabled_toolsets = _expand_acp_enabled_toolsets(
-                getattr(state.agent, "enabled_toolsets", None) or ["hermes-acp"],
+                getattr(state.agent, "enabled_toolsets", None) or ["gengar-acp"],
                 mcp_server_names=[server.name for server in mcp_servers],
             )
             state.agent.enabled_toolsets = enabled_toolsets
@@ -466,7 +466,7 @@ class HermesACPAgent(acp.Agent):
                 AuthMethodAgent(
                     id=provider,
                     name=f"{provider} runtime credentials",
-                    description=f"Authenticate Hermes using the currently configured {provider} runtime credentials.",
+                    description=f"Authenticate Gengar using the currently configured {provider} runtime credentials.",
                 )
             ]
 
@@ -479,7 +479,7 @@ class HermesACPAgent(acp.Agent):
 
         return InitializeResponse(
             protocol_version=acp.PROTOCOL_VERSION,
-            agent_info=Implementation(name="hermes-agent", version=HERMES_VERSION),
+            agent_info=Implementation(name="gengar", version=GENGAR_VERSION),
             agent_capabilities=AgentCapabilities(
                 load_session=True,
                 prompt_capabilities=PromptCapabilities(image=True),
@@ -497,7 +497,7 @@ class HermesACPAgent(acp.Agent):
         # provider we advertised in initialize(). Without this check,
         # authenticate() would acknowledge any method_id as long as the
         # server has provider credentials configured — harmless under
-        # Hermes' threat model (ACP is stdio-only, local-trust), but poor
+        # Gengar' threat model (ACP is stdio-only, local-trust), but poor
         # API hygiene and confusing if ACP ever grows multi-method auth.
         provider = detect_provider()
         if not provider:
@@ -580,7 +580,7 @@ class HermesACPAgent(acp.Agent):
         Zed's ACP history UI calls ``session/load`` after the user picks an item
         from the Agents sidebar. The agent must then replay the full conversation
         as user/assistant chunks plus reconstructed tool-call start/completion
-        notifications; merely restoring server-side state makes Hermes remember
+        notifications; merely restoring server-side state makes Gengar remember
         context, but leaves the editor looking like a clean thread.
         """
         if not self._conn or not state.history:
@@ -795,7 +795,7 @@ class HermesACPAgent(acp.Agent):
         session_id: str,
         **kwargs: Any,
     ) -> PromptResponse:
-        """Run Hermes on the user's prompt and stream events back to the editor."""
+        """Run Gengar on the user's prompt and stream events back to the editor."""
         state = self.session_manager.get_session(session_id)
         if state is None:
             logger.error("prompt: session %s not found", session_id)
@@ -909,7 +909,7 @@ class HermesACPAgent(acp.Agent):
 
         agent = state.agent
         agent.tool_progress_callback = tool_progress_cb
-        # ACP thought panes should not receive Hermes' local kawaii waiting/status
+        # ACP thought panes should not receive Gengar' local kawaii waiting/status
         # updates. Route provider/model reasoning deltas instead; if the provider
         # emits no reasoning, Zed should not get a fake "thinking" accordion.
         agent.thinking_callback = None
@@ -920,19 +920,19 @@ class HermesACPAgent(acp.Agent):
         # Approval callback is per-thread (thread-local, GHSA-qg5c-hvr5-hjgr).
         # Set it INSIDE _run_agent so the TLS write happens in the executor
         # thread — setting it here would write to the event-loop thread's TLS,
-        # not the executor's. Also set HERMES_INTERACTIVE so approval.py
+        # not the executor's. Also set GENGAR_INTERACTIVE so approval.py
         # takes the CLI-interactive path (which calls the registered
         # callback via prompt_dangerous_approval) instead of the
         # non-interactive auto-approve branch (GHSA-96vc-wcxf-jjff).
         # ACP's conn.request_permission maps cleanly to the interactive
-        # callback shape — not the gateway-queue HERMES_EXEC_ASK path,
+        # callback shape — not the gateway-queue GENGAR_EXEC_ASK path,
         # which requires a notify_cb registered in _gateway_notify_cbs.
         previous_approval_cb = None
         previous_interactive = None
 
         def _run_agent() -> dict:
             nonlocal previous_approval_cb, previous_interactive
-            # Bind HERMES_SESSION_KEY for this session so per-session caches
+            # Bind GENGAR_SESSION_KEY for this session so per-session caches
             # (e.g. the interactive sudo password cache in tools.terminal_tool)
             # scope to the ACP session rather than leaking across sessions
             # that land on the same reused executor thread. This call runs
@@ -957,8 +957,8 @@ class HermesACPAgent(acp.Agent):
                     logger.debug("Could not set ACP approval callback", exc_info=True)
             # Signal to tools.approval that we have an interactive callback
             # and the non-interactive auto-approve path must not fire.
-            previous_interactive = os.environ.get("HERMES_INTERACTIVE")
-            os.environ["HERMES_INTERACTIVE"] = "1"
+            previous_interactive = os.environ.get("GENGAR_INTERACTIVE")
+            os.environ["GENGAR_INTERACTIVE"] = "1"
             try:
                 result = agent.run_conversation(
                     user_message=user_content,
@@ -971,11 +971,11 @@ class HermesACPAgent(acp.Agent):
                 logger.exception("Agent error in session %s", session_id)
                 return {"final_response": f"Error: {e}", "messages": state.history}
             finally:
-                # Restore HERMES_INTERACTIVE.
+                # Restore GENGAR_INTERACTIVE.
                 if previous_interactive is None:
-                    os.environ.pop("HERMES_INTERACTIVE", None)
+                    os.environ.pop("GENGAR_INTERACTIVE", None)
                 else:
-                    os.environ["HERMES_INTERACTIVE"] = previous_interactive
+                    os.environ["GENGAR_INTERACTIVE"] = previous_interactive
                 if approval_cb:
                     try:
                         from tools import terminal_tool as _terminal_tool
@@ -991,7 +991,7 @@ class HermesACPAgent(acp.Agent):
         try:
             # Wrap the executor call in a fresh copy of the current context so
             # concurrent ACP sessions on the shared ThreadPoolExecutor don't
-            # stomp on each other's ContextVar writes (HERMES_SESSION_KEY in
+            # stomp on each other's ContextVar writes (GENGAR_SESSION_KEY in
             # particular — used by the interactive sudo password cache scope).
             ctx = contextvars.copy_context()
             result = await loop.run_in_executor(_executor, ctx.run, _run_agent)
@@ -1173,7 +1173,7 @@ class HermesACPAgent(acp.Agent):
         try:
             from model_tools import get_tool_definitions
             toolsets = _expand_acp_enabled_toolsets(
-                getattr(state.agent, "enabled_toolsets", None) or ["hermes-acp"]
+                getattr(state.agent, "enabled_toolsets", None) or ["gengar-acp"]
             )
             tools = get_tool_definitions(enabled_toolsets=toolsets, quiet_mode=True)
             if not tools:
@@ -1358,7 +1358,7 @@ class HermesACPAgent(acp.Agent):
         return f"Queued for the next turn. ({depth} queued)"
 
     def _cmd_version(self, args: str, state: SessionState) -> str:
-        return f"Hermes Agent v{HERMES_VERSION}"
+        return f"Gengar v{GENGAR_VERSION}"
 
     # ---- Model switching (ACP protocol method) -------------------------------
 
@@ -1412,7 +1412,7 @@ class HermesACPAgent(acp.Agent):
     async def set_config_option(
         self, config_id: str, session_id: str, value: str, **kwargs: Any
     ) -> SetSessionConfigOptionResponse | None:
-        """Accept ACP config option updates even when Hermes has no typed ACP config surface yet."""
+        """Accept ACP config option updates even when Gengar has no typed ACP config surface yet."""
         state = self.session_manager.get_session(session_id)
         if state is None:
             logger.warning("Session %s: config update requested for missing session", session_id)

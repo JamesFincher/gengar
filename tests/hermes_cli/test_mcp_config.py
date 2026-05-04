@@ -1,5 +1,5 @@
 """
-Tests for hermes_cli.mcp_config — ``hermes mcp`` subcommands.
+Tests for hermes_cli.mcp_config — ``gengar mcp`` subcommands.
 
 These tests mock the MCP server connection layer so they run without
 any actual MCP servers or API keys.
@@ -23,7 +23,7 @@ import pytest
 @pytest.fixture(autouse=True)
 def _isolate_config(tmp_path, monkeypatch):
     """Redirect all config I/O to a temp directory."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
     monkeypatch.setattr(
         "hermes_cli.config.get_hermes_home", lambda: tmp_path
     )
@@ -557,7 +557,7 @@ class TestMcpRemoveEvictsManager:
         monkeypatch.setattr(
             "hermes_cli.mcp_config.get_hermes_home", lambda: tmp_path
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("GENGAR_HOME", str(tmp_path))
 
         from tools.mcp_oauth_manager import get_manager, reset_manager_for_tests
         reset_manager_for_tests()

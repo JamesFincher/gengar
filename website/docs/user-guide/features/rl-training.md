@@ -6,13 +6,13 @@ description: "Reinforcement learning on agent behaviors with Tinker-Atropos — 
 
 # RL Training
 
-Hermes Agent includes an integrated RL (Reinforcement Learning) training pipeline built on **Tinker-Atropos**. This enables training language models on environment-specific tasks using GRPO (Group Relative Policy Optimization) with LoRA adapters, orchestrated entirely through the agent's tool interface.
+Gengar includes an integrated RL (Reinforcement Learning) training pipeline built on **Tinker-Atropos**. This enables training language models on environment-specific tasks using GRPO (Group Relative Policy Optimization) with LoRA adapters, orchestrated entirely through the agent's tool interface.
 
 ## Overview
 
 The RL training system consists of three components:
 
-1. **[Atropos](https://github.com/NousResearch/atropos)** — A trajectory API server that coordinates environment interactions, manages rollout groups, and computes advantages
+1. **[Atropos](an external Atropos checkout)** — A trajectory API server that coordinates environment interactions, manages rollout groups, and computes advantages
 2. **[Tinker](https://thinkingmachines.ai/tinker/)** — A training service that handles model weights, LoRA training, sampling/inference, and optimizer steps
 3. **Environments** — Python classes that define tasks, scoring, and reward functions (e.g., GSM8K math problems)
 
@@ -25,12 +25,12 @@ RL training requires:
 - **Python >= 3.11** (Tinker package requirement)
 - **TINKER_API_KEY** — API key for the Tinker training service
 - **WANDB_API_KEY** — API key for [Weights & Biases](https://wandb.ai/) metrics tracking
-- The `tinker-atropos` submodule (at `tinker-atropos/` relative to the Hermes root)
+- The `tinker-atropos` submodule (at `tinker-atropos/` relative to the Gengar root)
 
 ```bash
 # Set up API keys
-hermes config set TINKER_API_KEY your-tinker-key
-hermes config set WANDB_API_KEY your-wandb-key
+gengar config set TINKER_API_KEY your-tinker-key
+gengar config set WANDB_API_KEY your-wandb-key
 ```
 
 When both keys are present and Python >= 3.11 is available, the `rl` toolset is automatically enabled.
@@ -219,7 +219,7 @@ Training runs log to Weights & Biases with these key metrics:
 
 ## Log Files
 
-Each training run generates log files in `~/.hermes/logs/rl_training/`:
+Each training run generates log files in `~/.gengar/logs/rl_training/`:
 
 ```
 logs/

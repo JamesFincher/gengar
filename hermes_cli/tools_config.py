@@ -1,11 +1,11 @@
 """
-Unified tool configuration for Hermes Agent.
+Unified tool configuration for Gengar.
 
-`hermes tools` and `hermes setup tools` both enter this module.
+`gengar tools` and `gengar setup tools` both enter this module.
 Select a platform → toggle toolsets on/off → for newly enabled tools
 that need API keys, run through provider-aware configuration.
 
-Saves per-platform tool configuration to ~/.hermes/config.yaml under
+Saves per-platform tool configuration to ~/.gengar/config.yaml under
 the `platform_toolsets` key.
 """
 
@@ -77,11 +77,11 @@ CONFIGURABLE_TOOLSETS = [
 ]
 
 # Toolsets that are OFF by default for new installs.
-# They're still in _HERMES_CORE_TOOLS (available at runtime if enabled),
+# They're still in _GENGAR_CORE_TOOLS (available at runtime if enabled),
 # but the setup checklist won't pre-select them for first-time users.
 _DEFAULT_OFF_TOOLSETS = {"moa", "homeassistant", "rl", "spotify", "discord", "discord_admin", "video"}
 
-# Platform-scoped toolsets: only appear in the `hermes tools` checklist for
+# Platform-scoped toolsets: only appear in the `gengar tools` checklist for
 # these platforms, and only resolve/save for these platforms.  A toolset
 # absent from this map is available on every platform (current behaviour).
 #
@@ -111,7 +111,7 @@ def _get_effective_configurable_toolsets():
     already appears in ``CONFIGURABLE_TOOLSETS`` is skipped — bundled
     plugins (e.g. ``plugins/spotify``) share their toolset key with the
     built-in entry, and we want the built-in label/description to win.
-    Without the dedupe, ``hermes tools`` → "reconfigure existing" would
+    Without the dedupe, ``gengar tools`` → "reconfigure existing" would
     list the same toolset twice.
     """
     result = list(CONFIGURABLE_TOOLSETS)
@@ -443,8 +443,8 @@ TOOL_CATEGORIES = {
                 "name": "Langfuse Cloud",
                 "tag": "Hosted Langfuse (cloud.langfuse.com)",
                 "env_vars": [
-                    {"key": "HERMES_LANGFUSE_PUBLIC_KEY", "prompt": "Langfuse public key (pk-lf-...)", "url": "https://cloud.langfuse.com"},
-                    {"key": "HERMES_LANGFUSE_SECRET_KEY", "prompt": "Langfuse secret key (sk-lf-...)", "url": "https://cloud.langfuse.com"},
+                    {"key": "GENGAR_LANGFUSE_PUBLIC_KEY", "prompt": "Langfuse public key (pk-lf-...)", "url": "https://cloud.langfuse.com"},
+                    {"key": "GENGAR_LANGFUSE_SECRET_KEY", "prompt": "Langfuse secret key (sk-lf-...)", "url": "https://cloud.langfuse.com"},
                 ],
                 "post_setup": "langfuse",
             },
@@ -452,9 +452,9 @@ TOOL_CATEGORIES = {
                 "name": "Langfuse Self-Hosted",
                 "tag": "Self-hosted Langfuse instance",
                 "env_vars": [
-                    {"key": "HERMES_LANGFUSE_PUBLIC_KEY", "prompt": "Langfuse public key (pk-lf-...)"},
-                    {"key": "HERMES_LANGFUSE_SECRET_KEY", "prompt": "Langfuse secret key (sk-lf-...)"},
-                    {"key": "HERMES_LANGFUSE_BASE_URL", "prompt": "Langfuse server URL (e.g. http://localhost:3000)", "default": "http://localhost:3000"},
+                    {"key": "GENGAR_LANGFUSE_PUBLIC_KEY", "prompt": "Langfuse public key (pk-lf-...)"},
+                    {"key": "GENGAR_LANGFUSE_SECRET_KEY", "prompt": "Langfuse secret key (sk-lf-...)"},
+                    {"key": "GENGAR_LANGFUSE_BASE_URL", "prompt": "Langfuse server URL (e.g. http://localhost:3000)", "default": "http://localhost:3000"},
                 ],
                 "post_setup": "langfuse",
             },
@@ -491,11 +491,11 @@ def _run_post_setup(post_setup_key: str):
                 _print_success("    Node.js dependencies installed")
             else:
                 from hermes_constants import display_hermes_home
-                _print_warning(f"    npm install failed - run manually: cd {display_hermes_home()}/hermes-agent && npm install")
+                _print_warning(f"    npm install failed - run manually: cd {display_hermes_home()}/gengar && npm install")
                 if result.stderr:
                     _print_info(f"      {result.stderr.strip()[:200]}")
         elif not node_modules.exists():
-            _print_warning("    Node.js not found - browser tools require: npm install (in hermes-agent directory)")
+            _print_warning("    Node.js not found - browser tools require: npm install (in gengar directory)")
             return
 
         # Step 2: only the local browser provider actually needs Chromium on
@@ -532,7 +532,7 @@ def _run_post_setup(post_setup_key: str):
                 "    Pull the latest image to get the bundled Chromium:"
             )
             _print_info(
-                "      docker pull ghcr.io/nousresearch/hermes-agent:latest"
+                "      docker pull ghcr.io/jamesfincher/gengar:latest"
             )
             return
 
@@ -658,20 +658,20 @@ def _run_post_setup(post_setup_key: str):
                 return
         _print_info("    Default voice: en_US-lessac-medium (downloaded on first TTS call)")
         _print_info("    Full voice list: https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/VOICES.md")
-        _print_info("    Switch voices by setting tts.piper.voice in ~/.hermes/config.yaml")
+        _print_info("    Switch voices by setting tts.piper.voice in ~/.gengar/config.yaml")
 
     elif post_setup_key == "spotify":
-        # Run the full `hermes auth spotify` flow — if the user has no
+        # Run the full `gengar auth spotify` flow — if the user has no
         # client_id yet, this drops them into the interactive wizard
         # (opens the Spotify dashboard, prompts for client_id, persists
-        # to ~/.hermes/.env), then continues straight into PKCE. If they
+        # to ~/.gengar/.env), then continues straight into PKCE. If they
         # already have an app, it skips the wizard and just does OAuth.
         from types import SimpleNamespace
         try:
             from hermes_cli.auth import login_spotify_command
         except Exception as exc:
             _print_warning(f"    Could not load Spotify auth: {exc}")
-            _print_info("    Run manually: hermes auth spotify")
+            _print_info("    Run manually: gengar auth spotify")
             return
         _print_info("    Starting Spotify login...")
         try:
@@ -682,12 +682,12 @@ def _run_post_setup(post_setup_key: str):
             _print_success("    Spotify authenticated")
         except SystemExit as exc:
             # User aborted the wizard, or OAuth failed — don't fail the
-            # toolset enable; they can retry with `hermes auth spotify`.
+            # toolset enable; they can retry with `gengar auth spotify`.
             _print_warning(f"    Spotify login did not complete: {exc}")
-            _print_info("    Run later: hermes auth spotify")
+            _print_info("    Run later: gengar auth spotify")
         except Exception as exc:
             _print_warning(f"    Spotify login failed: {exc}")
-            _print_info("    Run manually: hermes auth spotify")
+            _print_info("    Run manually: gengar auth spotify")
 
     elif post_setup_key == "rl_training":
         try:
@@ -695,7 +695,7 @@ def _run_post_setup(post_setup_key: str):
         except ImportError:
             tinker_dir = PROJECT_ROOT / "tinker-atropos"
             if tinker_dir.exists() and (tinker_dir / "pyproject.toml").exists():
-                _print_info("    Installing tinker-atropos submodule...")
+                _print_info("    Installing tinker-atropos checkout...")
                 import subprocess
                 uv_bin = shutil.which("uv")
                 if uv_bin:
@@ -714,8 +714,8 @@ def _run_post_setup(post_setup_key: str):
                     _print_warning("    tinker-atropos install failed - run manually:")
                     _print_info('      uv pip install -e "./tinker-atropos"')
             else:
-                _print_warning("    tinker-atropos submodule not found - run:")
-                _print_info("      git submodule update --init --recursive")
+                _print_warning("    tinker-atropos checkout not found - run:")
+                _print_info("      place an Atropos-compatible checkout at ./tinker-atropos")
                 _print_info('      uv pip install -e "./tinker-atropos"')
 
     elif post_setup_key == "langfuse":
@@ -748,9 +748,9 @@ def _run_post_setup(post_setup_key: str):
                 _print_success("    Plugin observability/langfuse enabled")
         except Exception as exc:
             _print_warning(f"    Could not enable plugin automatically: {exc}")
-            _print_info("    Run manually: hermes plugins enable observability/langfuse")
-        _print_info("    Restart Hermes for tracing to take effect.")
-        _print_info("    Verify: hermes plugins list")
+            _print_info("    Run manually: gengar plugins enable observability/langfuse")
+        _print_info("    Restart Gengar for tracing to take effect.")
+        _print_info("    Verify: gengar plugins list")
 
 
 # ─── Platform / Toolset Helpers ───────────────────────────────────────────────
@@ -822,7 +822,7 @@ def _get_platform_tools(
             default_ts = plat_info["default_toolset"]
         else:
             # Plugin platform — derive toolset name from platform key
-            default_ts = f"hermes-{platform}"
+            default_ts = f"gengar-{platform}"
         toolset_names = [default_ts]
 
     # YAML may parse bare numeric names (e.g. ``12306:``) as int.
@@ -836,7 +836,7 @@ def _get_platform_tools(
     # If the saved list contains any configurable keys directly, the user
     # has explicitly configured this platform — use direct membership.
     # This avoids the subset-inference bug where composite toolsets like
-    # "hermes-cli" (which include all _HERMES_CORE_TOOLS) cause disabled
+    # "gengar-cli" (which include all _GENGAR_CORE_TOOLS) cause disabled
     # toolsets to re-appear as enabled.
     has_explicit_config = any(ts in configurable_keys for ts in toolset_names)
 
@@ -847,7 +847,7 @@ def _get_platform_tools(
         }
     else:
         # No explicit config — fall back to resolving composite toolset names
-        # (e.g. "hermes-cli") to individual tool names and reverse-mapping.
+        # (e.g. "gengar-cli") to individual tool names and reverse-mapping.
         all_tool_names = set()
         for ts_name in toolset_names:
             all_tool_names.update(resolve_toolset(ts_name))
@@ -883,10 +883,10 @@ def _get_platform_tools(
     # feishu_drive).  These are part of the platform's default composite but
     # absent from CONFIGURABLE_TOOLSETS, so they can't appear in the TUI
     # checklist or in a user-saved config.  Must run in BOTH branches —
-    # otherwise saving via `hermes tools` (which flips has_explicit_config
+    # otherwise saving via `gengar tools` (which flips has_explicit_config
     # to True) silently drops them.
     _plat_info = PLATFORMS.get(platform)
-    _default_ts = _plat_info["default_toolset"] if _plat_info else f"hermes-{platform}"
+    _default_ts = _plat_info["default_toolset"] if _plat_info else f"gengar-{platform}"
     platform_tool_universe = set(resolve_toolset(_default_ts))
     configurable_tool_universe = set()
     for ck in configurable_keys:
@@ -895,7 +895,7 @@ def _get_platform_tools(
     for ts_key in enabled_toolsets:
         claimed.update(resolve_toolset(ts_key))
     skip = configurable_keys | plugin_ts_keys | platform_default_keys
-    skip |= {k for k in TOOLSETS if k.startswith("hermes-")}
+    skip |= {k for k in TOOLSETS if k.startswith("gengar-")}
     skip |= set(_DEFAULT_OFF_TOOLSETS) - {platform}
     for ts_key, ts_def in TOOLSETS.items():
         if ts_key in skip:
@@ -913,9 +913,9 @@ def _get_platform_tools(
 
     # Plugin toolsets: enabled by default unless explicitly disabled, or
     # unless the toolset is in _DEFAULT_OFF_TOOLSETS (e.g. spotify —
-    # shipped as a bundled plugin but user must opt in via `hermes tools`
+    # shipped as a bundled plugin but user must opt in via `gengar tools`
     # so we don't ship 7 Spotify tool schemas to users who don't use it).
-    # A plugin toolset is "known" for a platform once `hermes tools`
+    # A plugin toolset is "known" for a platform once `gengar tools`
     # has been saved for that platform (tracked via known_plugin_toolsets).
     # Unknown plugins default to enabled; known-but-absent = disabled.
     if plugin_ts_keys:
@@ -929,7 +929,7 @@ def _get_platform_tools(
                 # Opt-in plugin toolset — stay off until user picks it
                 continue
             elif pts not in known_for_platform:
-                # New plugin not yet seen by hermes tools — default enabled
+                # New plugin not yet seen by gengar tools — default enabled
                 enabled_toolsets.add(pts)
             # else: known but not in config = user disabled it
 
@@ -1003,7 +1003,7 @@ def _save_platform_tools(config: dict, platform: str, enabled_toolset_keys: Set[
     plugin_keys = _get_plugin_toolset_keys()
     configurable_keys |= plugin_keys
 
-    # Also exclude platform default toolsets (hermes-cli, hermes-telegram, etc.)
+    # Also exclude platform default toolsets (gengar-cli, gengar-telegram, etc.)
     # These are "super" toolsets that resolve to ALL tools, so preserving them
     # would silently override the user's unchecked selections on the next read.
     platform_default_keys = {p["default_toolset"] for p in PLATFORMS.values()}
@@ -1020,7 +1020,7 @@ def _save_platform_tools(config: dict, platform: str, enabled_toolset_keys: Set[
         entry for entry in existing_toolsets
         if entry not in configurable_keys and entry not in platform_default_keys
     }
-    # Opening `hermes tools` is the user's opt-in to reconfigure tools, so treat
+    # Opening `gengar tools` is the user's opt-in to reconfigure tools, so treat
     # saving from the picker as consent to clear the "no_mcp" sentinel. The
     # picker has no checkbox for no_mcp, so without this users who once set it
     # by hand could never re-enable MCP servers through the UI.
@@ -2030,7 +2030,7 @@ def _reconfigure_simple_requirements(ts_key: str):
 # ─── Main Entry Point ─────────────────────────────────────────────────────────
 
 def tools_command(args=None, first_install: bool = False, config: dict = None):
-    """Entry point for `hermes tools` and `hermes setup tools`.
+    """Entry point for `gengar tools` and `gengar setup tools`.
 
     Args:
         first_install: When True (set by the setup wizard on fresh installs),
@@ -2065,10 +2065,10 @@ def tools_command(args=None, first_install: bool = False, config: dict = None):
                 print(color("    (none enabled)", Colors.DIM))
         print()
         return
-    print(color("⚕ Hermes Tool Configuration", Colors.CYAN, Colors.BOLD))
+    print(color("⚕ Gengar Tool Configuration", Colors.CYAN, Colors.BOLD))
     print(color("  Enable or disable tools per platform.", Colors.DIM))
     print(color("  Tools that need API keys will be configured when enabled.", Colors.DIM))
-    print(color("  Guide: https://hermes-agent.nousresearch.com/docs/user-guide/features/tools", Colors.DIM))
+    print(color("  Guide: https://github.com/jamesfincher/gengar/tree/main/website/docs/user-guide/features/tools", Colors.DIM))
     print()
 
     # ── First-time install: linear flow, no platform menu ──
@@ -2262,7 +2262,7 @@ def tools_command(args=None, first_install: bool = False, config: dict = None):
     print()
     from hermes_constants import display_hermes_home
     print(color(f"  Tool configuration saved to {display_hermes_home()}/config.yaml", Colors.DIM))
-    print(color("  Changes take effect on next 'hermes' or gateway restart.", Colors.DIM))
+    print(color("  Changes take effect on next 'gengar' or gateway restart.", Colors.DIM))
     print()
 
 

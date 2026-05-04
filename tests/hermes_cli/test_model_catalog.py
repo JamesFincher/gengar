@@ -12,11 +12,11 @@ import pytest
 
 @pytest.fixture
 def isolated_home(tmp_path, monkeypatch):
-    """Isolate HERMES_HOME + reset any module-level catalog cache per test."""
-    home = tmp_path / ".hermes"
+    """Isolate GENGAR_HOME + reset any module-level catalog cache per test."""
+    home = tmp_path / ".gengar"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("GENGAR_HOME", str(home))
 
     # Force a fresh catalog module state for each test.
     import importlib

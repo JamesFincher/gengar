@@ -1,27 +1,27 @@
 ---
 sidebar_position: 2
 title: "Installation"
-description: "Install Hermes Agent on Linux, macOS, WSL2, or Android via Termux"
+description: "Install Gengar on Linux, macOS, WSL2, or Android via Termux"
 ---
 
 # Installation
 
-Get Hermes Agent up and running in under two minutes with the one-line installer.
+Get Gengar up and running in under two minutes with the one-line installer.
 
 ## Quick Install
 
 ### Linux / macOS / WSL2
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/jamesfincher/gengar/main/scripts/install.sh | bash
 ```
 
 ### Android / Termux
 
-Hermes now ships a Termux-aware installer path too:
+Gengar now ships a Termux-aware installer path too:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/jamesfincher/gengar/main/scripts/install.sh | bash
 ```
 
 The installer detects Termux automatically and switches to a tested Android flow:
@@ -34,23 +34,23 @@ The installer detects Termux automatically and switches to a tested Android flow
 If you want the fully explicit path, follow the dedicated [Termux guide](./termux.md).
 
 :::warning Windows
-Native Windows is **not supported**. Please install [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) and run Hermes Agent from there. The install command above works inside WSL2.
+Native Windows is **not supported**. Please install [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) and run Gengar from there. The install command above works inside WSL2.
 :::
 
 ### What the Installer Does
 
-The installer handles everything automatically — all dependencies (Python, Node.js, ripgrep, ffmpeg), the repo clone, virtual environment, global `hermes` command setup, and LLM provider configuration. By the end, you're ready to chat.
+The installer handles everything automatically — all dependencies (Python, Node.js, ripgrep, ffmpeg), the repo clone, virtual environment, global `gengar` command setup, and LLM provider configuration. By the end, you're ready to chat.
 
 #### Install Layout
 
 Where the installer puts things depends on whether you're installing as a normal user or as root:
 
-| Installer | Code lives at | `hermes` binary | Data directory |
+| Installer | Code lives at | `gengar` binary | Data directory |
 |---|---|---|---|
-| Per-user (normal) | `~/.hermes/hermes-agent/` | `~/.local/bin/hermes` (symlink) | `~/.hermes/` |
-| Root-mode (`sudo curl … \| sudo bash`) | `/usr/local/lib/hermes-agent/` | `/usr/local/bin/hermes` | `/root/.hermes/` (or `$HERMES_HOME`) |
+| Per-user (normal) | `~/.gengar/gengar/` | `~/.local/bin/gengar` (symlink) | `~/.gengar/` |
+| Root-mode (`sudo curl … \| sudo bash`) | `/usr/local/lib/gengar/` | `/usr/local/bin/gengar` | `/root/.gengar/` (or `$GENGAR_HOME`) |
 
-The root-mode **FHS layout** (`/usr/local/lib/…`, `/usr/local/bin/hermes`) matches where other system-wide developer tools land on Linux. It's useful for shared-machine deployments where one system install should serve every user. Per-user config (auth, skills, sessions) still lives under each user's `~/.hermes/` or explicit `HERMES_HOME`.
+The root-mode **FHS layout** (`/usr/local/lib/…`, `/usr/local/bin/gengar`) matches where other system-wide developer tools land on Linux. It's useful for shared-machine deployments where one system install should serve every user. Per-user config (auth, skills, sessions) still lives under each user's `~/.gengar/` or explicit `GENGAR_HOME`.
 
 ### After Installation
 
@@ -58,17 +58,17 @@ Reload your shell and start chatting:
 
 ```bash
 source ~/.bashrc   # or: source ~/.zshrc
-hermes             # Start chatting!
+gengar             # Start chatting!
 ```
 
 To reconfigure individual settings later, use the dedicated commands:
 
 ```bash
-hermes model          # Choose your LLM provider and model
-hermes tools          # Configure which tools are enabled
-hermes gateway setup  # Set up messaging platforms
-hermes config set     # Set individual config values
-hermes setup          # Or run the full setup wizard to configure everything at once
+gengar model          # Choose your LLM provider and model
+gengar tools          # Configure which tools are enabled
+gengar gateway setup  # Set up messaging platforms
+gengar config set     # Set individual config values
+gengar setup          # Or run the full setup wizard to configure everything at once
 ```
 
 ---
@@ -103,8 +103,8 @@ If you want to clone the repo and install from source — for contributing, runn
 
 | Problem | Solution |
 |---------|----------|
-| `hermes: command not found` | Reload your shell (`source ~/.bashrc`) or check PATH |
-| `API key not set` | Run `hermes model` to configure your provider, or `hermes config set OPENROUTER_API_KEY your_key` |
-| Missing config after update | Run `hermes config check` then `hermes config migrate` |
+| `gengar: command not found` | Reload your shell (`source ~/.bashrc`) or check PATH |
+| `API key not set` | Run `gengar model` to configure your provider, or `gengar config set OPENROUTER_API_KEY your_key` |
+| Missing config after update | Run `gengar config check` then `gengar config migrate` |
 
-For more diagnostics, run `hermes doctor` — it will tell you exactly what's missing and how to fix it.
+For more diagnostics, run `gengar doctor` — it will tell you exactly what's missing and how to fix it.

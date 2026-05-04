@@ -17,7 +17,7 @@ Inspect codebases w/ pygount: LOC, languages, ratios.
 | Source | Bundled (installed by default) |
 | Path | `skills/github/codebase-inspection` |
 | Version | `1.0.0` |
-| Author | Hermes Agent |
+| Author | Gengar |
 | License | MIT |
 | Tags | `LOC`, `Code Analysis`, `pygount`, `Codebase`, `Metrics`, `Repository` |
 | Related skills | [`github-repo-management`](/docs/user-guide/skills/bundled/github/github-github-repo-management) |
@@ -25,7 +25,7 @@ Inspect codebases w/ pygount: LOC, languages, ratios.
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Gengar loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # Codebase Inspection with pygount
