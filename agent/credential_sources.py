@@ -4,7 +4,7 @@ Gengar seeds its credential pool from many places:
 
     env:<VAR>     — os.environ / ~/.gengar/.env
     claude_code   — ~/.claude/.credentials.json
-    hermes_pkce   — ~/.gengar/.anthropic_oauth.json
+    gengar_pkce   — ~/.gengar/.anthropic_oauth.json
     device_code   — auth.json providers.<provider> (nous, openai-codex, ...)
     qwen-cli      — ~/.qwen/oauth_creds.json
     gh_cli        — gh auth token
@@ -21,7 +21,7 @@ unify here is **removal**:
 Before this module, every source had an ad-hoc removal branch in
 ``auth_remove_command``, and several sources had no branch at all — so
 ``auth remove`` silently reverted on the next ``load_pool()`` call for
-qwen-cli, nous device_code (partial), hermes_pkce, copilot gh_cli, and
+qwen-cli, nous device_code (partial), Gengar PKCE, copilot gh_cli, and
 custom-config sources.
 
 Now every source registers a ``RemovalStep`` that does exactly three things
@@ -204,7 +204,7 @@ def _remove_claude_code(provider: str, removed) -> RemovalResult:
     ])
 
 
-def _remove_hermes_pkce(provider: str, removed) -> RemovalResult:
+def _remove_anthropic_pkce(provider: str, removed) -> RemovalResult:
     """~/.gengar/.anthropic_oauth.json is ours — delete it outright."""
     from hermes_constants import get_hermes_home
 
@@ -381,11 +381,15 @@ def _register_all_sources() -> None:
         remove_fn=_remove_claude_code,
         description="~/.claude/.credentials.json",
     ))
-    register(RemovalStep(
-        provider="anthropic", source_id="hermes_pkce",
-        remove_fn=_remove_hermes_pkce,
-        description="~/.gengar/.anthropic_oauth.json",
-    ))
+    from agent.credential_source_ids import ANTHROPIC_PKCE_SOURCES
+
+    for source_id in ANTHROPIC_PKCE_SOURCES:
+        register(RemovalStep(
+            provider="anthropic",
+            source_id=source_id,
+            remove_fn=_remove_anthropic_pkce,
+            description="~/.gengar/.anthropic_oauth.json",
+        ))
     register(RemovalStep(
         provider="nous", source_id="device_code",
         remove_fn=_remove_nous_device_code,

@@ -4,7 +4,7 @@
   perSystem =
     { pkgs, inputs', ... }:
     let
-      hermesAgent = pkgs.callPackage ./gengar.nix {
+      gengarPackage = pkgs.callPackage ./gengar.nix {
         inherit (inputs) uv2nix pyproject-nix pyproject-build-systems;
         npm-lockfile-fix = inputs'.npm-lockfile-fix.packages.default;
         # Only embed clean revs — dirtyRev doesn't represent any upstream
@@ -14,12 +14,12 @@
     in
     {
       packages = {
-        default = hermesAgent;
-        tui = hermesAgent.gengarTui;
-        web = hermesAgent.gengarWeb;
+        default = gengarPackage;
+        tui = gengarPackage.gengarTui;
+        web = gengarPackage.gengarWeb;
 
-        fix-lockfiles = hermesAgent.gengarNpmLib.mkFixLockfiles {
-          packages = [ hermesAgent.gengarTui hermesAgent.gengarWeb ];
+        fix-lockfiles = gengarPackage.gengarNpmLib.mkFixLockfiles {
+          packages = [ gengarPackage.gengarTui gengarPackage.gengarWeb ];
         };
       };
     };

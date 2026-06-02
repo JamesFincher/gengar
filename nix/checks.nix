@@ -7,7 +7,7 @@
   perSystem = { pkgs, lib, self', ... }:
     let
       gengar = self'.packages.default;
-      hermesVenv = gengar.gengarVenv;
+      gengarVenv = gengar.gengarVenv;
 
       configMergeScript = pkgs.callPackage ./configMergeScript.nix { };
 
@@ -15,7 +15,7 @@
       configKeys = pkgs.runCommand "gengar-config-keys" {} ''
         set -euo pipefail
         export HOME=$TMPDIR
-        ${hermesVenv}/bin/python3 -c '
+        ${gengarVenv}/bin/python3 -c '
 import json, sys
 from hermes_cli.config import DEFAULT_CONFIG
 
@@ -214,18 +214,18 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
         # Verify extraPythonPackages PYTHONPATH injection
         extra-python-packages = let
           testPkg = pkgs.python312Packages.pyfiglet;
-          hermesWithExtra = gengar.override {
+          gengarWithExtra = gengar.override {
             extraPythonPackages = [ testPkg ];
           };
         in pkgs.runCommand "gengar-extra-python-packages" { } ''
           set -e
           echo "=== Checking extraPythonPackages PYTHONPATH injection ==="
 
-          grep -q "PYTHONPATH" ${hermesWithExtra}/bin/gengar || \
+          grep -q "PYTHONPATH" ${gengarWithExtra}/bin/gengar || \
             (echo "FAIL: PYTHONPATH not in wrapper"; exit 1)
           echo "PASS: PYTHONPATH present in wrapper"
 
-          grep -q "${testPkg}" ${hermesWithExtra}/bin/gengar || \
+          grep -q "${testPkg}" ${gengarWithExtra}/bin/gengar || \
             (echo "FAIL: test package path not in PYTHONPATH"; exit 1)
           echo "PASS: test package path found in wrapper"
 
@@ -314,7 +314,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
             local hermes_home="$1"
             export GENGAR_HOME="$hermes_home"
             ${configMergeScript} ${nixSettings} "$hermes_home/config.yaml"
-            ${hermesVenv}/bin/python3 -c '
+            ${gengarVenv}/bin/python3 -c '
 import json, sys
 from hermes_cli.config import load_config
 json.dump(load_config(), sys.stdout, default=str)

@@ -39,6 +39,7 @@ agent-browser/
 privvy*
 images/
 __pycache__/
+gengar.egg-info/
 hermes_agent.egg-info/
 wandb/
 testlogs

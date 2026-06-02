@@ -175,7 +175,7 @@ class SingularityEnvironment(BaseEnvironment):
         super().__init__(cwd=cwd, timeout=timeout)
         self.executable = _ensure_singularity_available()
         self.image = _get_or_build_sif(image, self.executable)
-        self.instance_id = f"hermes_{uuid.uuid4().hex[:12]}"
+        self.instance_id = f"gengar_{uuid.uuid4().hex[:12]}"
         self._instance_started = False
         self._persistent = persistent_filesystem
         self._task_id = task_id

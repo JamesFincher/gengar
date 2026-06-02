@@ -634,7 +634,7 @@ class SlackAdapter(BasePlatformAdapter):
                 _slash_pattern = _re.compile(r"^/gengar$")
 
             @self._app.command(_slash_pattern)
-            async def handle_hermes_command(ack, command):
+            async def handle_gengar_command(ack, command):
                 slash = (command.get("command") or "").lstrip("/")
                 await ack(
                     response_type="ephemeral",
@@ -644,6 +644,10 @@ class SlackAdapter(BasePlatformAdapter):
 
             # Register Block Kit action handlers for approval buttons
             for _action_id in (
+                "gengar_approve_once",
+                "gengar_approve_session",
+                "gengar_approve_always",
+                "gengar_deny",
                 "hermes_approve_once",
                 "hermes_approve_session",
                 "hermes_approve_always",
@@ -654,6 +658,9 @@ class SlackAdapter(BasePlatformAdapter):
             # Register Block Kit action handlers for slash-confirm buttons
             # (generic three-option prompts; see tools/slash_confirm.py).
             for _action_id in (
+                "gengar_confirm_once",
+                "gengar_confirm_always",
+                "gengar_confirm_cancel",
                 "hermes_confirm_once",
                 "hermes_confirm_always",
                 "hermes_confirm_cancel",
@@ -2193,26 +2200,26 @@ class SlackAdapter(BasePlatformAdapter):
                             "type": "button",
                             "text": {"type": "plain_text", "text": "Allow Once"},
                             "style": "primary",
-                            "action_id": "hermes_approve_once",
+                            "action_id": "gengar_approve_once",
                             "value": session_key,
                         },
                         {
                             "type": "button",
                             "text": {"type": "plain_text", "text": "Allow Session"},
-                            "action_id": "hermes_approve_session",
+                            "action_id": "gengar_approve_session",
                             "value": session_key,
                         },
                         {
                             "type": "button",
                             "text": {"type": "plain_text", "text": "Always Allow"},
-                            "action_id": "hermes_approve_always",
+                            "action_id": "gengar_approve_always",
                             "value": session_key,
                         },
                         {
                             "type": "button",
                             "text": {"type": "plain_text", "text": "Deny"},
                             "style": "danger",
-                            "action_id": "hermes_deny",
+                            "action_id": "gengar_deny",
                             "value": session_key,
                         },
                     ],
@@ -2267,20 +2274,20 @@ class SlackAdapter(BasePlatformAdapter):
                             "type": "button",
                             "text": {"type": "plain_text", "text": "Approve Once"},
                             "style": "primary",
-                            "action_id": "hermes_confirm_once",
+                            "action_id": "gengar_confirm_once",
                             "value": value,
                         },
                         {
                             "type": "button",
                             "text": {"type": "plain_text", "text": "Always Approve"},
-                            "action_id": "hermes_confirm_always",
+                            "action_id": "gengar_confirm_always",
                             "value": value,
                         },
                         {
                             "type": "button",
                             "text": {"type": "plain_text", "text": "Cancel"},
                             "style": "danger",
-                            "action_id": "hermes_confirm_cancel",
+                            "action_id": "gengar_confirm_cancel",
                             "value": value,
                         },
                     ],
@@ -2331,6 +2338,9 @@ class SlackAdapter(BasePlatformAdapter):
         session_key, confirm_id = value.split("|", 1)
 
         choice_map = {
+            "gengar_confirm_once": "once",
+            "gengar_confirm_always": "always",
+            "gengar_confirm_cancel": "cancel",
             "hermes_confirm_once": "once",
             "hermes_confirm_always": "always",
             "hermes_confirm_cancel": "cancel",
@@ -2426,6 +2436,10 @@ class SlackAdapter(BasePlatformAdapter):
 
         # Map action_id to approval choice
         choice_map = {
+            "gengar_approve_once": "once",
+            "gengar_approve_session": "session",
+            "gengar_approve_always": "always",
+            "gengar_deny": "deny",
             "hermes_approve_once": "once",
             "hermes_approve_session": "session",
             "hermes_approve_always": "always",
@@ -2736,7 +2750,7 @@ class SlackAdapter(BasePlatformAdapter):
 
         # Stash the Slack response_url so the first reply for this
         # channel+user can be routed ephemerally (replaces the initial
-        # "Running /cmd…" ack shown by handle_hermes_command).
+        # "Running /cmd…" ack shown by handle_gengar_command).
         # Only stash for COMMAND events (text starts with "/") — free-form
         # questions via "/gengar <question>" must produce public replies so
         # the whole channel can see the agent's answer.

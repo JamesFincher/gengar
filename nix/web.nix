@@ -1,5 +1,5 @@
 # nix/web.nix — Gengar Web Dashboard (Vite/React) frontend build
-{ pkgs, hermesNpmLib, ... }:
+{ pkgs, gengarNpmLib ? hermesNpmLib, hermesNpmLib ? null, ... }:
 let
   src = ../web;
   npmDeps = pkgs.fetchNpmDeps {
@@ -7,7 +7,7 @@ let
     hash = "sha256-HWB1piIPglTXbzQHXFYHLgVZIbDb60esupXSQGa1+lI=";
   };
 
-  npm = hermesNpmLib.mkNpmPassthru { folder = "web"; attr = "web"; pname = "gengar-web"; };
+  npm = gengarNpmLib.mkNpmPassthru { folder = "web"; attr = "web"; pname = "gengar-web"; };
 
   packageJson = builtins.fromJSON (builtins.readFile (src + "/package.json"));
   version = packageJson.version;

@@ -493,8 +493,8 @@
         description = ''
           Python packages to add to PYTHONPATH for entry-point plugin discovery.
           These are pip-packaged plugins that register via the
-          hermes_agent.plugins entry-point group. Each package must be built
-          with the same Python interpreter as gengar (python312).
+          gengar.plugins entry-point group. Each package must be built with
+          the same Python interpreter as gengar (python312).
         '';
         example = literalExpression ''
           [

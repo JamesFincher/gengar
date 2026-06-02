@@ -144,7 +144,7 @@ def _get_session(task_id: Optional[str]) -> Dict[str, Any]:
             }
         else:
             session = {
-                "user_id": f"hermes_{uuid.uuid4().hex[:10]}",
+                "user_id": f"gengar_{uuid.uuid4().hex[:10]}",
                 "tab_id": None,
                 "session_key": f"task_{task_id[:16]}",
                 "managed": False,
@@ -598,6 +598,5 @@ def camofox_console(clear: bool = False, task_id: Optional[str] = None) -> str:
         "note": "Console log capture is not available with the Camofox backend. "
                 "Use browser_snapshot or browser_vision to inspect page state.",
     })
-
 
 

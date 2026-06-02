@@ -206,7 +206,7 @@ class TestMem0ResponseUnwrapping:
 class TestMem0Defaults:
     """Ensure we don't break existing users' defaults."""
 
-    def test_default_user_id_hermes_user(self, monkeypatch, tmp_path):
+    def test_default_user_id_gengar_user(self, monkeypatch, tmp_path):
         monkeypatch.setenv("MEM0_API_KEY", "test-key")
         monkeypatch.delenv("MEM0_USER_ID", raising=False)
         monkeypatch.setenv("GENGAR_HOME", str(tmp_path))

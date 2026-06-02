@@ -802,7 +802,7 @@ class TestProbeApiModelsUserAgent:
         mock_resp.read = MagicMock(return_value=body)
         return mock_resp
 
-    def test_probe_sends_hermes_user_agent(self):
+    def test_probe_sends_gengar_user_agent(self):
         from unittest.mock import patch
 
         body = b'{"data":[{"id":"claude-opus-4.7"}]}'

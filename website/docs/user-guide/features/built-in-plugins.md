@@ -18,7 +18,7 @@ The `PluginManager` scans four sources, in order:
 1. **Bundled** — `<repo>/plugins/<name>/` (what this page documents)
 2. **User** — `~/.gengar/plugins/<name>/`
 3. **Project** — `./.gengar/plugins/<name>/` (requires `GENGAR_ENABLE_PROJECT_PLUGINS=1`)
-4. **Pip entry points** — `hermes_agent.plugins`
+4. **Pip entry points** — `gengar.plugins`
 
 On name collision, later sources win — a user plugin named `disk-cleanup` would replace the bundled one.
 

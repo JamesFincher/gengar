@@ -189,7 +189,7 @@ class TestMem0UserIdScoping:
 
         assert provider._user_id == "custom-default"
 
-    def test_no_user_id_no_config_uses_hermes_user(self):
+    def test_no_user_id_no_config_uses_gengar_user(self):
         """Without user_id or config override, should default to 'gengar-user'."""
         from plugins.memory.mem0 import Mem0MemoryProvider
 
@@ -356,4 +356,3 @@ class TestAIAgentUserIdPropagation:
             agent = object.__new__(AIAgent)
             agent._user_id = None
             assert agent._user_id is None
-

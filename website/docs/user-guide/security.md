@@ -589,7 +589,7 @@ terminal:
   backend: ssh
   ssh_host: "agent-worker.local"
   ssh_user: "gengar"
-  ssh_key: "~/.ssh/hermes_agent_key"
+  ssh_key: "~/.ssh/gengar_agent_key"
 ```
 
 This keeps the gateway's messaging connections separate from the agent's command execution.

@@ -89,7 +89,7 @@ Project-local plugins under `./.gengar/plugins/` are disabled by default. Enable
 | Ship data files | `Path(__file__).parent / "data" / "file.yaml"` |
 | Bundle skills | `ctx.register_skill(name, path)` — namespaced as `plugin:skill`, loaded via `skill_view("plugin:skill")` |
 | Gate on env vars | `requires_env: [API_KEY]` in plugin.yaml — prompted during `gengar plugins install` |
-| Distribute via pip | `[project.entry-points."hermes_agent.plugins"]` |
+| Distribute via pip | `[project.entry-points."gengar.plugins"]` |
 
 ## Plugin discovery
 
@@ -98,7 +98,7 @@ Project-local plugins under `./.gengar/plugins/` are disabled by default. Enable
 | Bundled | `<repo>/plugins/` | Ships with Gengar — see [Built-in Plugins](/docs/user-guide/features/built-in-plugins) |
 | User | `~/.gengar/plugins/` | Personal plugins |
 | Project | `.gengar/plugins/` | Project-specific plugins (requires `GENGAR_ENABLE_PROJECT_PLUGINS=true`) |
-| pip | `hermes_agent.plugins` entry_points | Distributed packages |
+| pip | `gengar.plugins` entry_points | Distributed packages |
 | Nix | `services.gengar.extraPlugins` / `extraPythonPackages` | NixOS declarative installs — see [Nix Setup](/docs/getting-started/nix-setup#plugins) |
 
 Later sources override earlier ones on name collision, so a user plugin with the same name as a bundled plugin replaces it.

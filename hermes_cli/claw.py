@@ -39,11 +39,26 @@ _OPENCLAW_SCRIPT = (
     / "migration"
     / "openclaw-migration"
     / "scripts"
+    / "openclaw_to_gengar.py"
+)
+_OPENCLAW_SCRIPT_LEGACY = (
+    get_optional_skills_dir(PROJECT_ROOT / "optional-skills")
+    / "migration"
+    / "openclaw-migration"
+    / "scripts"
     / "openclaw_to_hermes.py"
 )
 
 # Fallback: user may have installed the skill from the Hub
 _OPENCLAW_SCRIPT_INSTALLED = (
+    get_hermes_home()
+    / "skills"
+    / "migration"
+    / "openclaw-migration"
+    / "scripts"
+    / "openclaw_to_gengar.py"
+)
+_OPENCLAW_SCRIPT_INSTALLED_LEGACY = (
     get_hermes_home()
     / "skills"
     / "migration"
@@ -194,8 +209,13 @@ _WORKSPACE_STATE_GLOBS = (
 
 
 def _find_migration_script() -> Path | None:
-    """Find the openclaw_to_hermes.py script in known locations."""
-    for candidate in [_OPENCLAW_SCRIPT, _OPENCLAW_SCRIPT_INSTALLED]:
+    """Find the OpenClaw-to-Gengar migration script in known locations."""
+    for candidate in [
+        _OPENCLAW_SCRIPT,
+        _OPENCLAW_SCRIPT_INSTALLED,
+        _OPENCLAW_SCRIPT_LEGACY,
+        _OPENCLAW_SCRIPT_INSTALLED_LEGACY,
+    ]:
         if candidate.exists():
             return candidate
     return None
@@ -203,7 +223,7 @@ def _find_migration_script() -> Path | None:
 
 def _load_migration_module(script_path: Path):
     """Dynamically load the migration script as a module."""
-    spec = importlib.util.spec_from_file_location("openclaw_to_hermes", script_path)
+    spec = importlib.util.spec_from_file_location("openclaw_to_gengar", script_path)
     if spec is None or spec.loader is None:
         return None
     mod = importlib.util.module_from_spec(spec)

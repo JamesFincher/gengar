@@ -10,8 +10,9 @@ Discovers, loads, and manages plugins from four sources:
 2. **User plugins**   – ``~/.gengar/plugins/<name>/``
 3. **Project plugins** – ``./.gengar/plugins/<name>/`` (opt-in via
    ``GENGAR_ENABLE_PROJECT_PLUGINS``)
-4. **Pip plugins**     – packages that expose the ``hermes_agent.plugins``
-   entry-point group.
+4. **Pip plugins**     – packages that expose the ``gengar.plugins``
+   entry-point group. The previous entry-point group is still scanned for
+   backward compatibility.
 
 Later sources override earlier ones on name collision, so a user or project
 plugin with the same name as a bundled plugin replaces it.
@@ -113,7 +114,9 @@ VALID_HOOKS: Set[str] = {
     "post_approval_response",
 }
 
-ENTRY_POINTS_GROUP = "hermes_agent.plugins"
+ENTRY_POINTS_GROUP = "gengar.plugins"
+LEGACY_ENTRY_POINTS_GROUP = "hermes_agent.plugins"
+ENTRY_POINTS_GROUPS = (ENTRY_POINTS_GROUP, LEGACY_ENTRY_POINTS_GROUP)
 
 _NS_PARENT = "hermes_plugins"
 
@@ -189,6 +192,7 @@ class PluginManifest:
     provides_hooks: List[str] = field(default_factory=list)
     source: str = ""        # "user", "project", or "entrypoint"
     path: Optional[str] = None
+    entry_point_group: str = ""
     # Plugin kind — see plugins.py module docstring for semantics.
     # ``standalone`` (default): hooks/tools of its own; opt-in via
     #                           ``plugins.enabled``.
@@ -211,6 +215,15 @@ class PluginManifest:
     # category plugin at ``plugins/image_gen/openai/`` the key is
     # ``image_gen/openai``. When empty, falls back to ``name``.
     key: str = ""
+
+
+def _select_entry_points(eps: Any, group: str) -> list:
+    """Return entry points for *group* across importlib.metadata variants."""
+    if hasattr(eps, "select"):
+        return list(eps.select(group=group))
+    if isinstance(eps, dict):
+        return list(eps.get(group, []))
+    return [ep for ep in eps if ep.group == group]
 
 
 @dataclass
@@ -915,22 +928,20 @@ class PluginManager:
         manifests: List[PluginManifest] = []
         try:
             eps = importlib.metadata.entry_points()
-            # Python 3.12+ returns a SelectableGroups; earlier returns dict
-            if hasattr(eps, "select"):
-                group_eps = eps.select(group=ENTRY_POINTS_GROUP)
-            elif isinstance(eps, dict):
-                group_eps = eps.get(ENTRY_POINTS_GROUP, [])
-            else:
-                group_eps = [ep for ep in eps if ep.group == ENTRY_POINTS_GROUP]
-
-            for ep in group_eps:
-                manifest = PluginManifest(
-                    name=ep.name,
-                    source="entrypoint",
-                    path=ep.value,
-                    key=ep.name,
-                )
-                manifests.append(manifest)
+            seen: set[str] = set()
+            for group in ENTRY_POINTS_GROUPS:
+                for ep in _select_entry_points(eps, group):
+                    if ep.name in seen:
+                        continue
+                    seen.add(ep.name)
+                    manifest = PluginManifest(
+                        name=ep.name,
+                        source="entrypoint",
+                        path=ep.value,
+                        key=ep.name,
+                        entry_point_group=group,
+                    )
+                    manifests.append(manifest)
         except Exception as exc:
             logger.debug("Entry-point scan failed: %s", exc)
 
@@ -1033,19 +1044,18 @@ class PluginManager:
     def _load_entrypoint_module(self, manifest: PluginManifest) -> types.ModuleType:
         """Load a pip-installed plugin via its entry-point reference."""
         eps = importlib.metadata.entry_points()
-        if hasattr(eps, "select"):
-            group_eps = eps.select(group=ENTRY_POINTS_GROUP)
-        elif isinstance(eps, dict):
-            group_eps = eps.get(ENTRY_POINTS_GROUP, [])
-        else:
-            group_eps = [ep for ep in eps if ep.group == ENTRY_POINTS_GROUP]
-
-        for ep in group_eps:
-            if ep.name == manifest.name:
-                return ep.load()
+        groups = (
+            (manifest.entry_point_group,) if manifest.entry_point_group
+            else ENTRY_POINTS_GROUPS
+        )
+        for group in groups:
+            for ep in _select_entry_points(eps, group):
+                if ep.name == manifest.name:
+                    return ep.load()
 
         raise ImportError(
-            f"Entry point '{manifest.name}' not found in group '{ENTRY_POINTS_GROUP}'"
+            f"Entry point '{manifest.name}' not found in group(s): "
+            f"{', '.join(groups)}"
         )
 
     # -----------------------------------------------------------------------

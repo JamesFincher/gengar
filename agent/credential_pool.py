@@ -32,6 +32,13 @@ from hermes_cli.auth import (
     read_credential_pool,
     write_credential_pool,
 )
+from agent.credential_source_ids import (
+    ANTHROPIC_PKCE_SOURCE,
+    ANTHROPIC_PKCE_SOURCES,
+    SOURCE_MANUAL,
+    current_source_for,
+    is_anthropic_pkce_source,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -53,8 +60,6 @@ STATUS_EXHAUSTED = "exhausted"
 
 AUTH_TYPE_OAUTH = "oauth"
 AUTH_TYPE_API_KEY = "api_key"
-
-SOURCE_MANUAL = "manual"
 
 STRATEGY_FILL_FIRST = "fill_first"
 STRATEGY_ROUND_ROBIN = "round_robin"
@@ -648,7 +653,7 @@ class CredentialPool:
 
                 refreshed = refresh_anthropic_oauth_pure(
                     entry.refresh_token,
-                    use_json=entry.source.endswith("hermes_pkce"),
+                    use_json=is_anthropic_pkce_source(entry.source),
                 )
                 updated = replace(
                     entry,
@@ -729,7 +734,7 @@ class CredentialPool:
                         from agent.anthropic_adapter import refresh_anthropic_oauth_pure
                         refreshed = refresh_anthropic_oauth_pure(
                             synced.refresh_token,
-                            use_json=synced.source.endswith("hermes_pkce"),
+                            use_json=is_anthropic_pkce_source(synced.source),
                         )
                         updated = replace(
                             synced,
@@ -1120,7 +1125,7 @@ def _normalize_pool_priorities(provider: str, entries: List[PooledCredential]) -
     source_rank = {
         "env:ANTHROPIC_TOKEN": 0,
         "env:CLAUDE_CODE_OAUTH_TOKEN": 1,
-        "hermes_pkce": 2,
+        ANTHROPIC_PKCE_SOURCE: 2,
         "claude_code": 3,
         "env:ANTHROPIC_API_KEY": 4,
     }
@@ -1175,11 +1180,18 @@ def _seed_from_singletons(provider: str, entries: List[PooledCredential]) -> Tup
         from agent.anthropic_adapter import read_claude_code_credentials, read_hermes_oauth_credentials
 
         for source_name, creds in (
-            ("hermes_pkce", read_hermes_oauth_credentials()),
+            (ANTHROPIC_PKCE_SOURCE, read_hermes_oauth_credentials()),
             ("claude_code", read_claude_code_credentials()),
         ):
             if creds and creds.get("accessToken"):
-                if _is_suppressed(provider, source_name):
+                if _is_suppressed(provider, source_name) or (
+                    source_name == ANTHROPIC_PKCE_SOURCE
+                    and any(
+                        _is_suppressed(provider, alias)
+                        for alias in ANTHROPIC_PKCE_SOURCES
+                        if alias != source_name
+                    )
+                ):
                     continue
                 active_sources.add(source_name)
                 changed |= _upsert_entry(
@@ -1477,7 +1489,7 @@ def _prune_stale_seeded_entries(entries: List[PooledCredential], active_sources:
         or entry.source in active_sources
         or not (
             entry.source.startswith("env:")
-            or entry.source in {"claude_code", "hermes_pkce"}
+            or entry.source in {"claude_code", *ANTHROPIC_PKCE_SOURCES}
         )
     ]
     if len(retained) == len(entries):
@@ -1563,16 +1575,26 @@ def load_pool(provider: str) -> CredentialPool:
     provider = (provider or "").strip().lower()
     raw_entries = read_credential_pool(provider)
     entries = [PooledCredential.from_dict(provider, payload) for payload in raw_entries]
+    changed = False
+    if provider == "anthropic":
+        normalized_entries = []
+        for entry in entries:
+            normalized_source = current_source_for(entry.source)
+            if normalized_source != entry.source:
+                entry = replace(entry, source=normalized_source)
+                changed = True
+            normalized_entries.append(entry)
+        entries = normalized_entries
 
     if provider.startswith(CUSTOM_POOL_PREFIX):
         # Custom endpoint pool — seed from custom_providers config and model config
         custom_changed, custom_sources = _seed_custom_pool(provider, entries)
-        changed = custom_changed
+        changed = changed or custom_changed
         changed |= _prune_stale_seeded_entries(entries, custom_sources)
     else:
         singleton_changed, singleton_sources = _seed_from_singletons(provider, entries)
         env_changed, env_sources = _seed_from_env(provider, entries)
-        changed = singleton_changed or env_changed
+        changed = changed or singleton_changed or env_changed
         changed |= _prune_stale_seeded_entries(entries, singleton_sources | env_sources)
         changed |= _normalize_pool_priorities(provider, entries)
 

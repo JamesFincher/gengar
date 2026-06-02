@@ -73,7 +73,7 @@ def _make_hermes_tree(root: Path) -> None:
 # ---------------------------------------------------------------------------
 
 class TestShouldExclude:
-    def test_excludes_hermes_agent(self):
+    def test_excludes_gengar_checkout(self):
         from hermes_cli.backup import _should_exclude
         assert _should_exclude(Path("gengar/run_agent.py"))
         assert _should_exclude(Path("gengar/.git/HEAD"))
@@ -179,7 +179,7 @@ class TestBackup:
             # Skins
             assert "skins/cyber.yaml" in names
 
-    def test_excludes_hermes_agent(self, tmp_path, monkeypatch):
+    def test_excludes_gengar_checkout(self, tmp_path, monkeypatch):
         """Backup does NOT include gengar/ directory."""
         hermes_home = tmp_path / ".gengar"
         hermes_home.mkdir()

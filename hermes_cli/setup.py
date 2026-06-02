@@ -2707,20 +2707,35 @@ _OPENCLAW_SCRIPT = (
     / "migration"
     / "openclaw-migration"
     / "scripts"
+    / "openclaw_to_gengar.py"
+)
+_OPENCLAW_SCRIPT_LEGACY = (
+    get_optional_skills_dir(PROJECT_ROOT / "optional-skills")
+    / "migration"
+    / "openclaw-migration"
+    / "scripts"
     / "openclaw_to_hermes.py"
 )
 
 
 def _load_openclaw_migration_module():
-    """Load the openclaw_to_hermes migration script as a module.
+    """Load the OpenClaw-to-Gengar migration script as a module.
 
     Returns the loaded module, or None if the script can't be loaded.
     """
-    if not _OPENCLAW_SCRIPT.exists():
+    script_path = next(
+        (
+            candidate
+            for candidate in (_OPENCLAW_SCRIPT, _OPENCLAW_SCRIPT_LEGACY)
+            if candidate.exists()
+        ),
+        None,
+    )
+    if script_path is None:
         return None
 
     spec = importlib.util.spec_from_file_location(
-        "openclaw_to_hermes", _OPENCLAW_SCRIPT
+        "openclaw_to_gengar", script_path
     )
     if spec is None or spec.loader is None:
         return None

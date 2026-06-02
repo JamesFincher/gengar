@@ -57,7 +57,7 @@ export function usePlugins() {
       // re-execute a previously cached <script> URL.
       const baseUrl = `/dashboard-plugins/${manifest.name}/${manifest.entry}`;
       const scriptSrc = import.meta.env.DEV
-        ? `${baseUrl}?hermes_dv=${Date.now()}`
+        ? `${baseUrl}?gengar_dv=${Date.now()}`
         : baseUrl;
       if (!import.meta.env.DEV) {
         if (loadedScripts.current.has(baseUrl)) continue;

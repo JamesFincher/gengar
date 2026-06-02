@@ -597,6 +597,9 @@ async def get_status():
     return {
         "version": __version__,
         "release_date": __release_date__,
+        "gengar_home": str(get_hermes_home()),
+        # Deprecated compatibility field for dashboard/API clients that have
+        # not yet switched to gengar_home.
         "hermes_home": str(get_hermes_home()),
         "config_path": str(get_config_path()),
         "env_path": str(get_env_path()),
@@ -636,7 +639,7 @@ _ACTION_LOG_FILES: Dict[str, str] = {
 _ACTION_PROCS: Dict[str, subprocess.Popen] = {}
 
 
-def _spawn_hermes_action(subcommand: List[str], name: str) -> subprocess.Popen:
+def _spawn_gengar_action(subcommand: List[str], name: str) -> subprocess.Popen:
     """Spawn ``gengar <subcommand>`` detached and record the Popen handle.
 
     Uses the running interpreter's ``hermes_cli.main`` module so the action
@@ -690,7 +693,7 @@ def _tail_lines(path: Path, n: int) -> List[str]:
 async def restart_gateway():
     """Kick off a ``gengar gateway restart`` in the background."""
     try:
-        proc = _spawn_hermes_action(["gateway", "restart"], "gateway-restart")
+        proc = _spawn_gengar_action(["gateway", "restart"], "gateway-restart")
     except Exception as exc:
         _log.exception("Failed to spawn gateway restart")
         raise HTTPException(status_code=500, detail=f"Failed to restart gateway: {exc}")
@@ -705,7 +708,7 @@ async def restart_gateway():
 async def update_hermes():
     """Kick off ``gengar update`` in the background."""
     try:
-        proc = _spawn_hermes_action(["update"], "gengar-update")
+        proc = _spawn_gengar_action(["update"], "gengar-update")
     except Exception as exc:
         _log.exception("Failed to spawn gengar update")
         raise HTTPException(status_code=500, detail=f"Failed to start update: {exc}")
@@ -1331,9 +1334,11 @@ def _anthropic_oauth_status() -> Dict[str, Any]:
         except Exception:
             hermes_creds = None
     if hermes_creds and hermes_creds.get("accessToken"):
+        from agent.credential_source_ids import ANTHROPIC_PKCE_SOURCE
+
         return {
             "logged_in": True,
-            "source": "hermes_pkce",
+            "source": ANTHROPIC_PKCE_SOURCE,
             "source_label": f"Gengar PKCE ({_GENGAR_OAUTH_FILE})",
             "token_preview": _truncate_token(hermes_creds.get("accessToken")),
             "expires_at": hermes_creds.get("expiresAt"),
@@ -1519,7 +1524,7 @@ async def list_oauth_providers():
         docs_url        external docs/portal link for the "Learn more" link
         status:
           logged_in        bool — currently has usable creds
-          source           short slug ("hermes_pkce", "claude_code", ...)
+          source           short slug ("gengar_pkce", "claude_code", ...)
           source_label     human-readable origin (file path, env var name)
           token_preview    last N chars of the token, never the full token
           expires_at       ISO timestamp string or null

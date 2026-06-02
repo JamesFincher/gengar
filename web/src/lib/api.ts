@@ -353,6 +353,8 @@ export interface StatusResponse {
   gateway_running: boolean;
   gateway_state: string | null;
   gateway_updated_at: string | null;
+  gengar_home: string;
+  /** @deprecated use gengar_home */
   hermes_home: string;
   latest_config_version: number;
   release_date: string;
